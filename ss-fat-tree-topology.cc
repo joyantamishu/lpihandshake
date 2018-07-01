@@ -267,23 +267,27 @@ void FatTreeTopology::SetUpNodeUtilizationStatistics()
 
 void FatTreeTopology::SetUpInitialOpmizationVariables()
 {
-	BaseTopology::p= new Pod[Ipv4GlobalRouting::FatTree_k];
-	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
-	uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
-
-	for(uint32_t i=0;i<(uint32_t)Ipv4GlobalRouting::FatTree_k;i++)
+	if(BaseTopology::createflag==false)
 	{
+		BaseTopology::p= new Pod[Ipv4GlobalRouting::FatTree_k];
+		uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
+		uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
 
-		BaseTopology::p[i].nodes = new Fat_tree_Node[nodes_in_pod];
-		BaseTopology::p[i].pod_number = (int) i;
-	}
-	for(uint32_t i = 0; i<number_of_hosts; i++)
-	{
-		uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
-		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
-		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
-		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
-		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+		for(uint32_t i=0;i<(uint32_t)Ipv4GlobalRouting::FatTree_k;i++)
+		{
+
+			BaseTopology::p[i].nodes = new Fat_tree_Node[nodes_in_pod];
+			BaseTopology::p[i].pod_number = (int) i;
+		}
+		for(uint32_t i = 0; i<number_of_hosts; i++)
+		{
+			uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
+			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
+			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
+			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
+			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+		}
+		BaseTopology::createflag=true;
 	}
 
 //	for(uint32_t i = 0; i<number_of_hosts; i++)

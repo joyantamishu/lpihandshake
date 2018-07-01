@@ -201,6 +201,8 @@ public:
 	}
 };
 
+
+
 class ApplicationMetrics
 {
 public:
@@ -213,11 +215,14 @@ public:
 		this->total_flows = 0;
 	}
 };
+
+
 /*
  *
  */
 class BaseTopology {
 public:
+
 	/**
 	 * \brief Constructor. (k = number of hosts per pod)
 	 */
@@ -274,6 +279,11 @@ public:
 	static Ptr<RandomVariableStream> application_selector;
 
 	static Pod *p;
+
+	static void calculateNewLocation(int incrDcr,uint32_t *src, uint32_t *dest, uint32_t *chunk_no); //this function will set the variable Tuple t
+
+	static bool createflag;
+
 
 	static double popularity_change_simulation_interval;
 

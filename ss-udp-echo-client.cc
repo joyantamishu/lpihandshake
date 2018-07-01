@@ -325,6 +325,11 @@ void ssUdpEchoClient::StartApplication() {
 				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
 			}
 		}
+
+		int incrDcr=1;
+		uint32_t src=999,dest=999,chunk_no=999;
+		BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+		//NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
 //		uint32_t chunk_value = ns3::BaseTopology::chunk_assignment_to_applications[application_index][i];
 //
 //		uint32_t chunk_location = getChunkLocation(chunk_value, &version);
@@ -420,6 +425,11 @@ void ssUdpEchoClient::StopApplication(void) {
 					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
 				}
 			}
+			int incrDcr=0;
+			uint32_t src=999,dest=999,chunk_no=999;
+			BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+			//NS_LOG_UNCOND(" dec --- src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+
 
 //			uint32_t chunk_value = ns3::BaseTopology::chunk_assignment_to_applications[application_index][i];
 //
