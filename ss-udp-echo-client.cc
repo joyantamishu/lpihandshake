@@ -192,23 +192,23 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	for (std::vector<chunk_info>::iterator it = BaseTopology::chunkTracker.begin() ; it != BaseTopology::chunkTracker.end(); ++it)
 	{
 		uint32_t chunk_location = it->logical_node_id;
-		if(it->number_of_copy > 0)
-		{
-
-			//provide some algorithm here
-			int current_time = Simulator::Now().ToInteger(Time::US);
-			possible_dest = new uint32_t[it->number_of_copy+1];
-			int count = 0;
-			for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin() ; itr != BaseTopology::chunkCopyLocations.end(); ++itr)
-			{
-				if(itr->chunk_id == it->chunk_no)
-				{
-					possible_dest[count] = itr->location;
-					count++;
-				}
-			}
-			chunk_location = possible_dest[current_time%it->number_of_copy];
-		}
+//		if(it->number_of_copy > 0)
+//		{
+//
+//			//provide some algorithm here
+//			int current_time = Simulator::Now().ToInteger(Time::US);
+//			possible_dest = new uint32_t[it->number_of_copy+1];
+//			int count = 0;
+//			for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin() ; itr != BaseTopology::chunkCopyLocations.end(); ++itr)
+//			{
+//				if(itr->chunk_id == it->chunk_no)
+//				{
+//					possible_dest[count] = itr->location;
+//					count++;
+//				}
+//			}
+//			chunk_location = possible_dest[current_time%it->number_of_copy];
+//		}
 
 		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number));
 	}
@@ -284,7 +284,7 @@ void ssUdpEchoClient::StartApplication() {
 	NS_LOG_FUNCTION(this);
 	BaseTopology::total_appication++;
 
-	ChangePopularity();
+	//ChangePopularity();
 	ChangeIntensity();
 
 	//NS_LOG_UNCOND("%^&%&^%&^^&^&^&*^ "<<m_flowRequiredBW);
@@ -326,34 +326,30 @@ void ssUdpEchoClient::StartApplication() {
 			}
 		}
 
-		int incrDcr=1;
-		uint32_t src=999,dest=999,chunk_no=999;
-		BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
-		//NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
-//		uint32_t chunk_value = ns3::BaseTopology::chunk_assignment_to_applications[application_index][i];
-//
-//		uint32_t chunk_location = getChunkLocation(chunk_value, &version);
-//
-//		double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
-//
-//		Ipv4GlobalRouting::host_utilization[chunk_location] += bandwidth_distribution;
-//
-//		//////Update the struct value///////////////
-//
-//		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
-//		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-//		{
-//			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
-//			{
-//
-//				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
-//			}
-//		}
 
-		//NS_LOG_UNCOND("The assigned bw is "<<ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * m_flowRequiredBW);
+
 	}
+
+	int incrDcr=1;
+	uint32_t src=999,dest=999,chunk_no=999;
+	BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+
+
+	if(src != 999)
+	{
+		NS_LOG_UNCOND("++++++++");
+
+		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+
+		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+
+		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
+		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+	}
+
+	//calling the optimizer
+
 
 	/*
 	 * Set inter_flow interval & inter-packet interval to some random distribution...
@@ -425,34 +421,32 @@ void ssUdpEchoClient::StopApplication(void) {
 					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
 				}
 			}
-			int incrDcr=0;
-			uint32_t src=999,dest=999,chunk_no=999;
-			BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
-			//NS_LOG_UNCOND(" dec --- src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
 
 
-//			uint32_t chunk_value = ns3::BaseTopology::chunk_assignment_to_applications[application_index][i];
-//
-//			uint32_t chunk_location = getChunkLocation(chunk_value, &version);
-//
-//			//NS_LOG_UNCOND("The chunk Location is "<<chunk_location<<" "<<chunk_value);
-//
-//			double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
-//
-//			Ipv4GlobalRouting::host_utilization[chunk_location] -= bandwidth_distribution;
-//
-//
-//			uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//			uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
-//			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-//			{
-//				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
-//				{
-//					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
-//				}
-//			}
 		}
+		int incrDcr=0;
+		uint32_t src=999,dest=999,chunk_no=999;
+		BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+
+		if(src != 999)
+		{
+			NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
+			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
+			{
+					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
+					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+			}
+
+			else
+			{
+				NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+			}
+
+			NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+
+		}
+		//calling the optimizer
+
 
 		//Simulator::Cancel(m_sendEvent);
 		SendLastPacket();
