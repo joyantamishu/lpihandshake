@@ -78,46 +78,47 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			Ipv4GlobalRouting::flow_map.at(m_flowId).delaysum += delay_by_packet;
 
-			if(BaseTopology::chunkTracker.at(packet->sub_flow_id).number_of_copy > 0 && !m_lastPacket)
-			{
-				std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin();
-
-				for( ; itr != BaseTopology::chunkCopyLocations.end(); ++itr)
-				{
-					//track the retrying packets
-					if(itr->chunk_id == packet->sub_flow_id && itr->location == packet->sub_flow_dest)
-					{
-						//NS_LOG_UNCOND("&&&&&&&&&&^^^^^^^^^^^^&(&&&&&&&&&^^%^"<<packet->sub_flow_id<<" "<<packet->sub_flow_dest);
-						break;
-
-					}
-				}
-
-				if(packet->is_write)
-				{
-					if(BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number == itr->version)
-					{
-						BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number++;
-						//itr->version++;
-					}
-					if(BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number > itr->version) itr->version++;
-
-
-
-				}
-
-				else
-				{
-
-					if(BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number > itr->version)
-					{
-						//NS_LOG_UNCOND("&&&&&&&&&&%^^^^^^^^^^^^&(&&&&&&&&&^^%^ Read version "<<BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number<<" "<<itr->version);
-						BaseTopology::num_of_retried_packets++;
-
-
-					}
-				}
-			}
+			// gonna change it later
+//			if(BaseTopology::chunkTracker.at(packet->sub_flow_id).number_of_copy > 0 && !m_lastPacket)
+//			{
+//				std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin();
+//
+//				for( ; itr != BaseTopology::chunkCopyLocations.end(); ++itr)
+//				{
+//					//track the retrying packets
+//					if(itr->chunk_id == packet->sub_flow_id && itr->location == packet->sub_flow_dest)
+//					{
+//						//NS_LOG_UNCOND("&&&&&&&&&&^^^^^^^^^^^^&(&&&&&&&&&^^%^"<<packet->sub_flow_id<<" "<<packet->sub_flow_dest);
+//						break;
+//
+//					}
+//				}
+//
+//				if(packet->is_write)
+//				{
+//					if(BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number == itr->version)
+//					{
+//						BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number++;
+//						//itr->version++;
+//					}
+//					if(BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number > itr->version) itr->version++;
+//
+//
+//
+//				}
+//
+//				else
+//				{
+//
+//					if(BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number > itr->version)
+//					{
+//						//NS_LOG_UNCOND("&&&&&&&&&&%^^^^^^^^^^^^&(&&&&&&&&&^^%^ Read version "<<BaseTopology::chunkTracker.at(packet->sub_flow_id).version_number<<" "<<itr->version);
+//						BaseTopology::num_of_retried_packets++;
+//
+//
+//					}
+//				}
+//			}
 
 			//NS_LOG_UNCOND("creation_time "<<packet->creation_time);
 			if (m_lastPacket) {

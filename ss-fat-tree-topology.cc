@@ -87,19 +87,79 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		/*****************The struct set up ***********************/
 
-		uint32_t pod = (uint32_t) floor((double) logical_node_id/ (double) Ipv4GlobalRouting::FatTree_k);
-
-		uint32_t node = logical_node_id % Ipv4GlobalRouting::FatTree_k;
-
-		uint32_t chunk_index = BaseTopology::p[pod].nodes[node].total_chunks;
-
-		BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number = index;
-
-		BaseTopology::p[pod].nodes[node].total_chunks++;
+//		uint32_t pod = (uint32_t) floor((double) logical_node_id/ (double) Ipv4GlobalRouting::FatTree_k);
+//
+//		uint32_t node = logical_node_id % Ipv4GlobalRouting::FatTree_k;
+//
+//		uint32_t chunk_index = BaseTopology::p[pod].nodes[node].total_chunks;
+//
+//		BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number = index;
+//
+//		BaseTopology::p[pod].nodes[node].total_chunks++;
 
 //
 		//NS_LOG_UNCOND(host_id<<" "<<corresponding_ip);
 	}
+
+	FILE *fp;
+	char str[MAXCHAR];
+	const char* filename = "data.txt";
+
+	fp = fopen(filename, "r");
+	if (fp == NULL){
+		printf("Could not open file %s",filename);
+		return;
+	}
+	char * pch;
+	while (fgets(str, MAXCHAR, fp) != NULL)
+	{
+		if((int)strlen(str) > 1)
+		{
+			pch = strtok (str," ,;");
+			uint32_t count = 0;
+			uint32_t value = 0;
+
+			uint32_t logical_host_number;
+			uint32_t physical_host_number;
+
+			uint32_t pod;
+			uint32_t node;
+			//printf("%s\n", pch);
+
+			while (pch != NULL)
+			{
+				sscanf(pch,"%d",&value);
+				if(count == 0)
+				{
+					logical_host_number = value;
+					physical_host_number = hosts.Get(logical_host_number)->GetId();
+					pod = (uint32_t) floor((double) logical_host_number/ (double) Ipv4GlobalRouting::FatTree_k);
+					node = logical_host_number % Ipv4GlobalRouting::FatTree_k;
+					printf("The node id %d\n", value);
+				}
+				else
+				{
+					value = value -1;
+					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number;
+					BaseTopology::chunkTracker.at(value).node_id = physical_host_number;
+
+					BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value;
+					//
+					BaseTopology::p[pod].nodes[node].total_chunks++;
+
+					printf ("%d\n",value);
+
+				}
+				count++;
+				//NS_LOG_UNCOND("The count is "<<count);
+				pch = strtok (NULL, " ,.-");
+
+			}
+		}
+		//printf("The line length %d\n", (int)strlen(str));
+
+	}
+	fclose(fp);
 
 	ns3::BaseTopology::Popularity_Change_Random_Variable->SetAttribute("Min", DoubleValue(0));
 	ns3::BaseTopology::Popularity_Change_Random_Variable->SetAttribute("Max", DoubleValue(simulationRunProperties::total_chunk-1));
@@ -183,10 +243,10 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 {
 	uint32_t total_applications = simulationRunProperties::total_applications;
 
-	application_assigner = CreateObject<UniformRandomVariable>();
-	application_assigner->SetAttribute("Min", DoubleValue(0));
-	application_assigner->SetAttribute("Max", DoubleValue(hosts.GetN() - 1));
-
+//	application_assigner = CreateObject<UniformRandomVariable>();
+//	application_assigner->SetAttribute("Min", DoubleValue(0));
+//	application_assigner->SetAttribute("Max", DoubleValue(hosts.GetN() - 1));
+//
 	ns3::BaseTopology::application_selector->SetAttribute("Min", DoubleValue(0));
 	ns3::BaseTopology::application_selector->SetAttribute("Max", DoubleValue(simulationRunProperties::total_applications));
 
@@ -195,31 +255,84 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 
 
 	uint32_t total_hosts = hosts.GetN();
-
-	printf("The total number of hosts %d\n", total_hosts);
-
-
+//
+//	printf("The total number of hosts %d\n", total_hosts);
+//
+//
 	for(uint32_t i = 0;i<total_hosts;i++)
 	{
-		ns3::BaseTopology::application_assignment_to_node[i] = new uint32_t[total_applications];
+		ns3::BaseTopology::application_assignment_to_node[i] = new uint32_t[total_applications+1];
 		ns3::BaseTopology::application_assignment_to_node[i][0] = 0;
 
 	}
 
-	for(uint32_t index= 0 ; index <total_applications; index++)
-	{
-		int host = (int)application_assigner->GetInteger();
-		int array_index = ns3::BaseTopology::application_assignment_to_node[host][0] + 1;
-		ns3::BaseTopology::application_assignment_to_node[host][0]++;
-		ns3::BaseTopology::application_assignment_to_node[host][array_index] = index;
+//	for(uint32_t index= 0 ; index <total_applications; index++)
+//	{
+//		int host = (int)application_assigner->GetInteger();
+//		int array_index = ns3::BaseTopology::application_assignment_to_node[host][0] + 1;
+//		ns3::BaseTopology::application_assignment_to_node[host][0]++;
+//		ns3::BaseTopology::application_assignment_to_node[host][array_index] = index;
+////
+//		NS_LOG_UNCOND(" host "<<" "<<host);
+//	}
 //
-		//NS_LOG_UNCOND(host_id<<" "<<corresponding_ip);
+//	for(uint32_t index= 0 ; index <total_hosts; index++)
+//	{
+//		printf("host %d has %d applications\n",index, ns3::BaseTopology::application_assignment_to_node[index][0]);
+//	}
+	FILE *fp;
+	char str[MAXCHAR];
+	const char* filename = "app.txt";
+
+	fp = fopen(filename, "r");
+	if (fp == NULL){
+		printf("Could not open file %s",filename);
+		return;
+	}
+	char * pch;
+	while (fgets(str, MAXCHAR, fp) != NULL)
+	{
+		if((int)strlen(str) > 1)
+		{
+			uint32_t value = 0;
+			uint32_t count = 0;
+
+			uint32_t host;
+//			/printf("The string is %s\n", str);
+			pch = strtok (str," ,;");
+
+			while (pch != NULL)
+			{
+				sscanf(pch,"%d",&value);
+				printf ("**%d\n",value);
+				if(count == 0)
+				{
+					host = value;
+
+					//printf("The node id %d\n", value);
+				}
+				else
+				{
+					value = value - 1;
+					ns3::BaseTopology::application_assignment_to_node[host][0]++;
+					ns3::BaseTopology::application_assignment_to_node[host][count] = value;
+					//printf ("**%d\n",value);
+				}
+				count++;
+				pch = strtok (NULL, " ,.-\n");
+
+			}
+		}
+
+		else
+		{
+			printf("End of line \n");
+		}
+
 	}
 
-	for(uint32_t index= 0 ; index <total_hosts; index++)
-	{
-		printf("host %d has %d applications\n",index, ns3::BaseTopology::application_assignment_to_node[index][0]);
-	}
+	fclose(fp);
+
 }
 
 void FatTreeTopology::SetUpIntensityPhraseChangeVariables()

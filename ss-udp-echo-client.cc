@@ -192,23 +192,6 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	for (std::vector<chunk_info>::iterator it = BaseTopology::chunkTracker.begin() ; it != BaseTopology::chunkTracker.end(); ++it)
 	{
 		uint32_t chunk_location = it->logical_node_id;
-//		if(it->number_of_copy > 0)
-//		{
-//
-//			//provide some algorithm here
-//			int current_time = Simulator::Now().ToInteger(Time::US);
-//			possible_dest = new uint32_t[it->number_of_copy+1];
-//			int count = 0;
-//			for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin() ; itr != BaseTopology::chunkCopyLocations.end(); ++itr)
-//			{
-//				if(itr->chunk_id == it->chunk_no)
-//				{
-//					possible_dest[count] = itr->location;
-//					count++;
-//				}
-//			}
-//			chunk_location = possible_dest[current_time%it->number_of_copy];
-//		}
 
 		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number));
 	}
@@ -339,9 +322,9 @@ void ssUdpEchoClient::StartApplication() {
 	{
 		NS_LOG_UNCOND("++++++++");
 
-		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
 
-		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+		//BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
 
 		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
 		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
@@ -433,8 +416,8 @@ void ssUdpEchoClient::StopApplication(void) {
 			NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
 			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
 			{
-					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+					//BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
+					//BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
 			}
 
 			else

@@ -8,6 +8,8 @@
 #ifndef SS_FATTREE_TOPOLOGY_H_
 #define SS_FATTREE_TOPOLOGY_H_
 
+#define MAXCHAR 100000
+
 #include "ss-base-topology.h"
 
 namespace ns3 {
