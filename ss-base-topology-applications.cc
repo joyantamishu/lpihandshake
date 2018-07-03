@@ -291,7 +291,9 @@ void BaseTopology::InjectANewRandomFlow(void) {
 			"FlowDuration::type [" << m_flowStopDurationTimer->GetInstanceTypeId() << "] t_appStopTimeRandom [" << t_appStopTimeRandom << "] RandomBW::type [" << m_randomBWVariable->GetInstanceTypeId() << "] t_reqBW [" << t_reqBW << "]\n");
 
 	// get random client & server nodes
-	t_b = getRandomClientNode(t_reqBW);
+
+	uint32_t application_id;
+	t_b = getCustomizedRandomClientNode(application_id);
 	if (t_b < 0) {
 		// if returns NO suitable host found, abandon new flow...
 		SS_APPLIC_LOG(
@@ -319,7 +321,7 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	t_echoClient->SetAttribute("RemoteHost", UintegerValue(t_server->GetId()));
 	t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(m_flowCount));
 	t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(t_reqBW));
-	t_allClientApps = t_echoClient->Install(t_client,false, t_b);
+	t_allClientApps = t_echoClient->Install(t_client,false, t_b, application_id);
 
 	t_clientApp = DynamicCast<ssUdpEchoClient>(t_allClientApps.Get(0));
 	t_clientApp->RegisterStartNewFlow_CallbackSS(

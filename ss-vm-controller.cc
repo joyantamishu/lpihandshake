@@ -40,6 +40,27 @@ int BaseTopology::getRandomClientNode(void) {
 	return m_randomClientNodeSelector->GetInteger();
 }
 
+uint32_t BaseTopology::getCustomizedRandomClientNode(uint32_t &application_id)
+{
+	uint32_t total_hosts = hosts.GetN();
+
+	uint32_t app_id = ns3::BaseTopology::application_selector -> GetInteger();
+
+	application_id = app_id;
+	for (uint32_t i =0;i<total_hosts;i++)
+	{
+		for(uint32_t index =1; index <=ns3::BaseTopology::application_assignment_to_node[i][0];index++)
+		{
+			if(app_id == ns3::BaseTopology::application_assignment_to_node[i][index])
+			{
+				return i;
+			}
+		}
+	}
+
+	return 0;
+}
+
 /*************************************************************/
 int BaseTopology::getRandomClientNode(const int &reqBW) {
 	NS_LOG_FUNCTION(this << reqBW);

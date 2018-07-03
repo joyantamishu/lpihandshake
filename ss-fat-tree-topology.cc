@@ -248,7 +248,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 //	application_assigner->SetAttribute("Max", DoubleValue(hosts.GetN() - 1));
 //
 	ns3::BaseTopology::application_selector->SetAttribute("Min", DoubleValue(0));
-	ns3::BaseTopology::application_selector->SetAttribute("Max", DoubleValue(simulationRunProperties::total_applications));
+	ns3::BaseTopology::application_selector->SetAttribute("Max", DoubleValue(simulationRunProperties::total_applications-1));
 
 
 

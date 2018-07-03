@@ -429,6 +429,10 @@ protected:
 	Ipv4Address t_addr;
 	int t_a, t_b, t_x, t_i, t_reqBW;
 
+	//chunk specific change
+
+	virtual uint32_t getCustomizedRandomClientNode(uint32_t &application_id);
+
 
 };
 

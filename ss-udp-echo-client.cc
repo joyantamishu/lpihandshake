@@ -78,8 +78,8 @@ void ssUdpEchoClientHelper::SetAttribute(std::string name,
 	m_factory.Set(name, value);
 }
 
-ApplicationContainer ssUdpEchoClientHelper::Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node) const {
-	return ApplicationContainer(InstallPriv(node,single_destination_flow, source_node));
+ApplicationContainer ssUdpEchoClientHelper::Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id) const {
+	return ApplicationContainer(InstallPriv(node,single_destination_flow, source_node, app_id));
 }
 
 ApplicationContainer ssUdpEchoClientHelper::Install(NodeContainer c) const {
@@ -94,26 +94,20 @@ ApplicationContainer ssUdpEchoClientHelper::Install(NodeContainer c) const {
 	return apps;
 }
 
-Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node) const {
+Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id) const {
 	Ptr<ssUdpEchoClient> app = m_factory.Create<ssUdpEchoClient>();
 
 	NS_LOG_UNCOND("The source node is "<<source_node);
 
 	app->node_index = source_node;
 
-	uint32_t random_application_id = ns3::BaseTopology::application_selector->GetInteger();
 
-	NS_LOG_UNCOND("The random_application_id is "<<random_application_id);
+
+	NS_LOG_UNCOND("The random_application_id is "<<app_id);
 
 	//NS_LOG_UNCOND("ns3::BaseTopology::application_assignment[source_node][0] "<<ns3::BaseTopology::application_assignment[source_node][0]);
 
-	if(ns3::BaseTopology::application_assignment_to_node[source_node][0]>0)
-	{
-		app->application_index = random_application_id % ns3::BaseTopology::application_assignment_to_node[source_node][0];
-		app->application_index = ns3::BaseTopology::application_assignment_to_node[source_node][app->application_index+1];
-	}
-
-	else app->application_index = -1;
+	app->application_index = app_id;
 
 
 	app->consistency_flow = single_destination_flow;
@@ -322,9 +316,9 @@ void ssUdpEchoClient::StartApplication() {
 	{
 		NS_LOG_UNCOND("++++++++");
 
-		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
 
-		//BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
 
 		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
 		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
@@ -416,8 +410,8 @@ void ssUdpEchoClient::StopApplication(void) {
 			NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
 			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
 			{
-					//BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-					//BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
+					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
 			}
 
 			else

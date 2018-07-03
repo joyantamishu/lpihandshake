@@ -50,11 +50,11 @@ public:
 	ssUdpEchoClientHelper(Ipv4Address ip, uint16_t port);
 	virtual ~ssUdpEchoClientHelper();
 	void SetAttribute(std::string name, const AttributeValue &value);
-	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node) const;
+	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id) const;
 	ApplicationContainer Install(NodeContainer c) const;
 
 protected:
-	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node) const;
+	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id) const;
 	ObjectFactory m_factory; //!< Object factory.
 };
 
