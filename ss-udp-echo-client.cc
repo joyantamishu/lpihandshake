@@ -261,7 +261,7 @@ void ssUdpEchoClient::StartApplication() {
 	NS_LOG_FUNCTION(this);
 	BaseTopology::total_appication++;
 
-	//ChangePopularity();
+	ChangePopularity();
 	ChangeIntensity();
 
 	//NS_LOG_UNCOND("%^&%&^%&^^&^&^&*^ "<<m_flowRequiredBW);
@@ -317,6 +317,7 @@ void ssUdpEchoClient::StartApplication() {
 		NS_LOG_UNCOND("++++++++");
 
 		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
 
 		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
 
@@ -422,6 +423,8 @@ void ssUdpEchoClient::StopApplication(void) {
 			NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
 
 		}
+
+
 		//calling the optimizer
 
 
@@ -640,11 +643,14 @@ void ssUdpEchoClient::Send(void) {
 	{
 		double inc_prob = 0.0;
 		uint32_t index = 0;
+		double desired_value = ClientChunkAccessGenerator->GetValue();
+
+		//NS_LOG_UNCOND("Desired value "<<desired_value);
 		for(;index<ns3::BaseTopology::chunk_assignment_to_applications[this->application_index][0];index++)
 		{
 			inc_prob += ns3::BaseTopology::chunk_assignment_probability_to_applications[this->application_index][index+1];
 
-			if(inc_prob >= ClientChunkAccessGenerator->GetValue())
+			if(inc_prob >= desired_value)
 			{
 				break;
 			}
