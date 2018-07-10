@@ -135,7 +135,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					physical_host_number = hosts.Get(logical_host_number)->GetId();
 					pod = (uint32_t) floor((double) logical_host_number/ (double) Ipv4GlobalRouting::FatTree_k);
 					node = logical_host_number % Ipv4GlobalRouting::FatTree_k;
-					printf("The node id %d\n", value);
+					//printf("The node id %d\n", value);
 				}
 				else
 				{
@@ -147,7 +147,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					//
 					BaseTopology::p[pod].nodes[node].total_chunks++;
 
-					printf ("%d\n",value);
+					//printf ("%d\n",value);
 
 				}
 				count++;
@@ -192,50 +192,8 @@ Ipv4Address FatTreeTopology::GetIpv4Address(uint32_t node_id)
 
 void FatTreeTopology::SetUpApplicationAssignment()
 {
-	//simple Round Robin Assignment
-//	uint32_t total_chunk_per_application = (int)((double)simulationRunProperties::total_chunk/(double)simulationRunProperties::total_applications);
-//
-//	uint32_t k = simulationRunProperties::total_sharing_chunks; //number of shared chunks between two applications
-//
-//	uint32_t init = 0;
-//
-//	for(uint32_t i = 0;i<simulationRunProperties::total_applications;i++)
-//	{
-//		ns3::BaseTopology::chunk_assignment_to_applications[i] = new uint32_t[total_chunk_per_application + k + 1];
-//		ns3::BaseTopology::chunk_assignment_probability_to_applications[i] = new double [total_chunk_per_application + k + 1];
-//		for(uint32_t index=0;index<=(total_chunk_per_application + k);index++)
-//		{
-//			ns3::BaseTopology::chunk_assignment_probability_to_applications[i][index] = 0.0;
-//		}
-//
-//	}
-//
-//	for(uint32_t i=0;i<simulationRunProperties::total_applications;i++)
-//	{
-//		uint32_t count = 1 ;
-//		for(;count<=total_chunk_per_application+k;count++)
-//		{
-//			ns3::BaseTopology::chunk_assignment_to_applications[i][count] = init;
-//
-//			init++;
-//
-//			if(init>=simulationRunProperties::total_chunk) break;
-//		}
-//		ns3::BaseTopology::chunk_assignment_to_applications[i][0] = count - 2;
-//
-//
-//		double probability = 1.0/(double)(count - 2);
-//
-//		for(uint32_t index = 1; index<=(count - 2); index++)
-//		{
-//			//NS_LOG_UNCOND(probability);
-//			ns3::BaseTopology::chunk_assignment_probability_to_applications[i][index] = probability;
-//		}
-//
-//		init = init - k;
-//	}
 
-	NS_LOG_UNCOND("************88Hello There*****************");
+
 
 	uint32_t max_total_chunk_per_application = 80;
 
@@ -279,7 +237,7 @@ void FatTreeTopology::SetUpApplicationAssignment()
 		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
 		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
 
-		   printf("The app %d, The chunk %d, The prob %lf\n",app, chunk, prob);
+		   //printf("The app %d, The chunk %d, The prob %lf\n",app, chunk, prob);
 		}
 
 	}
@@ -302,22 +260,6 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 
 	}
-
-	for(uint32_t i=0;i<simulationRunProperties::total_applications;i++)
-	{
-		//NS_LOG_UNCOND("************88Hello There End Normalization11*****************" <<ns3::BaseTopology::chunk_assignment_probability_to_applications[i][0]);
-		for(uint32_t j=1;j<=ns3::BaseTopology::chunk_assignment_to_applications[i][0];j++)
-		{
-			NS_LOG_UNCOND("The probability application "<<i<<" "<<ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j]);
-		}
-	}
-
-	NS_LOG_UNCOND("************88Hello There End Normalization*****************");
-
-
-
-
-
 
 
 }
@@ -387,7 +329,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 			while (pch != NULL)
 			{
 				sscanf(pch,"%d",&value);
-				printf ("**%d\n",value);
+
 				if(count == 0)
 				{
 					host = value;
@@ -713,6 +655,11 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	}
 
 	ns3::BaseTopology::total_appication = 0;
+
+	for(uint32_t i=0;i<(uint32_t)total_hosts;i++)
+	{
+		BaseTopology::hostaddresslogicaltophysical[i] = hosts.Get(i)->GetId();
+	}
 
 }
 

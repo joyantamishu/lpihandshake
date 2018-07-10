@@ -31,6 +31,8 @@ std::vector<MultipleCopyOfChunkInfo> BaseTopology::chunkCopyLocations;
 
 Ipv4Address* BaseTopology::hostTranslation = new Ipv4Address[simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k];
 
+uint32_t* BaseTopology::hostaddresslogicaltophysical = new uint32_t[((simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4) +1 ];
+
 uint32_t BaseTopology::num_of_retried_packets = 0;
 
 uint32_t BaseTopology::num_of_retired_packets_specific_node = 0;

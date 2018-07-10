@@ -187,7 +187,7 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	{
 		uint32_t chunk_location = it->logical_node_id;
 
-		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number));
+		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number, it->node_id));
 	}
 
 	// initialization only, will be overridden at StartApplication()
@@ -320,6 +320,8 @@ void ssUdpEchoClient::StartApplication() {
 		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
 
 		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+
+
 
 		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
 		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
@@ -781,6 +783,8 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	t_p->AddIcmpDestUnreach(false);
 
 	t_p->sub_flow_dest = chunk_location;
+
+	t_p->sub_flow_dest_physical = BaseTopology::hostaddresslogicaltophysical[chunk_location];
 
 	t_p->application_id = application_index;
 	/***************************************/

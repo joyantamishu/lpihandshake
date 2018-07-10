@@ -259,6 +259,7 @@ public:
 	/******Chunk Specific Change *******************/
 	static std::vector<chunk_info> chunkTracker;
 	static Ipv4Address* hostTranslation;
+	static uint32_t* hostaddresslogicaltophysical;
 	static std::vector<MultipleCopyOfChunkInfo> chunkCopyLocations;
 	static uint32_t getChunkLocation(uint32_t chunk_number);
 	static Ipv4Address getChunkLocationIP(uint32_t chunk_number);

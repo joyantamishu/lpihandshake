@@ -92,6 +92,8 @@ void BaseTopology::DisplayJBFlowStatistics(void) {
 	}
 	fclose (fp);
 
+	NS_LOG_UNCOND("Ipv4GlobalRouting::total_number_of_packets_to_destination "<<Ipv4GlobalRouting::total_number_of_packets_to_destination);
+
 #endif
 }
 

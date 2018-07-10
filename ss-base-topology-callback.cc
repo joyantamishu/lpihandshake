@@ -67,7 +67,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 	else
 	{
 		//NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
-		if (packet->dstNodeId == n->GetId()) //packet has reached the destination
+		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
 		{
 			//NS_LOG_UNCOND("The Destination has reached");
 			Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination = Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination +1;
@@ -205,6 +205,11 @@ bool ssTOSPointToPointNetDevice::NetDeviceSendCallBack(
 		flow_entry.set_destination(m_dst);
 		flow_entry.set_bandwidth(m_requiredBW);
 		Ipv4GlobalRouting::flow_map[m_flowId] = flow_entry;
+	}
+
+	if (packet->sub_flow_dest_physical == n->GetId())
+	{
+		Ipv4GlobalRouting::total_number_of_packets_to_destination++;
 	}
 	//
 #endif

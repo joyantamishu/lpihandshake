@@ -36,11 +36,15 @@ public:
 
 	uint32_t version;
 
-	local_chunk_info(uint32_t chunk_id, uint32_t node_id, uint32_t version_number)
+	uint32_t physical_node_number;
+
+	local_chunk_info(uint32_t chunk_id, uint32_t node_id, uint32_t version_number, uint32_t physical_node_number)
 	{
 		this->chunk_id = chunk_id;
 		this->node_id = node_id;
 		this->version = version_number;
+
+		this->physical_node_number = physical_node_number;
 	}
 };
 // copied from UdpEchoClientHelper
