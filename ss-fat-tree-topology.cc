@@ -10,7 +10,7 @@
 #include "ss-fat-tree-topology.h"
 #include "ns3/ipv4-global-routing.h"
 #include "ss-base-topology.h"
-#include "parameters.h"
+
 
 namespace ns3 {
 
@@ -554,19 +554,9 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	NS_LOG_UNCOND("Processing traces for applications............");
 
-
-	for(uint32_t i=0;i<simulationRunProperties::total_applications+1;i++)
-	{
-		BaseTopology::application_statistics[i] = new HostBandwidthRequirement[total_flows_per_application];
-	}
-
 	uint32_t chunk_id;
 
 	uint32_t chunk_location;
-
-
-
-
 
 	trace_starting_time = 0.0;
 

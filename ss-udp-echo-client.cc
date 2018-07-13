@@ -247,7 +247,7 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	// initialization only, will be overridden at StartApplication()
 	m_randomVariableInterPacketInterval = NULL;
 	m_startNewFlow_CallbackSS.Nullify();
-	total_hosts = simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k;
+	total_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
 	m_socket = new Ptr<Socket>[total_hosts];
 }
 
@@ -713,6 +713,53 @@ void ssUdpEchoClient::setFlowVariables(void) {
 // sanjeev... add packet tag with packet properties required by JB/MR...
 //
 
+
+void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
+{
+	uint32_t chunk_location;
+	double byte_to_mbit;
+
+	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
+	{
+
+		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+
+		chunk_location = currentflowinfo[i].chunk_id % total_hosts;
+
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+
+		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+
+		BaseTopology::p[pod].nodes[node].utilization -= byte_to_mbit;
+
+		if(i==0) break;
+
+	}
+}
+
+
+void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
+{
+	uint32_t chunk_location;
+	double byte_to_mbit;
+
+	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
+	{
+		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+
+		chunk_location = currentflowinfo[i].chunk_id % total_hosts;
+
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+
+		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+
+		BaseTopology::p[pod].nodes[node].utilization += byte_to_mbit;
+
+
+	}
+
+}
+
 void ssUdpEchoClient::Send(void) {
 	NS_LOG_FUNCTION(this);
 	if (m_socket == NULL)
@@ -749,7 +796,7 @@ void ssUdpEchoClient::Send(void) {
 	uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
 
 
-
+	uint32_t trace_flow_id;
 
 	if(!consistency_flow)
 	{
@@ -797,7 +844,19 @@ void ssUdpEchoClient::Send(void) {
 
 		dest_value = chunk_id % total_number_of_hosts;
 
-		uint32_t number_of_packets = this->currentflowinfo[count_for_index].size % 1500;
+		uint32_t number_of_packets = (uint32_t)(this->currentflowinfo[count_for_index].size / m_packetSize);
+
+		trace_flow_id = count_for_index/ENTRIES_PER_FLOW;
+
+		if(trace_flow_id % ENTRIES_PER_FLOW) //start of new flow
+		{
+			if(trace_flow_id!=0) //this is not the first flow for sure
+			{
+				updateOptimizationVariablesLeavingFlow();
+			}
+			updateOptimizationVariablesIncomingFlow();
+
+		}
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{
@@ -806,6 +865,10 @@ void ssUdpEchoClient::Send(void) {
 			// call to the trace sinks before the packet is actually sent,
 			// so that tags added to the packet can be sent as well
 			m_txTrace(t_p);
+
+			t_p->trace_flow_id = trace_flow_id;
+
+
 
 			int actual = m_socket[t_p->sub_flow_dest]->Send(t_p);
 
@@ -853,7 +916,7 @@ void ssUdpEchoClient::Send(void) {
 		//NS_LOG_UNCOND("THe size of BaseTopology::chunkCopyLocations1 "<<BaseTopology::chunkCopyLocations.size());
 	}
 
-	count_for_index++;;
+	count_for_index++;
 
 	// did we send the last packet?, no need for further packet creation/sending
 	if (m_lastPacket) {

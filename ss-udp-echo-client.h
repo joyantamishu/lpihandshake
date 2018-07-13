@@ -195,6 +195,10 @@ protected:
 	uint32_t total_hosts;
 	std::vector<local_chunk_info> local_chunkTracker;
 
+	void updateOptimizationVariablesIncomingFlow();
+
+	void updateOptimizationVariablesLeavingFlow();
+
 
 	/**********************************************/
 
