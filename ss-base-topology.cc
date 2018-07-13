@@ -69,6 +69,10 @@ Pod* BaseTopology::p;
 
 bool BaseTopology::createflag=false;
 
+HostBandwidthRequirement** BaseTopology::application_statistics = new HostBandwidthRequirement*[simulationRunProperties::total_applications+1];
+
+uint64_t BaseTopology::min_offset = 0;
+
 
 
 BaseTopology::~BaseTopology() {
@@ -273,6 +277,8 @@ BaseTopology::BaseTopology(void) {
 	m_hwlDataMetric.totalNonHWL_dstRequests =
 			m_hwlDataMetric.totalNonHWL_srcRequests = 0;
 	t_a = t_b = t_x = t_i = t_reqBW = 0;
+
+	application_count = 0;
 }
 
 /**************************************************************/

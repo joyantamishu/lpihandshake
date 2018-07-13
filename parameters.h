@@ -97,7 +97,7 @@
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
 #define READ_WRITE_RATIO							0.9
 
-#define DEFAULT_NUMBER_OF_APPLICATIONS				150
+#define DEFAULT_NUMBER_OF_APPLICATIONS				47
 
 #define DEFAULT_SHARED_CHUNKS						4
 
@@ -108,5 +108,9 @@
 #define DEFAULT_INTENSITY_CHANGE_START_TIME_MS		80.0
 
 #define DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE	4
+
+#define CHUNK_SIZE			1000000000 //Chunk size in Byte, Currently it is 1GB
+
+#define MegabyteToByte		1000000
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

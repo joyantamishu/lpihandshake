@@ -8,7 +8,9 @@
 #ifndef SS_FATTREE_TOPOLOGY_H_
 #define SS_FATTREE_TOPOLOGY_H_
 
-#define MAXCHAR 100000
+#define MAXCHAR 			10000
+
+#define ENTRIES_PER_FLOW 	100
 
 #include "ss-base-topology.h"
 
@@ -46,6 +48,8 @@ protected:
 	virtual void SetUpInitialOpmizationVariables();
 
 	virtual void SetUpIntensityPhraseChangeVariables();
+
+	virtual void SetUpRealTracesVariables();
 
 	/***********************************************/
 

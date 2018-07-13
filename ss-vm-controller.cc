@@ -42,16 +42,18 @@ int BaseTopology::getRandomClientNode(void) {
 
 uint32_t BaseTopology::getCustomizedRandomClientNode(uint32_t &application_id)
 {
+	//NS_LOG_UNCOND("The current application id "<<application_count);
+
+	application_count ++;
+
 	uint32_t total_hosts = hosts.GetN();
 
-	uint32_t app_id = ns3::BaseTopology::application_selector -> GetInteger();
-
-	application_id = app_id;
+	application_id = application_count - 1;
 	for (uint32_t i =0;i<total_hosts;i++)
 	{
 		for(uint32_t index =1; index <=ns3::BaseTopology::application_assignment_to_node[i][0];index++)
 		{
-			if(app_id == ns3::BaseTopology::application_assignment_to_node[i][index])
+			if(application_id == ns3::BaseTopology::application_assignment_to_node[i][index])
 			{
 				return i;
 			}

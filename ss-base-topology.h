@@ -216,6 +216,22 @@ public:
 	}
 };
 
+class HostBandwidthRequirement
+{
+public:
+	double *hosts;
+
+	HostBandwidthRequirement()
+	{
+		uint32_t total_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
+		hosts = new double[total_hosts];
+		for(uint32_t i=0;i<total_hosts;i++)
+		{
+			hosts[i] = 0.0;
+		}
+	}
+};
+
 
 /*
  *
@@ -304,9 +320,15 @@ public:
 
 	static double intensity_change_scale;
 
+	static HostBandwidthRequirement **application_statistics;
+
 	/**********************************************/
 
 	static int total_appication;
+
+	uint32_t application_count;
+
+	static uint64_t min_offset;
 
 protected:
 	virtual void DoDispose(void);

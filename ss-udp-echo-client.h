@@ -63,6 +63,23 @@ protected:
 };
 
 // copied from UdpEchoClient
+
+class CurrentFlowInfo
+{
+public:
+	double next_schedule_in_ms;
+	uint32_t chunk_id;
+
+	uint32_t size;
+	CurrentFlowInfo()
+	{
+		this->next_schedule_in_ms = 0.0;
+		this->chunk_id = 0;
+		this->size = 0;
+	}
+};
+
+
 class ssUdpEchoClient: public Application {
 public:
 	static TypeId GetTypeId(void);
@@ -92,6 +109,17 @@ public:
 	uint32_t *destination_chunks;
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
+
+	uint32_t count_for_index;
+	//std::FILE *fp;
+
+	//char assigned_sub_trace_file[15];
+
+
+
+	CurrentFlowInfo currentflowinfo[3000];
+
+	uint32_t next_counter;
 	/*********************************************/
 
 protected:
@@ -111,6 +139,8 @@ protected:
 	void SendLastPacket(void);
 	virtual void ForceStopApplication(void);
 	virtual void ScheduleTransmit(Time dt);
+
+	virtual void FlowOperations();
 	// simplified, sanjeev 2/25
 	virtual Ptr<Packet> createPacket(void);
 	virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
@@ -164,6 +194,8 @@ protected:
 	Ptr<UniformRandomVariable> ReadWriteCalculation;
 	uint32_t total_hosts;
 	std::vector<local_chunk_info> local_chunkTracker;
+
+
 	/**********************************************/
 
 };

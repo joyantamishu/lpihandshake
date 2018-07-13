@@ -271,13 +271,15 @@ void BaseTopology::InjectANewRandomFlow(void) {
 
 	NS_LOG_FUNCTION(this);
 
-	t_appStopTimeRandom = Time::FromDouble(m_flowStopDurationTimer->GetValue(),
-			Time::MS);
-	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
-		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
-				<< "] exceeds simStop time");
-		return;
-	}
+//	t_appStopTimeRandom = Time::FromDouble(m_flowStopDurationTimer->GetValue(),
+//			Time::MS);
+//	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
+//		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
+//				<< "] exceeds simStop time");
+//		return;
+//	}
+
+	t_appStopTimeRandom = m_internalClientStopTime;
 	// removed MR while loop... (take from previous backup code if needed),,,sanjeev May 10
 	t_reqBW = m_randomBWVariable->GetInteger();
 
@@ -494,20 +496,20 @@ void BaseTopology::InjectNewFlow_SawToothModel(void) {
 
 /*************************************************************/
 void BaseTopology::InjectNewFlow_TickBasedModel(void) {
-	NS_LOG_FUNCTION(this);
-
-	SS_APPLIC_LOG(
-			"This TickModel state [" << Simulator::Now().ToDouble(Time::MS)
-			<< "ms] injecting a flow as per Markov Model");
-	// inject as per Markov State
-	InjectNewFlow_MarkovModel();
-	// trigger Tick Model Flow Injection..
-	// if simulation has stopped, then STOP...
-	if (!Simulator::IsFinished())
-		Simulator::Schedule(
-				Time::FromDouble(m_TickModel.m_TickCounter->GetValue(),
-						Time::MS), &BaseTopology::InjectNewFlow_TickBasedModel,
-				this);
+//	NS_LOG_FUNCTION(this);
+//
+//	SS_APPLIC_LOG(
+//			"This TickModel state [" << Simulator::Now().ToDouble(Time::MS)
+//			<< "ms] injecting a flow as per Markov Model");
+//	// inject as per Markov State
+//	InjectNewFlow_MarkovModel();
+//	// trigger Tick Model Flow Injection..
+//	// if simulation has stopped, then STOP...
+//	if (!Simulator::IsFinished())
+//		Simulator::Schedule(
+//				Time::FromDouble(m_TickModel.m_TickCounter->GetValue(),
+//						Time::MS), &BaseTopology::InjectNewFlow_TickBasedModel,
+//				this);
 }
 
 } // namespace

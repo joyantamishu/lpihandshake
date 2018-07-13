@@ -28,6 +28,7 @@
 #include "ss-tos-point-to-point-netdevice.h"
 #include "ss-base-topology-simulation-variables.h"
 #include "ss-base-topology.h"
+#include "parameters.h"
 /*
  flow bandwidth -  80-240MBps / avg 160...
  e.g.100MBps with packetsize of 1500, 8 bits/bytegives me --> packets/sec, interpacketTime....XYZ
@@ -111,6 +112,55 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 
 
 	app->consistency_flow = single_destination_flow;
+
+	app->count_for_index = 0;
+
+	app->next_counter = 0;
+
+
+
+	std::FILE *fp;
+
+	char str[1000];
+	double timestamp;
+	double response_time;
+	char io_type;
+	int LUN;
+	uint64_t offset;
+	uint32_t size;
+
+	uint32_t local_counter = 0;
+
+	char assigned_sub_trace_file[15];
+
+	sprintf(assigned_sub_trace_file,"application_%d.csv",app_id);
+
+	fp = fopen(assigned_sub_trace_file, "r");
+
+	if (fp == NULL){
+			printf("Could not open file %s",assigned_sub_trace_file);
+			return NULL;
+	}
+
+
+	while (fgets(str, 1000, fp) != NULL)
+	{
+		sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
+
+		if((int)strlen(str) > 1)
+		{
+			app->currentflowinfo[local_counter].next_schedule_in_ms = timestamp;
+			app->currentflowinfo[local_counter].chunk_id = (offset-BaseTopology::min_offset)/CHUNK_SIZE;
+			app->currentflowinfo[local_counter].size = size;
+			local_counter++;
+
+			if(local_counter>=3000) break;
+
+		}
+	}
+
+	fclose(fp);
+
 	node->AddApplication(app);
 
 
@@ -183,6 +233,10 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	node_index = -1;
 	application_index = -1;
 
+	next_counter = 0;
+
+	//count_for_index = 0;
+
 	for (std::vector<chunk_info>::iterator it = BaseTopology::chunkTracker.begin() ; it != BaseTopology::chunkTracker.end(); ++it)
 	{
 		uint32_t chunk_location = it->logical_node_id;
@@ -195,9 +249,6 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	m_startNewFlow_CallbackSS.Nullify();
 	total_hosts = simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k;
 	m_socket = new Ptr<Socket>[total_hosts];
-
-
-
 }
 
 ssUdpEchoClient::~ssUdpEchoClient() {
@@ -244,27 +295,80 @@ void ssUdpEchoClient::RegisterCallBackFunctions(void) {
 	}
 }
 
+void ssUdpEchoClient::FlowOperations()
+{
+//	NS_LOG_FUNCTION(this);
+//		/*
+//		 * you can overrule m_interval here, for varied inter-packet delay
+//		 */
+//		char str[1000];
+//		double timestamp;
+//		double response_time;
+//		char io_type;
+//		int LUN;
+//		uint64_t offset;
+//		uint32_t size;
+//
+//		uint32_t local_counter = 0;
+//
+//
+//		if(this->application_index==15)
+//		{
+//			NS_LOG_UNCOND("%%%%%%%%%%%^$$$^^^^^$$$$$$$$$The count value "<<count_for_index<<" "<<this->next_counter);
+//		}
+//		if(count_for_index % 100 == 0)
+//		{
+//			if(this->application_index==15) NS_LOG_UNCOND("The count value "<<count_for_index);
+//			while (fgets(str, 1000, fp) != NULL)
+//			{
+//				sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
+//
+//				if((int)strlen(str) > 1)
+//				{
+//					if(local_counter >=count_for_index || count_for_index == 0 )
+//					{
+//						//CurrentFlowInfo cfi = CurrentFlowInfo(timestamp, offset-BaseTopology::min_offset, size);
+//						currentflowinfo[local_counter%100].next_schedule_in_ms = timestamp;
+//
+//						if(this->application_index==15) NS_LOG_UNCOND(" timestamp "<<timestamp);
+//						currentflowinfo[local_counter%100].chunk_id = offset-BaseTopology::min_offset;
+//						currentflowinfo[local_counter%100].size = size;
+//						local_counter++;
+//						next_counter++;
+//					}
+//
+//					if((next_counter - count_for_index) >=100)
+//					{
+//						NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
+//						break;
+//					}
+//
+//					local_counter++;
+//
+//
+//				}
+//			}
+//		}
+}
+
 void ssUdpEchoClient::ScheduleTransmit(Time dt) {
-	NS_LOG_FUNCTION(this);
-	/*
-	 * you can overrule m_interval here, for varied inter-packet delay
-	 */
-	if (WRITE_PACKET_TIMING_TO_FILE)
-		fp2 << dt.ToDouble(Time::MS) << "\n";
-// setNextInterPacketInterval
-	m_packetInterval = Time::FromDouble(
-			m_randomVariableInterPacketInterval->GetValue(), Time::S);
+
+
+	double interval = currentflowinfo[count_for_index].next_schedule_in_ms;
+
+//	if(this->application_index == 15)
+//	{
+//		NS_LOG_UNCOND("^^^^^^^^^^^^$#$#%%%%%%%%%%%%%%The count_for_index is "<<count_for_index<<" The interval "<<interval);
+//	}
+
+	m_packetInterval = Time::FromDouble(interval, Time::S);
+
 	m_sendEvent = Simulator::Schedule(dt, &ssUdpEchoClient::Send, this);
 }
 
 void ssUdpEchoClient::StartApplication() {
 	NS_LOG_FUNCTION(this);
 	BaseTopology::total_appication++;
-
-	ChangePopularity();
-	ChangeIntensity();
-
-	//NS_LOG_UNCOND("%^&%&^%&^^&^&^&*^ "<<m_flowRequiredBW);
 
 	uint32_t version;
 
@@ -372,6 +476,8 @@ void ssUdpEchoClient::StopApplication(void) {
 	NS_LOG_FUNCTION(this);
 
 	uint32_t version;
+
+	//fclose(fp);
 
 // as discussed on Mar 15. Sanjeev (overcome bug)
 	if (!m_lastPacket) {
@@ -628,7 +734,7 @@ void ssUdpEchoClient::Send(void) {
 	}
 #endif
 	/* bug sanjeev 7 Feb, rectified	 - old code deleted*/
-
+	//FlowOperations();
 
 	uint32_t chunk_value, dest_value;
 
@@ -639,6 +745,10 @@ void ssUdpEchoClient::Send(void) {
 	uint32_t num_of_packets_to_send = 1;
 
 	bool is_write = false;
+
+	uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
+
+
 
 
 	if(!consistency_flow)
@@ -683,27 +793,35 @@ void ssUdpEchoClient::Send(void) {
 
 	if(!is_write || num_of_packets_to_send == 1)
 	{
-		dest_value = getChunkLocation(chunk_value, &version);
+		uint32_t chunk_id = this->currentflowinfo[count_for_index].chunk_id ;
 
-		t_p = createPacket(chunk_value, dest_value, is_write, version);
-		// call to the trace sinks before the packet is actually sent,
-		// so that tags added to the packet can be sent as well
-		m_txTrace(t_p);
+		dest_value = chunk_id % total_number_of_hosts;
 
-		int actual = m_socket[t_p->sub_flow_dest]->Send(t_p);
+		uint32_t number_of_packets = this->currentflowinfo[count_for_index].size % 1500;
+
+		for(uint32_t packets=0;packets<number_of_packets;packets++)
+		{
+			version = 1;
+			t_p = createPacket(chunk_value, dest_value, is_write, version);
+			// call to the trace sinks before the packet is actually sent,
+			// so that tags added to the packet can be sent as well
+			m_txTrace(t_p);
+
+			int actual = m_socket[t_p->sub_flow_dest]->Send(t_p);
 
 
-		// We exit this loop when actual < toSend as the send side
-		// buffer is full. The "DataTxComplete" callback will pop when
-		// some buffer space has freed ip.
-		if ((unsigned) actual != m_packetSize) {
-			NS_ABORT_MSG(
-					"ssUdpEchoClient Node [" << m_node->GetId() << "] error sending packet");
+			// We exit this loop when actual < toSend as the send side
+			// buffer is full. The "DataTxComplete" callback will pop when
+			// some buffer space has freed ip.
+			if ((unsigned) actual != m_packetSize) {
+				NS_ABORT_MSG(
+						"ssUdpEchoClient Node [" << m_node->GetId() << "] error sending packet");
+			}
+			NS_LOG_LOGIC(
+					this << " At time " << Simulator::Now ().GetSeconds () << "s client " << m_srcIpv4Address << " sent flowid " << m_currentFlowCount << " packet# " << t_sentPacketCount << " packetUid [" << t_p->GetUid() << "]");
+
+			t_sentPacketCount++;
 		}
-		NS_LOG_LOGIC(
-				this << " At time " << Simulator::Now ().GetSeconds () << "s client " << m_srcIpv4Address << " sent flowid " << m_currentFlowCount << " packet# " << t_sentPacketCount << " packetUid [" << t_p->GetUid() << "]");
-
-		t_sentPacketCount++;
 
 	}
 
@@ -734,6 +852,8 @@ void ssUdpEchoClient::Send(void) {
 		}
 		//NS_LOG_UNCOND("THe size of BaseTopology::chunkCopyLocations1 "<<BaseTopology::chunkCopyLocations.size());
 	}
+
+	count_for_index++;;
 
 	// did we send the last packet?, no need for further packet creation/sending
 	if (m_lastPacket) {
