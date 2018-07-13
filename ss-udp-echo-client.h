@@ -189,9 +189,6 @@ protected:
 	std::ofstream fp2; // this is for my debugging only delete later & all its usage
 
 	/*******Chunk Specific Changes ****************/
-	//Ptr<RandomVariableStream> ClientChunkAccessGenerator;
-	Ptr<UniformRandomVariable> ClientChunkAccessGenerator;
-	Ptr<UniformRandomVariable> ReadWriteCalculation;
 	uint32_t total_hosts;
 	std::vector<local_chunk_info> local_chunkTracker;
 
