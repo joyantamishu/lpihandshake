@@ -621,6 +621,71 @@ void ssUdpEchoClient::callback_HandleRead(Ptr<Socket> socket) {
 }
 
 void ssUdpEchoClient::setFlowVariables(void) {
+
+	NS_LOG_FUNCTION(this);
+	if (WRITE_PACKET_TIMING_TO_FILE) {
+		char* aFileName = (char*) malloc(
+				std::strlen(PACKETINTERVAL_DEBUG_FILENAME2)
+						+ std::strlen(simulationRunProperties::arg0) + 10);
+		std::sprintf(aFileName, "%s_%d_%s", simulationRunProperties::arg0,
+				m_currentFlowCount, PACKETINTERVAL_DEBUG_FILENAME2);
+		fp2.open(aFileName);
+	}
+// set some application+flow level parameters...
+	t_sentPacketCount = 0;
+	m_lastPacket = false;
+	m_priority = (m_currentFlowCount % 3 ? HIGH : LOW);
+//...
+	double t_packet_per_second = m_flowRequiredBW * MEGABITS_TO_BITS
+			/ (m_packetSize * 8);
+
+
+	double t_interpacketInterval = 1.0 / t_packet_per_second;
+	NS_LOG_FUNCTION(
+			"reqBW " << m_flowRequiredBW << " useRandom "<< useRandomIntervals << " pkt/sec " << t_packet_per_second << " inter-packet interval " << t_interpacketInterval);
+
+
+// set random packet interval OR constant packet interval
+	if (useRandomIntervals) {
+		// May 14.
+		// https://www.nsnam.org/docs/release/3.26/doxygen/classns3_1_1_gamma_random_variable.html#a65f2515eaf15d4540509c9620c844c57
+		// SS -> MR - verify setting this alpha & beta values (alpha=mean, beta=variance)
+		if (USE_GAMMA_DISTRIBUTION && (simulationRunProperties::k == 4)) {
+			double variance = GetHostSpecificVariance();
+
+			double mean =t_interpacketInterval;
+
+			double beta=((variance*variance)*(mean*mean))/mean;
+
+			double alpha=mean/beta;
+
+			m_randomVariableInterPacketInterval = CreateObject<
+					GammaRandomVariable>();
+			m_randomVariableInterPacketInterval->SetAttribute("Alpha",
+					DoubleValue(alpha));
+			m_randomVariableInterPacketInterval->SetAttribute("Beta",
+					DoubleValue(beta));
+		} else {
+			m_randomVariableInterPacketInterval = CreateObject<
+					ExponentialRandomVariable>();
+			m_randomVariableInterPacketInterval->SetAttribute("Mean",
+					DoubleValue(t_interpacketInterval));
+		}
+	} else {
+		m_randomVariableInterPacketInterval = CreateObject<
+				ConstantRandomVariable>();
+		m_randomVariableInterPacketInterval->SetAttribute("Constant",
+				DoubleValue(t_interpacketInterval));
+	}
+	if (m_currentFlowCount == 0)
+		SS_APPLIC_LOG("For every flow, interpacketInterval::type " << m_randomVariableInterPacketInterval->GetInstanceTypeId());
+
+	m_packetInterval = Seconds(m_randomVariableInterPacketInterval->GetValue()); //	setNextFlowInterval
+
+	Ptr<ssTOSPointToPointNetDevice> d = DynamicCast<ssTOSPointToPointNetDevice>(
+			GetNode()->GetDevice(1));
+	m_srcIpv4Address = d->getIpv4Address();
+	m_dstIpv4Address = Ipv4Address::ConvertFrom(m_peerAddress);
 }
 //
 // added by sanjeev see *.cc file

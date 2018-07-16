@@ -606,7 +606,7 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 			trace_ending_time = timestamp;
 
-			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",timestamp-relative_time_of_traces,response_time, io_type,LUN,offset,size );
+			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",(timestamp-relative_time_of_traces) / 2.0,response_time, io_type,LUN,offset,size );
 
 			relative_time_of_traces = timestamp;
 			count++;
