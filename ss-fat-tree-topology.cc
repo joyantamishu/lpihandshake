@@ -448,6 +448,8 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	FILE *fp;
 
+	double interarrival_time_scale = 1.0;
+
 	char str[MAXCHAR];
 	uint32_t count = 0;
 	uint64_t max_offset, min_offset;
@@ -522,10 +524,6 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	total_time += (trace_ending_time -trace_starting_time);
 
-	//cout<<"total_bandwidth_in_bytes "<<total_bandwidth_in_bytes<<endl;
-
-	//cout<<total_bandwidth_in_bytes/((trace_ending_time -trace_starting_time)*1000000)<<endl;
-
 
 	fclose(fp);
 
@@ -535,6 +533,8 @@ void FatTreeTopology::SetUpRealTracesVariables()
 	uint32_t trace_entries_per_application = total_entries/simulationRunProperties::total_applications;
 
 	uint32_t total_flows_per_application = (trace_entries_per_application / ENTRIES_PER_FLOW) + 1;
+
+
 
 
 	for(uint32_t i=0;i<simulationRunProperties::total_applications+1;i++)
@@ -551,6 +551,17 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	NS_LOG_UNCOND("Average bw usages "<<total_bandwidth_in_bytes * 8/(total_time*1000000)<<" Mbps");
 
+	int total_hosts = hosts.GetN();
+
+	double calculated_utilization = (total_bandwidth_in_bytes * 8/(total_time*1000000)) * simulationRunProperties::initialFlowCount ;
+
+	double desired_utilization = simulationRunProperties::utilization_value * DRIVE_CAPACITY * total_hosts;
+
+	NS_LOG_UNCOND("Desired utilization "<<desired_utilization<<" calculated_utilization "<<calculated_utilization);
+
+	interarrival_time_scale = desired_utilization / calculated_utilization;
+
+	NS_LOG_UNCOND("interarrival_time_scale "<<interarrival_time_scale);
 
 	NS_LOG_UNCOND("Processing traces for applications............");
 
@@ -606,7 +617,7 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 			trace_ending_time = timestamp;
 
-			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",(timestamp-relative_time_of_traces) / 2.0,response_time, io_type,LUN,offset,size );
+			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",(timestamp-relative_time_of_traces) / interarrival_time_scale,response_time, io_type,LUN,offset,size );
 
 			relative_time_of_traces = timestamp;
 			count++;

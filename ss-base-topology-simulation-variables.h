@@ -132,6 +132,8 @@ public:
 
 	static double intensity_change_start_ms;
 
+	static double utilization_value;
+
 	/**********************************************/
 
 private:
