@@ -93,11 +93,11 @@
 #define POLICY_NUMBER									3
 
 /******Chunk Specific Change *******************/
-#define DEFAULT_CHUNK_NUMBER						1500
+#define DEFAULT_CHUNK_NUMBER						500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
 #define READ_WRITE_RATIO							0.9
 
-#define DEFAULT_NUMBER_OF_APPLICATIONS				150
+#define DEFAULT_NUMBER_OF_APPLICATIONS				47
 
 #define DEFAULT_SHARED_CHUNKS						4
 

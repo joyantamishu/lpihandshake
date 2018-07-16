@@ -403,13 +403,14 @@ void FatTreeTopology::SetUpNodeUtilizationStatistics()
 	}
 }
 
+
 void FatTreeTopology::SetUpInitialOpmizationVariables()
 {
-	if(BaseTopology::createflag==false)
-	{
+
 		BaseTopology::p= new Pod[Ipv4GlobalRouting::FatTree_k];
 		uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
 		uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
+		BaseTopology::chnkCopy=new chunkCopy[simulationRunProperties::total_chunk];
 
 		for(uint32_t i=0;i<(uint32_t)Ipv4GlobalRouting::FatTree_k;i++)
 		{
@@ -424,9 +425,17 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+
 		}
-		BaseTopology::createflag=true;
-	}
+		for(uint32_t i = 0; i<simulationRunProperties::total_chunk; i++)
+		{
+		   BaseTopology::chnkCopy[i].exists=new uint32_t[number_of_hosts];
+		   for(uint32_t j = 0; j<number_of_hosts; j++)
+			   BaseTopology::chnkCopy[i].exists[j]=0;
+		}
+		BaseTopology::nodeU=new nodedata[number_of_hosts];
+
+
 
 //	for(uint32_t i = 0; i<number_of_hosts; i++)
 //	{
@@ -436,7 +445,6 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 //		//for(uint32_t host_count = 0; host_count < )
 //	}
 }
-
 
 /***************************************************/
 

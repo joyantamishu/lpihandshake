@@ -169,6 +169,25 @@ typedef struct Fat_pod{
 	Fat_tree_Node *nodes;
 }Pod;
 
+
+
+typedef struct noden{
+int nodenumber;
+double U;
+}nodedata;
+
+typedef struct chunk{
+  uint32_t count;
+  uint32_t *exists;
+  chunk()
+	{
+	  count = 0;
+	}
+
+}chunkCopy;
+
+
+
 class chunk_info{
 public:
 	uint32_t chunk_no;
@@ -285,6 +304,9 @@ public:
 
 	static bool createflag;
 
+	static chunkCopy *chnkCopy;
+
+	static nodedata *nodeU;
 
 	static double popularity_change_simulation_interval;
 
