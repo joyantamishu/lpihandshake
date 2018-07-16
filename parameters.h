@@ -108,5 +108,7 @@
 #define DEFAULT_INTENSITY_CHANGE_START_TIME_MS		80.0
 
 #define DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE	4
+
+#define DEFAULT_LOCAL_ACCESS_LATENCY				100 //100 microsecond
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

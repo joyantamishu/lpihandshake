@@ -76,7 +76,9 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			double delay_by_packet = current_simulation_time - packet->creation_time;
 
-			Ipv4GlobalRouting::flow_map.at(m_flowId).delaysum += delay_by_packet;
+			Ipv4GlobalRouting::flow_map.at(m_flowId).delaysum += delay_by_packet + DEFAULT_LOCAL_ACCESS_LATENCY;
+
+			//NS_LOG_UNCOND("delay_by_packet "<<delay_by_packet);
 
 			// gonna change it later
 //			if(BaseTopology::chunkTracker.at(packet->sub_flow_id).number_of_copy > 0 && !m_lastPacket)

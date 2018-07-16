@@ -28,6 +28,7 @@
 #include "ss-tos-point-to-point-netdevice.h"
 #include "ss-base-topology-simulation-variables.h"
 #include "ss-base-topology.h"
+#include "ns3/ipv4-global-routing.h"
 /*
  flow bandwidth -  80-240MBps / avg 160...
  e.g.100MBps with packetsize of 1500, 8 bits/bytegives me --> packets/sec, interpacketTime....XYZ
@@ -294,17 +295,14 @@ void ssUdpEchoClient::StartApplication() {
 		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
 
 		BaseTopology::p[pod].nodes[node].utilization += bandwidth_distribution;
+
 		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
 		{
 			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
 			{
-
 				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
 			}
 		}
-
-
-
 	}
 
 	int incrDcr=1;
@@ -321,9 +319,28 @@ void ssUdpEchoClient::StartApplication() {
 
 		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
 
+		uint32_t pod = (uint32_t) floor((double) dest/ (double) Ipv4GlobalRouting::FatTree_k);
 
+		uint32_t node = dest % Ipv4GlobalRouting::FatTree_k;
 
-		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
+		bool entry_already_exists = false;
+
+		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
+		{
+			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_no)
+			{
+				entry_already_exists = true;
+			}
+		}
+
+		if(!entry_already_exists)
+		{
+			BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = chunk_no;
+			BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].intensity_sum = 0.0;
+
+			BaseTopology::p[pod].nodes[node].total_chunks++;
+		}
+
 		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
 		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
 	}
@@ -399,6 +416,11 @@ void ssUdpEchoClient::StopApplication(void) {
 				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
 				{
 					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
+
+					if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum < 0.0)
+					{
+						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum = ceil(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum );
+					}
 				}
 			}
 
@@ -421,7 +443,6 @@ void ssUdpEchoClient::StopApplication(void) {
 			{
 				NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
 			}
-
 			NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
 
 		}
@@ -795,6 +816,25 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	t_p->is_write = is_write;
 	t_p->creation_time = Simulator::Now().ToDouble(Time::US);
 	t_p->version = version;
+
+	if(t_p->sub_flow_dest_physical == t_p->srcNodeId)
+	{
+		if (Ipv4GlobalRouting::flow_map.count(t_p->flow_id) <= 0)
+		{
+			flow_info flow_entry  = flow_info();
+			flow_entry.set_flow_id(t_p->flow_id);
+			flow_entry.set_source(m_srcIpv4Address);
+			flow_entry.set_destination(m_dstIpv4Address);
+			flow_entry.set_bandwidth(requiredBW);
+			flow_entry.destination_node = t_p->sub_flow_dest_physical;
+			Ipv4GlobalRouting::flow_map[t_p->flow_id] = flow_entry;
+		}
+		//NS_LOG_UNCOND("t_p->flow_id "<<t_p->flow_id);
+		Ipv4GlobalRouting::flow_map.at(t_p->flow_id).delaysum += DEFAULT_LOCAL_ACCESS_LATENCY;
+		Ipv4GlobalRouting::flow_map.at(t_p->flow_id).total_packet_to_destination++;
+	}
+	//NS_LOG_UNCOND("The t_p->sub_flow_dest_physical "<<t_p->sub_flow_dest_physical<<" t_p->srcNodeId "<<t_p->srcNodeId);
+
 // sanjeev debug...3/15..trace packetinfo at client !!! // Apr 24
 	if (isFirstPacket || last)
 		ssUdpEchoServer::writeFlowDataToFile(
