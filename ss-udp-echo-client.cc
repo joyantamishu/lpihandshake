@@ -119,47 +119,47 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 
 
 
-	std::FILE *fp;
+	//std::FILE *fp;
 
-	char str[1000];
-	double timestamp;
-	double response_time;
-	char io_type;
-	int LUN;
-	uint64_t offset;
-	uint32_t size;
-
-	uint32_t local_counter = 0;
-
-	char assigned_sub_trace_file[15];
-
-	sprintf(assigned_sub_trace_file,"application_%d.csv",app_id);
-
-	fp = fopen(assigned_sub_trace_file, "r");
-
-	if (fp == NULL){
-			printf("Could not open file %s",assigned_sub_trace_file);
-			return NULL;
-	}
-
-
-	while (fgets(str, 1000, fp) != NULL)
-	{
-		sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
-
-		if((int)strlen(str) > 1)
-		{
-			app->currentflowinfo[local_counter].next_schedule_in_ms = timestamp;
-			app->currentflowinfo[local_counter].chunk_id = (offset-BaseTopology::min_offset)/CHUNK_SIZE;
-			app->currentflowinfo[local_counter].size = size;
-			local_counter++;
-
-			if(local_counter>=3000) break;
-
-		}
-	}
-
-	fclose(fp);
+//	char str[1000];
+//	double timestamp;
+//	double response_time;
+//	char io_type;
+//	int LUN;
+//	uint64_t offset;
+//	uint32_t size;
+//
+//	uint32_t local_counter = 0;
+//
+//	char assigned_sub_trace_file[15];
+//
+//	sprintf(assigned_sub_trace_file,"application_%d.csv",app_id);
+//
+//	BaseTopology::fp[app_id] = fopen(assigned_sub_trace_file, "r");
+//
+//	if (BaseTopology::fp[app_id] == NULL){
+//			printf("Could not open file %s",assigned_sub_trace_file);
+//			return NULL;
+//	}
+//
+//
+//	while (fgets(str, 1000, BaseTopology::fp[app_id]) != NULL)
+//	{
+//		sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
+//
+//		if((int)strlen(str) > 1)
+//		{
+//			app->currentflowinfo[local_counter].next_schedule_in_ms = timestamp;
+//			app->currentflowinfo[local_counter].chunk_id = (offset-BaseTopology::min_offset)/CHUNK_SIZE;
+//			app->currentflowinfo[local_counter].size = size;
+//			local_counter++;
+//
+//			if(local_counter>=ENTRIES_PER_FLOW) break;
+//
+//		}
+//	}
+//
+//	fclose(fp);
 
 	node->AddApplication(app);
 
@@ -297,58 +297,64 @@ void ssUdpEchoClient::RegisterCallBackFunctions(void) {
 
 void ssUdpEchoClient::FlowOperations()
 {
-//	NS_LOG_FUNCTION(this);
-//		/*
-//		 * you can overrule m_interval here, for varied inter-packet delay
-//		 */
-//		char str[1000];
-//		double timestamp;
-//		double response_time;
-//		char io_type;
-//		int LUN;
-//		uint64_t offset;
-//		uint32_t size;
-//
-//		uint32_t local_counter = 0;
-//
-//
-//		if(this->application_index==15)
-//		{
-//			NS_LOG_UNCOND("%%%%%%%%%%%^$$$^^^^^$$$$$$$$$The count value "<<count_for_index<<" "<<this->next_counter);
-//		}
-//		if(count_for_index % 100 == 0)
-//		{
-//			if(this->application_index==15) NS_LOG_UNCOND("The count value "<<count_for_index);
-//			while (fgets(str, 1000, fp) != NULL)
-//			{
-//				sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
-//
-//				if((int)strlen(str) > 1)
-//				{
-//					if(local_counter >=count_for_index || count_for_index == 0 )
-//					{
-//						//CurrentFlowInfo cfi = CurrentFlowInfo(timestamp, offset-BaseTopology::min_offset, size);
-//						currentflowinfo[local_counter%100].next_schedule_in_ms = timestamp;
-//
-//						if(this->application_index==15) NS_LOG_UNCOND(" timestamp "<<timestamp);
-//						currentflowinfo[local_counter%100].chunk_id = offset-BaseTopology::min_offset;
-//						currentflowinfo[local_counter%100].size = size;
-//						local_counter++;
-//						next_counter++;
-//					}
-//
-//					if((next_counter - count_for_index) >=100)
-//					{
-//						NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
-//						break;
-//					}
-//
-//					local_counter++;
-//
-//
-//				}
-//			}
-//		}
+	NS_LOG_FUNCTION(this);
+		/*
+		 * you can overrule m_interval here, for varied inter-packet delay
+		 */
+	char str[1000];
+	double timestamp;
+	double response_time;
+	char io_type;
+	int LUN;
+	uint64_t offset;
+	uint32_t size;
+
+	uint32_t local_counter = 0;
+
+	char assigned_sub_trace_file[15];
+	//
+	sprintf(assigned_sub_trace_file,"application_%d.csv",this->application_index);
+
+	if(this->application_index==15)
+	{
+		NS_LOG_UNCOND("%%%%%%%%%%%^$$$^^^^^$$$$$$$$$The count value "<<count_for_index<<" "<<this->next_counter);
+	}
+	if(count_for_index % ENTRIES_PER_FLOW == 0)
+	{
+		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
+		if(this->application_index==15) NS_LOG_UNCOND("The count value "<<count_for_index);
+		while (fgets(str, 1000, BaseTopology::BaseTopology::fp[this->application_index]) != NULL)
+		{
+			sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
+
+			if((int)strlen(str) > 1)
+			{
+				if(local_counter >=count_for_index || count_for_index == 0 )
+				{
+					//CurrentFlowInfo cfi = CurrentFlowInfo(timestamp, offset-BaseTopology::min_offset, size);
+					currentflowinfo[local_counter%100].next_schedule_in_ms = timestamp;
+
+					if(this->application_index==15) NS_LOG_UNCOND(" timestamp "<<timestamp);
+					currentflowinfo[local_counter%100].chunk_id = offset-BaseTopology::min_offset;
+					currentflowinfo[local_counter%100].size = size;
+					local_counter++;
+					next_counter++;
+				}
+
+				if((next_counter - count_for_index) >=100)
+				{
+					NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
+					break;
+				}
+
+				local_counter++;
+
+
+			}
+		}
+
+		fclose(BaseTopology::fp[this->application_index]);
+	}
 }
 
 void ssUdpEchoClient::ScheduleTransmit(Time dt) {
@@ -793,11 +799,11 @@ void ssUdpEchoClient::Send(void) {
 
 	if(!is_write || num_of_packets_to_send == 1)
 	{
-		uint32_t chunk_id = this->currentflowinfo[count_for_index].chunk_id ;
+		uint32_t chunk_id = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].chunk_id ;
 
 		dest_value = chunk_id % total_number_of_hosts;
 
-		uint32_t number_of_packets = this->currentflowinfo[count_for_index].size % 1500;
+		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / 1500;
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{

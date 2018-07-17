@@ -330,6 +330,8 @@ public:
 
 	static uint64_t min_offset;
 
+	static std::FILE **fp;
+
 protected:
 	virtual void DoDispose(void);
 	virtual void DisplayCommandLine(void);

@@ -114,5 +114,7 @@
 #define MegabyteToByte										1000000
 
 #define DEFAULT_LOCAL_ACCESS_LATENCY						100 //100 microsecond
+
+#define ENTRIES_PER_FLOW 									100
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

@@ -73,6 +73,8 @@ HostBandwidthRequirement** BaseTopology::application_statistics = new HostBandwi
 
 uint64_t BaseTopology::min_offset = 0;
 
+std::FILE** BaseTopology::fp = new std::FILE*[simulationRunProperties::total_applications+1];
+
 
 
 BaseTopology::~BaseTopology() {

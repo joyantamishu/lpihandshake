@@ -10,9 +10,9 @@
 
 #define MAXCHAR 			10000
 
-#define ENTRIES_PER_FLOW 	100
-
 #include "ss-base-topology.h"
+
+#include "parameters.h"
 
 namespace ns3 {
 
