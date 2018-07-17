@@ -25,6 +25,8 @@
 
 #include "parameters.h"
 
+#include "ns3/ipv4-global-routing.h"
+
 namespace ns3 {
 
 class local_chunk_info

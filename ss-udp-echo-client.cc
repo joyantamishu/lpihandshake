@@ -915,6 +915,28 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	t_p->is_write = is_write;
 	t_p->creation_time = Simulator::Now().ToDouble(Time::US);
 	t_p->version = version;
+
+
+
+	if(t_p->sub_flow_dest_physical == t_p->srcNodeId)
+	{
+		if (Ipv4GlobalRouting::flow_map.count(t_p->flow_id) <= 0)
+		{
+			flow_info flow_entry  = flow_info();
+			flow_entry.set_flow_id(t_p->flow_id);
+			flow_entry.set_source(m_srcIpv4Address);
+			flow_entry.set_destination(m_dstIpv4Address);
+			flow_entry.set_bandwidth(requiredBW);
+			flow_entry.destination_node = t_p->sub_flow_dest_physical;
+			Ipv4GlobalRouting::flow_map[t_p->flow_id] = flow_entry;
+		}
+		//NS_LOG_UNCOND("t_p->flow_id "<<t_p->flow_id);
+		Ipv4GlobalRouting::flow_map.at(t_p->flow_id).delaysum += DEFAULT_LOCAL_ACCESS_LATENCY;
+		Ipv4GlobalRouting::flow_map.at(t_p->flow_id).total_packet_to_destination++;
+	}
+
+
+
 // sanjeev debug...3/15..trace packetinfo at client !!! // Apr 24
 	if (isFirstPacket || last)
 		ssUdpEchoServer::writeFlowDataToFile(
