@@ -797,7 +797,7 @@ void ssUdpEchoClient::Send(void) {
 
 		dest_value = chunk_id % total_number_of_hosts;
 
-		uint32_t number_of_packets = this->currentflowinfo[count_for_index].size % 1500;
+		uint32_t number_of_packets = this->currentflowinfo[count_for_index].size / m_packetSize;
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{
