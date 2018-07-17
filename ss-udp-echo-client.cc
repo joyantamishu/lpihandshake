@@ -315,10 +315,7 @@ void ssUdpEchoClient::FlowOperations()
 	//
 	sprintf(assigned_sub_trace_file,"application_%d.csv",this->application_index);
 
-	if(this->application_index==15)
-	{
-		NS_LOG_UNCOND("%%%%%%%%%%%^$$$^^^^^$$$$$$$$$The count value "<<count_for_index<<" "<<this->next_counter);
-	}
+
 	if(count_for_index % ENTRIES_PER_FLOW == 0)
 	{
 		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
@@ -332,18 +329,18 @@ void ssUdpEchoClient::FlowOperations()
 				if(local_counter >=count_for_index || count_for_index == 0 )
 				{
 					//CurrentFlowInfo cfi = CurrentFlowInfo(timestamp, offset-BaseTopology::min_offset, size);
-					currentflowinfo[local_counter%100].next_schedule_in_ms = timestamp;
+					currentflowinfo[local_counter%ENTRIES_PER_FLOW].next_schedule_in_ms = timestamp;
 
-					if(this->application_index==15) NS_LOG_UNCOND(" timestamp "<<timestamp);
-					currentflowinfo[local_counter%100].chunk_id = offset-BaseTopology::min_offset;
-					currentflowinfo[local_counter%100].size = size;
+					//if(this->application_index==15) NS_LOG_UNCOND(" timestamp "<<timestamp);
+					currentflowinfo[local_counter%ENTRIES_PER_FLOW].chunk_id = offset-BaseTopology::min_offset;
+					currentflowinfo[local_counter%ENTRIES_PER_FLOW].size = size;
 					local_counter++;
 					next_counter++;
 				}
 
 				if((next_counter - count_for_index) >=100)
 				{
-					NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
+					//NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
 					break;
 				}
 
@@ -360,7 +357,7 @@ void ssUdpEchoClient::FlowOperations()
 void ssUdpEchoClient::ScheduleTransmit(Time dt) {
 
 
-	double interval = currentflowinfo[count_for_index].next_schedule_in_ms;
+	double interval = currentflowinfo[count_for_index%ENTRIES_PER_FLOW].next_schedule_in_ms;
 
 //	if(this->application_index == 15)
 //	{
@@ -740,7 +737,7 @@ void ssUdpEchoClient::Send(void) {
 	}
 #endif
 	/* bug sanjeev 7 Feb, rectified	 - old code deleted*/
-	//FlowOperations();
+	FlowOperations();
 
 	uint32_t chunk_value, dest_value;
 
@@ -803,7 +800,8 @@ void ssUdpEchoClient::Send(void) {
 
 		dest_value = chunk_id % total_number_of_hosts;
 
-		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / 1500;
+		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / m_packetSize;
+
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{
