@@ -117,55 +117,7 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 
 	app->next_counter = 0;
 
-
-
-	//std::FILE *fp;
-
-//	char str[1000];
-//	double timestamp;
-//	double response_time;
-//	char io_type;
-//	int LUN;
-//	uint64_t offset;
-//	uint32_t size;
-//
-//	uint32_t local_counter = 0;
-//
-//	char assigned_sub_trace_file[15];
-//
-//	sprintf(assigned_sub_trace_file,"application_%d.csv",app_id);
-//
-//	BaseTopology::fp[app_id] = fopen(assigned_sub_trace_file, "r");
-//
-//	if (BaseTopology::fp[app_id] == NULL){
-//			printf("Could not open file %s",assigned_sub_trace_file);
-//			return NULL;
-//	}
-//
-//
-//	while (fgets(str, 1000, BaseTopology::fp[app_id]) != NULL)
-//	{
-//		sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
-//
-//		if((int)strlen(str) > 1)
-//		{
-//			app->currentflowinfo[local_counter].next_schedule_in_ms = timestamp;
-//			app->currentflowinfo[local_counter].chunk_id = (offset-BaseTopology::min_offset)/CHUNK_SIZE;
-//			app->currentflowinfo[local_counter].size = size;
-//			local_counter++;
-//
-//			if(local_counter>=ENTRIES_PER_FLOW) break;
-//
-//		}
-//	}
-//
-//	fclose(fp);
-
 	node->AddApplication(app);
-
-
-
-
 	return app;
 }
 /***************************************************/
