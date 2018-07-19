@@ -299,7 +299,7 @@ void BaseTopology::calculateNewLocation(int incrDcr,uint32_t *src, uint32_t *des
 {
 
 
-	float cuttoffnode_high=700.0;   //this has to be made dynamic
+	float cuttoffnode_high=5000.0;   //this has to be made dynamic
 	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
 	uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
 	float cuttoffpod=nodes_in_pod*cuttoffnode_high; //this has to be made dynamic
