@@ -290,9 +290,11 @@ void ssUdpEchoClient::StartApplication() {
 
 		//////Update the struct value///////////////
 
-		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
 
-		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+		uint32_t node = ((chunk_location - 1)/2) % Ipv4GlobalRouting::FatTree_k;
+
+		//if((int) pod >= Ipv4GlobalRouting::FatTree_k) NS_LOG_UNCOND("Pod is greater than k");
 
 		BaseTopology::p[pod].nodes[node].utilization += bandwidth_distribution;
 
@@ -317,7 +319,7 @@ void ssUdpEchoClient::StartApplication() {
 		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
 		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
 
-		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = (2 *dest + 1);
 
 		uint32_t pod = (uint32_t) floor((double) dest/ (double) Ipv4GlobalRouting::FatTree_k);
 
@@ -406,9 +408,9 @@ void ssUdpEchoClient::StopApplication(void) {
 			Ipv4GlobalRouting::host_utilization[chunk_location] -= bandwidth_distribution;
 
 
-			uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+			uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
 
-			uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+			uint32_t node = ((chunk_location - 1)/2) % (Ipv4GlobalRouting::FatTree_k);
 
 			BaseTopology::p[pod].nodes[node].utilization -= bandwidth_distribution;
 			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
@@ -819,6 +821,8 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 
 	if(t_p->sub_flow_dest_physical == t_p->srcNodeId)
 	{
+
+		if(!t_p->is_Last) NS_LOG_UNCOND("The dest and src are same ");
 		if (Ipv4GlobalRouting::flow_map.count(t_p->flow_id) <= 0)
 		{
 			flow_info flow_entry  = flow_info();

@@ -30,10 +30,12 @@ FatTreeTopology::FatTreeTopology(void) :
 	BuildInitialTopology();
 	SetUpInitialOpmizationVariables();
 	SetUpInitialChunkPosition();
-	SetUpApplicationAssignment();
+
 	SetUpNodeUtilizationStatistics();
 
 	SetUpInitialApplicationPosition();
+
+	SetUpApplicationAssignment();
 
 	SetUpIntensityPhraseChangeVariables();
 
@@ -131,11 +133,11 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				sscanf(pch,"%d",&value);
 				if(count == 0)
 				{
-					logical_host_number = value;
+					logical_host_number = 2 * value + 1;
 					physical_host_number = hosts.Get(logical_host_number)->GetId();
-					pod = (uint32_t) floor((double) logical_host_number/ (double) Ipv4GlobalRouting::FatTree_k);
-					node = logical_host_number % Ipv4GlobalRouting::FatTree_k;
-					//printf("The node id %d\n", value);
+					pod = (uint32_t) floor((double) logical_host_number/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
+					node = ((logical_host_number - 1)/2) % Ipv4GlobalRouting::FatTree_k;
+					printf("-------The chunk node id %d-------------------\n", logical_host_number);
 				}
 				else
 				{
@@ -275,16 +277,11 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 	ns3::BaseTopology::application_selector->SetAttribute("Min", DoubleValue(0));
 	ns3::BaseTopology::application_selector->SetAttribute("Max", DoubleValue(simulationRunProperties::total_applications-1));
 
-
-
-
-
-	uint32_t total_hosts = hosts.GetN();
 //
 //	printf("The total number of hosts %d\n", total_hosts);
 //
 //
-	for(uint32_t i = 0;i<total_hosts;i++)
+	for(int i = 0;i<total_hosts;i++)
 	{
 		ns3::BaseTopology::application_assignment_to_node[i] = new uint32_t[total_applications+1];
 		ns3::BaseTopology::application_assignment_to_node[i][0] = 0;
@@ -332,9 +329,9 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 
 				if(count == 0)
 				{
-					host = value;
+					host = 2 * value;
 
-					//printf("The node id %d\n", value);
+					printf("The application node id %d\n", host);
 				}
 				else
 				{
@@ -384,6 +381,8 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_interval[3] = 100;
 
+
+	//exit(0);
 
 
 
@@ -485,12 +484,12 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	//=========== Define parameters based on value of k ===========//
 	int n_pods = k;
 // these are PER POD nodes
-	hosts_per_pod = (k * k) / 4;	// number of hosts switch in a pod
+	hosts_per_pod = (2 *k * k) / 4;	// number of hosts switch in a pod
 	n_edge_routers = k / 2;	// number of bridge in a pod
 	n_aggregate_routers = (k / 2);	// number of core switch in a group
 	hosts_per_edge = hosts_per_pod / n_edge_routers; // number of hosts per edge router
 
-	n_core_routers = hosts_per_pod;	// no of core switches
+	n_core_routers = hosts_per_pod/2;	// no of core switches
 // these are TOTAL nodes....
 	total_hosts = hosts_per_pod * k;	// number of hosts in the entire network
 	total_aggregate_routers = k * n_aggregate_routers;
