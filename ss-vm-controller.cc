@@ -297,10 +297,10 @@ bool BaseTopology::markFlowStartedMetric(const uint32_t &notUsedflowId,
 	node->m_currentAvailableBW_In -= flowBW;	// decrease...
 	node->m_currentUtilizedBW_In += flowBW;	// increase...
 	// do a sanity check
-	NS_ASSERT_MSG(node->m_currentAvailableBW_In >= 0,
-			"Messed up on dst node [" << dstNodeId << "] m_currentAvailableBW_In [" << node->m_currentAvailableBW_In << "] is less than 0");
-	NS_ASSERT_MSG(node->m_currentUtilizedBW_Out <= node->m_maxAvailableBW_In,
-			"Messed up on dst node [" << dstNodeId << "] m_currentUtilizedBW_In [" << node->m_currentUtilizedBW_In << "] is more than maxAvailable [" << node->m_maxAvailableBW_In << "]");
+//	NS_ASSERT_MSG(node->m_currentAvailableBW_In >= 0,
+//			"Messed up on dst node [" << dstNodeId << "] m_currentAvailableBW_In [" << node->m_currentAvailableBW_In << "] is less than 0");
+//	NS_ASSERT_MSG(node->m_currentUtilizedBW_Out <= node->m_maxAvailableBW_In,
+//			"Messed up on dst node [" << dstNodeId << "] m_currentUtilizedBW_In [" << node->m_currentUtilizedBW_In << "] is more than maxAvailable [" << node->m_maxAvailableBW_In << "]");
 
 	return true;
 }
