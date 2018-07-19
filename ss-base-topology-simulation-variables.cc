@@ -113,6 +113,8 @@ uint32_t simulationRunProperties::phrase_change_number = DEFAULT_NUMBER_OF_INTEN
 
 double simulationRunProperties::intensity_change_start_ms = DEFAULT_INTENSITY_CHANGE_START_TIME_MS;
 
+double simulationRunProperties::utilization_value = DEFAULT_UTILIZATION;
+
 //int Ipv4GlobalRouting::totalchunk=simulationRunProperties::total_chunk;
 
 /***********************************************/
@@ -246,7 +248,17 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 					"This is the policy under which you would like to run your code)",
 					simulationRunProperties::polID);
 
+	cmd.AddValue("utilization","This is the utilization we expect the network would achieve during the simulation",
+				simulationRunProperties::utilization_value);
+
 	cmd.Parse(argc, argv);
+
+
+	if(simulationRunProperties::utilization_value >= 1.0)
+	{
+		simulationRunProperties::utilization_value = simulationRunProperties::utilization_value / 100.0;
+	}
+
 	if (simulationRunProperties::enableTickModel) { // takes precedent... Rearranged precedence, Apr26
 		simulationRunProperties::enableSawToothModel = false;
 		simulationRunProperties::enableMarkovModel = false;
@@ -337,7 +349,7 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 
 	Ipv4GlobalRouting::policyId=simulationRunProperties::polID;
 
-	double expected_number_of_packet = (double) Count / (double)(simulationRunProperties::packetSize * 8);
+	double expected_number_of_packet = (double) DRIVE_CAPACITY / (double)(simulationRunProperties::packetSize * 8);
 
 	expected_number_of_packet = expected_number_of_packet * (double)(1000000.0);
 

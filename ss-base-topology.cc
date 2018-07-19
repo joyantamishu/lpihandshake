@@ -69,9 +69,9 @@ Pod* BaseTopology::p;
 
 bool BaseTopology::createflag=false;
 
-HostBandwidthRequirement** BaseTopology::application_statistics = new HostBandwidthRequirement*[simulationRunProperties::total_applications+1];
-
 uint64_t BaseTopology::min_offset = 0;
+
+uint64_t BaseTopology::chunk_size = 0;
 
 std::FILE** BaseTopology::fp = new std::FILE*[simulationRunProperties::total_applications+1];
 

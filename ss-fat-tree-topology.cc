@@ -10,7 +10,7 @@
 #include "ss-fat-tree-topology.h"
 #include "ns3/ipv4-global-routing.h"
 #include "ss-base-topology.h"
-#include "parameters.h"
+
 
 namespace ns3 {
 
@@ -430,14 +430,6 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 		}
 		BaseTopology::createflag=true;
 	}
-
-//	for(uint32_t i = 0; i<number_of_hosts; i++)
-//	{
-//
-//		//uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//		//for(uint32_t host_count = 0; host_count < )
-//	}
 }
 
 
@@ -447,6 +439,8 @@ void FatTreeTopology::SetUpRealTracesVariables()
 {
 
 	FILE *fp;
+
+	double interarrival_time_scale = 1.0;
 
 	char str[MAXCHAR];
 	uint32_t count = 0;
@@ -522,25 +516,16 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	total_time += (trace_ending_time -trace_starting_time);
 
-	//cout<<"total_bandwidth_in_bytes "<<total_bandwidth_in_bytes<<endl;
-
-	//cout<<total_bandwidth_in_bytes/((trace_ending_time -trace_starting_time)*1000000)<<endl;
-
 
 	fclose(fp);
 
 	BaseTopology::min_offset = min_offset;
 
+	BaseTopology::chunk_size = (max_offset - min_offset)/ simulationRunProperties::total_chunk;
+
 
 	uint32_t trace_entries_per_application = total_entries/simulationRunProperties::total_applications;
 
-	uint32_t total_flows_per_application = (trace_entries_per_application / ENTRIES_PER_FLOW) + 1;
-
-
-	for(uint32_t i=0;i<simulationRunProperties::total_applications+1;i++)
-	{
-		BaseTopology::application_statistics[i] = new HostBandwidthRequirement[total_flows_per_application];
-	}
 
 
 	NS_LOG_UNCOND("Total Seconds expired "<<total_time );
@@ -551,28 +536,23 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	NS_LOG_UNCOND("Average bw usages "<<total_bandwidth_in_bytes * 8/(total_time*1000000)<<" Mbps");
 
+	int total_hosts = hosts.GetN();
+
+	double calculated_utilization = (total_bandwidth_in_bytes * 8/(total_time*1000000)) * simulationRunProperties::initialFlowCount ;
+
+	double desired_utilization = simulationRunProperties::utilization_value * DRIVE_CAPACITY * total_hosts;
+
+	NS_LOG_UNCOND("Desired utilization "<<desired_utilization<<" calculated_utilization "<<calculated_utilization);
+
+	interarrival_time_scale = desired_utilization / calculated_utilization;
+
+	NS_LOG_UNCOND("interarrival_time_scale "<<interarrival_time_scale);
 
 	NS_LOG_UNCOND("Processing traces for applications............");
-
-
-	for(uint32_t i=0;i<simulationRunProperties::total_applications+1;i++)
-	{
-		BaseTopology::application_statistics[i] = new HostBandwidthRequirement[total_flows_per_application];
-	}
-
-	uint32_t chunk_id;
-
-	uint32_t chunk_location;
-
-
-
-
 
 	trace_starting_time = 0.0;
 
 	trace_ending_time = 0.0;
-
-	int app_index = 0;
 
 	uint32_t app_id = 0;
 
@@ -602,8 +582,6 @@ void FatTreeTopology::SetUpRealTracesVariables()
 		sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
 		if((int)strlen(str) > 1)
 		{
-
-
 			if(trace_starting_time == 0.0)
 			{
 				trace_starting_time = timestamp;
@@ -616,35 +594,19 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 			trace_ending_time = timestamp;
 
-			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",timestamp-relative_time_of_traces,response_time, io_type,LUN,offset,size );
+			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",(timestamp-relative_time_of_traces) / interarrival_time_scale,response_time, io_type,LUN,offset,size );
 
 			relative_time_of_traces = timestamp;
 			count++;
-
-			chunk_id = (offset - min_offset) / CHUNK_SIZE;
-
-			chunk_location = chunk_id % total_hosts_machines;
-
-
-
-			double utilization;
-
-			BaseTopology::application_statistics[app_id][app_index].hosts[chunk_location] += size;
-
-			//cout<<"The size is "<<size<<" the count is "<<count<<endl;
 
 			if(count % trace_entries_per_application == 0) //End of Application Entry
 			{
 
 				for(uint32_t index=0;index<total_hosts_machines;index++)
 				{
-					utilization = (BaseTopology::application_statistics[app_id][app_index].hosts[index]/(double)MegabyteToByte) * 8.0;
-					utilization = utilization / (trace_ending_time -trace_starting_time);
-					BaseTopology::application_statistics[app_id][app_index].hosts[index] = utilization;
 					trace_starting_time = 0.0;
 				}
 				app_id++;
-				app_index = 0;
 				trace_starting_time = 0.0;
 
 				relative_time_of_traces = timestamp;
@@ -655,27 +617,10 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 				fp_subtraces = fopen(splitted_filename,"w");
 			}
-
-			else if(count % ENTRIES_PER_FLOW == 0) //Done with one flow
-			{
-				for(uint32_t index=0;index<total_hosts_machines;index++)
-				{
-					utilization = (BaseTopology::application_statistics[app_id][app_index].hosts[index]/(double)MegabyteToByte) * 8.0;
-
-					utilization = utilization / (trace_ending_time -trace_starting_time);
-					BaseTopology::application_statistics[app_id][app_index].hosts[index] = utilization;
-
-				}
-				app_index ++;
-				trace_starting_time = 0.0;
-			}
 		}
 
 
 	}
-
-	total_time += (trace_ending_time -trace_starting_time);
-
 
 	fclose(fp);
 

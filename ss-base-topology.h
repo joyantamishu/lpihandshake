@@ -320,8 +320,6 @@ public:
 
 	static double intensity_change_scale;
 
-	static HostBandwidthRequirement **application_statistics;
-
 	/**********************************************/
 
 	static int total_appication;
@@ -329,6 +327,8 @@ public:
 	uint32_t application_count;
 
 	static uint64_t min_offset;
+
+	static uint64_t chunk_size;
 
 	static std::FILE **fp;
 
