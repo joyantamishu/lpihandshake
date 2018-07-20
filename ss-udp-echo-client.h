@@ -112,6 +112,10 @@ public:
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
 
+	virtual void updateOptimizationVariablesLeavingFlow();
+
+	virtual void updateOptimizationVariablesIncomingFlow();
+
 	uint32_t count_for_index;
 	//std::FILE *fp;
 

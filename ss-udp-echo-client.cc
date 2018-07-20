@@ -247,6 +247,133 @@ void ssUdpEchoClient::RegisterCallBackFunctions(void) {
 	}
 }
 
+
+
+void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
+{
+	uint32_t chunk_location;
+	double byte_to_mbit;
+
+	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
+	{
+		uint32_t version;
+		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+
+		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
+
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+
+		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+
+		BaseTopology::p[pod].nodes[node].utilization -= byte_to_mbit;
+
+		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
+		{
+			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id)
+			{
+				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= byte_to_mbit;
+			}
+		}
+
+		if(i==0) break;
+
+	}
+
+	int incrDcr=0;
+	uint32_t src=999,dest=999,chunk_no=999;
+	BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+
+	if(src != 999)
+	{
+		NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
+		if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
+		{
+				BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
+				BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+		}
+
+		else
+		{
+			NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+		}
+		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+
+	}
+}
+
+
+void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
+{
+	uint32_t chunk_location;
+	double byte_to_mbit;
+
+	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
+	{
+		uint32_t version;
+		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+
+		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
+
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+
+		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+
+		BaseTopology::p[pod].nodes[node].utilization += byte_to_mbit;
+
+		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
+		{
+			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id)
+			{
+				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += byte_to_mbit;
+			}
+		}
+
+
+	}
+
+	int incrDcr=1;
+	uint32_t src=999,dest=999,chunk_no=999;
+	BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+
+
+	if(src != 999)
+	{
+		NS_LOG_UNCOND("++++++++");
+
+		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
+
+		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+
+		uint32_t pod = (uint32_t) floor((double) dest/ (double) Ipv4GlobalRouting::FatTree_k);
+
+		uint32_t node = dest % Ipv4GlobalRouting::FatTree_k;
+
+		bool entry_already_exists = false;
+
+		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
+		{
+			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_no)
+			{
+				entry_already_exists = true;
+			}
+		}
+
+		if(!entry_already_exists)
+		{
+			BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = chunk_no;
+			BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].intensity_sum = 0.0;
+
+			BaseTopology::p[pod].nodes[node].total_chunks++;
+		}
+
+		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+			//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+	}
+
+}
+
+
 void ssUdpEchoClient::FlowOperations()
 {
 	NS_LOG_FUNCTION(this);
@@ -271,7 +398,7 @@ void ssUdpEchoClient::FlowOperations()
 	if(count_for_index % ENTRIES_PER_FLOW == 0)
 	{
 		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
-		if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index);
+		if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index<<" Simulator::Now().ToDouble(Time::MS) "<<Simulator::Now().ToDouble(Time::MS));
 		while (fgets(str, 1000, BaseTopology::BaseTopology::fp[this->application_index]) != NULL)
 		{
 			sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
@@ -280,7 +407,7 @@ void ssUdpEchoClient::FlowOperations()
 			{
 				if(local_counter >=count_for_index || count_for_index == 0 )
 				{
-					if(this->application_index==27) NS_LOG_UNCOND(timestamp);
+					//if(this->application_index==27) NS_LOG_UNCOND(timestamp);
 					//CurrentFlowInfo cfi = CurrentFlowInfo(timestamp, offset-BaseTopology::min_offset, size);
 					currentflowinfo[local_counter%ENTRIES_PER_FLOW].next_schedule_in_ms = timestamp;
 
@@ -435,11 +562,13 @@ void ssUdpEchoClient::StopApplication(void) {
 
 	//fclose(fp);
 
+	NS_LOG_UNCOND("-------The Flow Ends------");
+
 // as discussed on Mar 15. Sanjeev (overcome bug)
 	if (!m_lastPacket) {
 
-		for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
-		{
+//		for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
+//		{
 //			uint32_t chunk_value = destination_chunks[i-1];
 //
 //			uint32_t chunk_location = getChunkLocation(chunk_value, &version);
@@ -465,28 +594,28 @@ void ssUdpEchoClient::StopApplication(void) {
 //			}
 //
 //
-		}
-		int incrDcr=0;
-		uint32_t src=999,dest=999,chunk_no=999;
-		BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
-
-		if(src != 999)
-		{
-			NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
-			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
-			{
-					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
-			}
-
-			else
-			{
-				NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
-			}
-
-			NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
-
-		}
+//		}
+//		int incrDcr=0;
+//		uint32_t src=999,dest=999,chunk_no=999;
+//		BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+//
+//		if(src != 999)
+//		{
+//			NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
+//			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
+//			{
+//					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
+//					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+//			}
+//
+//			else
+//			{
+//				NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+//			}
+//
+//			NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+//
+//		}
 
 
 		//calling the optimizer
@@ -701,6 +830,7 @@ void ssUdpEchoClient::Send(void) {
 	uint32_t num_of_packets_to_send = 1;
 
 	bool is_write = false;
+	uint32_t trace_flow_id;
 
 	//uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
 
@@ -757,6 +887,17 @@ void ssUdpEchoClient::Send(void) {
 
 		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / m_packetSize;
 
+		trace_flow_id = count_for_index/ENTRIES_PER_FLOW;
+
+		if(count_for_index % ENTRIES_PER_FLOW == 0) //start of new flow
+		{
+			if(trace_flow_id!=0) //this is not the first flow for sure
+			{
+				updateOptimizationVariablesLeavingFlow();
+			}
+			updateOptimizationVariablesIncomingFlow();
+
+		}
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{
@@ -947,8 +1088,10 @@ uint32_t ssUdpEchoClient::getChunkLocation(uint32_t chunk, uint32_t *version)
 			return it->node_id;
 		}
 	}
-	//NS_LOG_UNCOND("^^^^^^^^^^^^^^The chunk number is^^^^^^^^^^^^^^"<<chunk);
-	return -1;
+	NS_LOG_UNCOND("^^^^^^^^^^^^^^The chunk number is^^^^^^^^^^^^^^"<<chunk<<" App id "<<this->application_index<<" index "<<count_for_index);
+
+	NS_LOG_UNCOND("this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW] "<< this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].chunk_id);
+	return 0;
 }
 
 void ssUdpEchoClient::ChangePopularity()
