@@ -195,74 +195,74 @@ Ipv4Address FatTreeTopology::GetIpv4Address(uint32_t node_id)
 
 void FatTreeTopology::SetUpApplicationAssignment()
 {
-
-
-
-	uint32_t max_total_chunk_per_application = 80;
-
-	for(uint32_t i = 0;i<simulationRunProperties::total_applications;i++)
-	{
-		ns3::BaseTopology::chunk_assignment_to_applications[i] = new uint32_t[max_total_chunk_per_application + 1];
-		ns3::BaseTopology::chunk_assignment_to_applications[i][0] = 0;
-		ns3::BaseTopology::chunk_assignment_probability_to_applications[i] = new double [max_total_chunk_per_application + 1];
-		for(uint32_t index=0;index<=max_total_chunk_per_application;index++)
-		{
-			ns3::BaseTopology::chunk_assignment_probability_to_applications[i][index] = 0.0;
-		}
-
-	}
-
-	FILE *fp;
-	char str[MAXCHAR];
-	const char* filename = "final.txt";
-
-	fp = fopen(filename, "r");
-	if (fp == NULL){
-		printf("Could not open file %s",filename);
-		return;
-	}
-
-	while (fgets(str, MAXCHAR, fp) != NULL)
-	{
-		uint32_t app, chunk;
-
-		double prob;
-
-		if((int)strlen(str) > 1)
-		{
-		   sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
-
-		   chunk = chunk -1;
-		   app = app-1;
-
-		   ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
-
-		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
-		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
-
-		   //printf("The app %d, The chunk %d, The prob %lf\n",app, chunk, prob);
-		}
-
-	}
-
-	NS_LOG_UNCOND("************88Hello There Normalization*****************");
-	//normalization
-	for(uint32_t i=0;i<simulationRunProperties::total_applications;i++)
-	{
-		double sum = 0.0;
-
-		for(uint32_t j=1;j<=ns3::BaseTopology::chunk_assignment_to_applications[i][0];j++)
-		{
-			sum += ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j];
-		}
-
-		for(uint32_t j=1;j<=ns3::BaseTopology::chunk_assignment_to_applications[i][0];j++)
-		{
-			ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j] = ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j]/sum;
-		}
-
-
-	}
+//
+//
+//
+//	uint32_t max_total_chunk_per_application = 80;
+//
+//	for(uint32_t i = 0;i<simulationRunProperties::total_applications;i++)
+//	{
+//		ns3::BaseTopology::chunk_assignment_to_applications[i] = new uint32_t[max_total_chunk_per_application + 1];
+//		ns3::BaseTopology::chunk_assignment_to_applications[i][0] = 0;
+//		ns3::BaseTopology::chunk_assignment_probability_to_applications[i] = new double [max_total_chunk_per_application + 1];
+//		for(uint32_t index=0;index<=max_total_chunk_per_application;index++)
+//		{
+//			ns3::BaseTopology::chunk_assignment_probability_to_applications[i][index] = 0.0;
+//		}
+//
+//	}
+//
+//	FILE *fp;
+//	char str[MAXCHAR];
+//	const char* filename = "final.txt";
+//
+//	fp = fopen(filename, "r");
+//	if (fp == NULL){
+//		printf("Could not open file %s",filename);
+//		return;
+//	}
+//
+//	while (fgets(str, MAXCHAR, fp) != NULL)
+//	{
+//		uint32_t app, chunk;
+//
+//		double prob;
+//
+//		if((int)strlen(str) > 1)
+//		{
+//		   sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
+//
+//		   chunk = chunk -1;
+//		   app = app-1;
+//
+//		   ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
+//
+//		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
+//		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
+//
+//		   //printf("The app %d, The chunk %d, The prob %lf\n",app, chunk, prob);
+//		}
+//
+//	}
+//
+//	NS_LOG_UNCOND("************88Hello There Normalization*****************");
+//	//normalization
+//	for(uint32_t i=0;i<simulationRunProperties::total_applications;i++)
+//	{
+//		double sum = 0.0;
+//
+//		for(uint32_t j=1;j<=ns3::BaseTopology::chunk_assignment_to_applications[i][0];j++)
+//		{
+//			sum += ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j];
+//		}
+//
+//		for(uint32_t j=1;j<=ns3::BaseTopology::chunk_assignment_to_applications[i][0];j++)
+//		{
+//			ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j] = ns3::BaseTopology::chunk_assignment_probability_to_applications[i][j]/sum;
+//		}
+//
+//
+//	}
 
 
 }

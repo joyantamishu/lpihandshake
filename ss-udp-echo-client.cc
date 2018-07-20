@@ -263,7 +263,7 @@ void ssUdpEchoClient::FlowOperations()
 
 	uint32_t local_counter = 0;
 
-	char assigned_sub_trace_file[15];
+	char assigned_sub_trace_file[25];
 	//
 	sprintf(assigned_sub_trace_file,"application_%d.csv",this->application_index);
 
@@ -271,20 +271,21 @@ void ssUdpEchoClient::FlowOperations()
 	if(count_for_index % ENTRIES_PER_FLOW == 0)
 	{
 		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
-		if(this->application_index==15) NS_LOG_UNCOND("The count value "<<count_for_index);
+		if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index);
 		while (fgets(str, 1000, BaseTopology::BaseTopology::fp[this->application_index]) != NULL)
 		{
 			sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
-
+			//if(application_index == 15) NS_LOG_UNCOND(timestamp);
 			if((int)strlen(str) > 1)
 			{
 				if(local_counter >=count_for_index || count_for_index == 0 )
 				{
+					if(this->application_index==27) NS_LOG_UNCOND(timestamp);
 					//CurrentFlowInfo cfi = CurrentFlowInfo(timestamp, offset-BaseTopology::min_offset, size);
 					currentflowinfo[local_counter%ENTRIES_PER_FLOW].next_schedule_in_ms = timestamp;
 
 					//if(this->application_index==15) NS_LOG_UNCOND(" timestamp "<<timestamp);
-					currentflowinfo[local_counter%ENTRIES_PER_FLOW].chunk_id = offset-BaseTopology::min_offset;
+					currentflowinfo[local_counter%ENTRIES_PER_FLOW].chunk_id = (offset-BaseTopology::min_offset)/BaseTopology::chunk_size;
 					currentflowinfo[local_counter%ENTRIES_PER_FLOW].size = size;
 					local_counter++;
 					next_counter++;
@@ -325,67 +326,67 @@ void ssUdpEchoClient::StartApplication() {
 	NS_LOG_FUNCTION(this);
 	BaseTopology::total_appication++;
 
-	uint32_t version;
-
-	destination_chunks = new uint32_t[ns3::BaseTopology::chunk_assignment_to_applications[application_index][0]];
-
-	for(uint32_t chunk_no=1;chunk_no<=ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];chunk_no++)
-	{
-		uint32_t virtual_chunk_number = ns3::BaseTopology::chunk_assignment_to_applications[application_index][chunk_no];
-		destination_chunks[chunk_no-1] = ns3::BaseTopology::virtual_to_absolute_mapper[virtual_chunk_number];
-	}
-
-
-	for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
-	{
-		uint32_t chunk_value = destination_chunks[i-1];
-
-		uint32_t chunk_location = getChunkLocation(chunk_value, &version);
-
-		double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
-
-		Ipv4GlobalRouting::host_utilization[chunk_location] += bandwidth_distribution;
-
-		//////Update the struct value///////////////
-
-		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
-
-		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
-
-		BaseTopology::p[pod].nodes[node].utilization += bandwidth_distribution;
-		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-		{
-			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
-			{
-
-				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
-			}
-		}
-
-
-
-	}
-
-	int incrDcr=1;
-	uint32_t src=999,dest=999,chunk_no=999;
-	BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
-
-
-	if(src != 999)
-	{
-		NS_LOG_UNCOND("++++++++");
-
-		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
-		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
-
-		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
-
-
-
-		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
-		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
-		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
-	}
+//	uint32_t version;
+//
+//	destination_chunks = new uint32_t[ns3::BaseTopology::chunk_assignment_to_applications[application_index][0]];
+//
+//	for(uint32_t chunk_no=1;chunk_no<=ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];chunk_no++)
+//	{
+//		uint32_t virtual_chunk_number = ns3::BaseTopology::chunk_assignment_to_applications[application_index][chunk_no];
+//		destination_chunks[chunk_no-1] = ns3::BaseTopology::virtual_to_absolute_mapper[virtual_chunk_number];
+//	}
+//
+//
+//	for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
+//	{
+//		uint32_t chunk_value = destination_chunks[i-1];
+//
+//		uint32_t chunk_location = getChunkLocation(chunk_value, &version);
+//
+//		double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
+//
+//		Ipv4GlobalRouting::host_utilization[chunk_location] += bandwidth_distribution;
+//
+//		//////Update the struct value///////////////
+//
+//		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+//
+//		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+//
+//		BaseTopology::p[pod].nodes[node].utilization += bandwidth_distribution;
+//		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
+//		{
+//			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
+//			{
+//
+//				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
+//			}
+//		}
+//
+//
+//
+//	}
+//
+//	int incrDcr=1;
+//	uint32_t src=999,dest=999,chunk_no=999;
+//	BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
+//
+//
+//	if(src != 999)
+//	{
+//		NS_LOG_UNCOND("++++++++");
+//
+//		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+//		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
+//
+//		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+//
+//
+//
+//		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
+//		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
+//		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
+//	}
 
 	//calling the optimizer
 
@@ -430,7 +431,7 @@ void ssUdpEchoClient::ForceStopApplication(void) {
 void ssUdpEchoClient::StopApplication(void) {
 	NS_LOG_FUNCTION(this);
 
-	uint32_t version;
+//	uint32_t version;
 
 	//fclose(fp);
 
@@ -439,31 +440,31 @@ void ssUdpEchoClient::StopApplication(void) {
 
 		for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
 		{
-			uint32_t chunk_value = destination_chunks[i-1];
-
-			uint32_t chunk_location = getChunkLocation(chunk_value, &version);
-
-			//NS_LOG_UNCOND("The chunk Location is "<<chunk_location<<" "<<chunk_value);
-
-			double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
-
-			Ipv4GlobalRouting::host_utilization[chunk_location] -= bandwidth_distribution;
-
-
-			uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
-
-			uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
-
-			BaseTopology::p[pod].nodes[node].utilization -= bandwidth_distribution;
-			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-			{
-				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
-				{
-					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
-				}
-			}
-
-
+//			uint32_t chunk_value = destination_chunks[i-1];
+//
+//			uint32_t chunk_location = getChunkLocation(chunk_value, &version);
+//
+//			//NS_LOG_UNCOND("The chunk Location is "<<chunk_location<<" "<<chunk_value);
+//
+//			double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
+//
+//			Ipv4GlobalRouting::host_utilization[chunk_location] -= bandwidth_distribution;
+//
+//
+//			uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+//
+//			uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+//
+//			BaseTopology::p[pod].nodes[node].utilization -= bandwidth_distribution;
+//			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
+//			{
+//				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
+//				{
+//					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
+//				}
+//			}
+//
+//
 		}
 		int incrDcr=0;
 		uint32_t src=999,dest=999,chunk_no=999;
@@ -706,43 +707,43 @@ void ssUdpEchoClient::Send(void) {
 
 
 
-	if(!consistency_flow)
-	{
-		double inc_prob = 0.0;
-		uint32_t index = 0;
-		double desired_value = ClientChunkAccessGenerator->GetValue();
-
-		//NS_LOG_UNCOND("Desired value "<<desired_value);
-		for(;index<ns3::BaseTopology::chunk_assignment_to_applications[this->application_index][0];index++)
-		{
-			inc_prob += ns3::BaseTopology::chunk_assignment_probability_to_applications[this->application_index][index+1];
-
-			if(inc_prob >= desired_value)
-			{
-				break;
-			}
-		}
-
-		//NS_LOG_UNCOND("The index is "<<index+1<<" The value is "<<inc_prob);
-		chunk_value = BaseTopology::chunk_assignment_to_applications[this->application_index][index+1];
-	}
-
-	else
-	{
-		if(!fixed_dest)
-		{
-			single_destination =  (uint32_t) ClientChunkAccessGenerator->GetValue ();
-			single_destination = single_destination - 1;
-			chunk_value = single_destination;
-			fixed_dest = true;
-		}
-	}
-
-	if(ReadWriteCalculation->GetValue() > READ_WRITE_RATIO) //this is write request
-	{
-		num_of_packets_to_send = BaseTopology::chunkTracker.at(chunk_value).number_of_copy + 1;
-		is_write = true;
-	}
+//	if(!consistency_flow)
+//	{
+//		double inc_prob = 0.0;
+//		uint32_t index = 0;
+//		double desired_value = ClientChunkAccessGenerator->GetValue();
+//
+//		//NS_LOG_UNCOND("Desired value "<<desired_value);
+//		for(;index<ns3::BaseTopology::chunk_assignment_to_applications[this->application_index][0];index++)
+//		{
+//			inc_prob += ns3::BaseTopology::chunk_assignment_probability_to_applications[this->application_index][index+1];
+//
+//			if(inc_prob >= desired_value)
+//			{
+//				break;
+//			}
+//		}
+//
+//		//NS_LOG_UNCOND("The index is "<<index+1<<" The value is "<<inc_prob);
+//		chunk_value = BaseTopology::chunk_assignment_to_applications[this->application_index][index+1];
+//	}
+//
+//	else
+//	{
+//		if(!fixed_dest)
+//		{
+//			single_destination =  (uint32_t) ClientChunkAccessGenerator->GetValue ();
+//			single_destination = single_destination - 1;
+//			chunk_value = single_destination;
+//			fixed_dest = true;
+//		}
+//	}
+//
+//	if(ReadWriteCalculation->GetValue() > READ_WRITE_RATIO) //this is write request
+//	{
+//		num_of_packets_to_send = BaseTopology::chunkTracker.at(chunk_value).number_of_copy + 1;
+//		is_write = true;
+//	}
 
 	//very bad structured code, fix it later
 
