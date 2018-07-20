@@ -702,7 +702,7 @@ void ssUdpEchoClient::Send(void) {
 
 	bool is_write = false;
 
-	uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
+	//uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
 
 
 
@@ -751,7 +751,9 @@ void ssUdpEchoClient::Send(void) {
 	{
 		uint32_t chunk_id = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].chunk_id ;
 
-		dest_value = chunk_id % total_number_of_hosts;
+		//dest_value = chunk_id % total_number_of_hosts;
+
+		dest_value = getChunkLocation(chunk_id, &version);
 
 		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / m_packetSize;
 
