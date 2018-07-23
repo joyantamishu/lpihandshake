@@ -248,16 +248,35 @@ void ssUdpEchoClient::RegisterCallBackFunctions(void) {
 }
 
 
-
 void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 {
 	uint32_t chunk_location;
 	double byte_to_mbit;
 
+	double time_diff;
+	uint32_t counter_for_time = 0;
+
+	double start_time,finish_time;
+	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
+	{
+		if(counter_for_time == 0) finish_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+		else start_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+
+		counter_for_time ++;
+
+		if(i==0) break;
+	}
+
+	time_diff = finish_time - start_time;
+
+
+
 	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
 	{
 		uint32_t version;
-		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+		byte_to_mbit = 8.0 *((double)currentflowinfo[i%ENTRIES_PER_FLOW].size/(double)MegabyteToByte);
+
+		byte_to_mbit = byte_to_mbit/time_diff;
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
@@ -304,13 +323,32 @@ void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 
 void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 {
+
 	uint32_t chunk_location;
 	double byte_to_mbit;
+
+	double time_diff;
+	uint32_t counter_for_time = 0;
+
+	double start_time,finish_time;
+	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
+	{
+		if(counter_for_time == 0) start_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+		else finish_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+
+		counter_for_time ++;
+	}
+
+	time_diff = finish_time - start_time;
 
 	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
 	{
 		uint32_t version;
-		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+		byte_to_mbit = 8.0 *((double)currentflowinfo[i%ENTRIES_PER_FLOW].size/(double)MegabyteToByte);
+
+		byte_to_mbit = byte_to_mbit/time_diff;
+
+		//if(application_index == 15) NS_LOG_UNCOND(byte_to_mbit<<" "<<currentflowinfo[i%ENTRIES_PER_FLOW].size);
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
@@ -397,6 +435,18 @@ void ssUdpEchoClient::FlowOperations()
 
 	if(count_for_index % ENTRIES_PER_FLOW == 0)
 	{
+
+		uint32_t trace_flow_id = count_for_index/ENTRIES_PER_FLOW;
+
+
+		if(trace_flow_id!=0) //this is not the first flow for sure
+		{
+			updateOptimizationVariablesLeavingFlow();
+		}
+
+
+
+
 		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
 		if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index<<" Simulator::Now().ToDouble(Time::MS) "<<Simulator::Now().ToDouble(Time::MS));
 		while (fgets(str, 1000, BaseTopology::BaseTopology::fp[this->application_index]) != NULL)
@@ -423,12 +473,10 @@ void ssUdpEchoClient::FlowOperations()
 					//NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
 					break;
 				}
-
-				local_counter++;
-
-
 			}
 		}
+
+		updateOptimizationVariablesIncomingFlow();
 
 		fclose(BaseTopology::fp[this->application_index]);
 	}
@@ -700,7 +748,6 @@ void ssUdpEchoClient::Send(void) {
 	uint32_t num_of_packets_to_send = 1;
 
 	bool is_write = false;
-	uint32_t trace_flow_id;
 
 	//uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
 
@@ -757,17 +804,7 @@ void ssUdpEchoClient::Send(void) {
 
 		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / m_packetSize;
 
-		trace_flow_id = count_for_index/ENTRIES_PER_FLOW;
 
-		if(count_for_index % ENTRIES_PER_FLOW == 0) //start of new flow
-		{
-			if(trace_flow_id!=0) //this is not the first flow for sure
-			{
-				updateOptimizationVariablesLeavingFlow();
-			}
-			updateOptimizationVariablesIncomingFlow();
-
-		}
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{
