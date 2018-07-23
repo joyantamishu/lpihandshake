@@ -257,7 +257,7 @@ void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
 	{
 		uint32_t version;
-		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+		byte_to_mbit = 8.0 *(currentflowinfo[i%ENTRIES_PER_FLOW].size/MegabyteToByte);
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
@@ -289,7 +289,7 @@ void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 		if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
 		{
 				BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-				BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+				BaseTopology::chunkTracker.at(chunk_no).logical_node_id = 2 * dest + 1;
 		}
 
 		else
@@ -310,15 +310,17 @@ void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
 	{
 		uint32_t version;
-		byte_to_mbit = 8.0 *(currentflowinfo[i].size/MegabyteToByte);
+		byte_to_mbit = 8.0 *(currentflowinfo[i%ENTRIES_PER_FLOW].size/MegabyteToByte);
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
-		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
 
-		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+		uint32_t node = (2 * chunk_location -1) % Ipv4GlobalRouting::FatTree_k;
 
 		BaseTopology::p[pod].nodes[node].utilization += byte_to_mbit;
+
+		if(application_index == 15) NS_LOG_UNCOND(byte_to_mbit<<" "<<currentflowinfo[i].size<<" "<<currentflowinfo[i].size/MegabyteToByte<<" "<<currentflowinfo[i].next_schedule_in_ms);;
 
 		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
 		{
@@ -329,6 +331,15 @@ void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 		}
 
 
+	}
+
+	for(int i=0;i<16;i++)
+	{
+		uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
+		uint32_t node = i % Ipv4GlobalRouting::FatTree_k;
+		//NS_LOG_UNCOND("The utilization at node "<<i<<" "<<BaseTopology::p[pod].nodes[node].utilization);
+
+		if(i % Ipv4GlobalRouting::FatTree_k == 3) NS_LOG_UNCOND("");
 	}
 
 	int incrDcr=1;
@@ -343,7 +354,7 @@ void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
 		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
 
-		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = 2 * dest + 1;
 
 		uint32_t pod = (uint32_t) floor((double) dest/ (double) Ipv4GlobalRouting::FatTree_k);
 
@@ -397,8 +408,18 @@ void ssUdpEchoClient::FlowOperations()
 
 	if(count_for_index % ENTRIES_PER_FLOW == 0)
 	{
+
+		uint32_t trace_flow_id = count_for_index/ENTRIES_PER_FLOW;
+
+
+		if(trace_flow_id!=0) //this is not the first flow for sure
+		{
+			updateOptimizationVariablesLeavingFlow();
+		}
+
+
 		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
-		if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index<<" Simulator::Now().ToDouble(Time::MS) "<<Simulator::Now().ToDouble(Time::MS));
+		//if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index<<" Simulator::Now().ToDouble(Time::MS) "<<Simulator::Now().ToDouble(Time::MS));
 		while (fgets(str, 1000, BaseTopology::BaseTopology::fp[this->application_index]) != NULL)
 		{
 			sscanf(str,"%lf,%lf,%c,%d,%lu,%d",&timestamp,&response_time, &io_type,&LUN,&offset,&size);
@@ -429,6 +450,8 @@ void ssUdpEchoClient::FlowOperations()
 
 			}
 		}
+
+		updateOptimizationVariablesIncomingFlow();
 
 		fclose(BaseTopology::fp[this->application_index]);
 	}
@@ -700,7 +723,6 @@ void ssUdpEchoClient::Send(void) {
 	uint32_t num_of_packets_to_send = 1;
 
 	bool is_write = false;
-	uint32_t trace_flow_id;
 
 	//uint32_t total_number_of_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
 
@@ -755,19 +777,9 @@ void ssUdpEchoClient::Send(void) {
 
 		dest_value = getChunkLocation(chunk_id, &version);
 
+		if(dest_value % 2 == 0) NS_LOG_UNCOND("Destination value is even ");
+
 		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / m_packetSize;
-
-		trace_flow_id = count_for_index/ENTRIES_PER_FLOW;
-
-		if(count_for_index % ENTRIES_PER_FLOW == 0) //start of new flow
-		{
-			if(trace_flow_id!=0) //this is not the first flow for sure
-			{
-				updateOptimizationVariablesLeavingFlow();
-			}
-			updateOptimizationVariablesIncomingFlow();
-
-		}
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{

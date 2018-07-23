@@ -138,7 +138,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				{
 					logical_host_number = 2 * value + 1;
 					physical_host_number = hosts.Get(logical_host_number)->GetId();
-					pod = (uint32_t) floor((double) logical_host_number/ (double) Ipv4GlobalRouting::FatTree_k);
+					pod = (uint32_t) floor((double) logical_host_number/ (double) Ipv4GlobalRouting::FatTree_k * 2);
 					node = ((logical_host_number - 1)/2) % Ipv4GlobalRouting::FatTree_k;
 
 					printf("-------The chunk node id %d-------------------\n", logical_host_number);
@@ -452,7 +452,11 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	int total_hosts = hosts.GetN();
 
-	double calculated_utilization = (total_bandwidth_in_bytes * 8/(total_time*1000000)) * simulationRunProperties::initialFlowCount ;
+	//NS_LOG_UNCOND("The total hosts "<<total_hosts);
+
+	total_hosts = total_hosts / 2;
+
+	double calculated_utilization = ((total_bandwidth_in_bytes * 8)/(total_time*1000000)) * simulationRunProperties::initialFlowCount ;
 
 	double desired_utilization = simulationRunProperties::utilization_value * DRIVE_CAPACITY * total_hosts;
 
