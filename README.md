@@ -1,4 +1,4 @@
 # lpihandshake
 Energy Module Enhancement
 
-Main branch for "systhetic" trace
+Main branch for "synthetic" trace
