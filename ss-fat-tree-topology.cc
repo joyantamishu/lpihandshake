@@ -584,12 +584,12 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	//=========== Define parameters based on value of k ===========//
 	int n_pods = k;
 // these are PER POD nodes
-	hosts_per_pod = (k * k) / 4;	// number of hosts switch in a pod
+	hosts_per_pod = (2 *k * k) / 4;	// number of hosts switch in a pod
 	n_edge_routers = k / 2;	// number of bridge in a pod
 	n_aggregate_routers = (k / 2);	// number of core switch in a group
 	hosts_per_edge = hosts_per_pod / n_edge_routers; // number of hosts per edge router
 
-	n_core_routers = hosts_per_pod;	// no of core switches
+	n_core_routers = hosts_per_pod/2;	// no of core switches
 // these are TOTAL nodes....
 	total_hosts = hosts_per_pod * k;	// number of hosts in the entire network
 	total_aggregate_routers = k * n_aggregate_routers;

@@ -261,9 +261,9 @@ void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
-		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k * 2);
 
-		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
+		uint32_t node = ((chunk_location - 1)/2) % Ipv4GlobalRouting::FatTree_k;
 
 		BaseTopology::p[pod].nodes[node].utilization -= byte_to_mbit;
 
