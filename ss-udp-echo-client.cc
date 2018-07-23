@@ -188,6 +188,8 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	{
 		uint32_t chunk_location = it->logical_node_id;
 
+		if(it->logical_node_id %2 == 0) NS_LOG_UNCOND("Even logical node id");
+
 		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number, it->node_id));
 	}
 
@@ -438,7 +440,7 @@ void ssUdpEchoClient::StopApplication(void) {
 			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
 			{
 					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
+					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = (2 *dest + 1);
 			}
 
 			else
