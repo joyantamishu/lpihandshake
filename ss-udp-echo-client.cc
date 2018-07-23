@@ -453,74 +453,6 @@ void ssUdpEchoClient::StartApplication() {
 	NS_LOG_FUNCTION(this);
 	BaseTopology::total_appication++;
 
-//	uint32_t version;
-//
-//	destination_chunks = new uint32_t[ns3::BaseTopology::chunk_assignment_to_applications[application_index][0]];
-//
-//	for(uint32_t chunk_no=1;chunk_no<=ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];chunk_no++)
-//	{
-//		uint32_t virtual_chunk_number = ns3::BaseTopology::chunk_assignment_to_applications[application_index][chunk_no];
-//		destination_chunks[chunk_no-1] = ns3::BaseTopology::virtual_to_absolute_mapper[virtual_chunk_number];
-//	}
-//
-//
-//	for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
-//	{
-//		uint32_t chunk_value = destination_chunks[i-1];
-//
-//		uint32_t chunk_location = getChunkLocation(chunk_value, &version);
-//
-//		double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
-//
-//		Ipv4GlobalRouting::host_utilization[chunk_location] += bandwidth_distribution;
-//
-//		//////Update the struct value///////////////
-//
-//		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//		uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
-//
-//		BaseTopology::p[pod].nodes[node].utilization += bandwidth_distribution;
-//		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-//		{
-//			if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
-//			{
-//
-//				BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
-//			}
-//		}
-//
-//
-//
-//	}
-//
-//	int incrDcr=1;
-//	uint32_t src=999,dest=999,chunk_no=999;
-//	BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
-//
-//
-//	if(src != 999)
-//	{
-//		NS_LOG_UNCOND("++++++++");
-//
-//		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
-//		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
-//
-//		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
-//
-//
-//
-//		//NS_LOG_UNCOND("The src is "<src<<" The dest id "<<dest<<" The chunk no is "<<chunk_no);
-//		NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
-//		//BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
-//	}
-
-	//calling the optimizer
-
-
-	/*
-	 * Set inter_flow interval & inter-packet interval to some random distribution...
-	 */
 	setFlowVariables();
 	NS_LOG_LOGIC(
 			this << " node " << GetNode()->GetId() << " " << m_srcIpv4Address << " <--> " << m_dstIpv4Address << " t_currentFlowCount::"<< m_currentFlowCount);
@@ -536,12 +468,6 @@ void ssUdpEchoClient::StartApplication() {
 			m_socket[i]->Bind();
 			m_socket[i]->Connect(InetSocketAddress(BaseTopology::hostTranslation[i], m_peerPort));
 		}
-//		else if (Ipv6Address::IsMatchingType(m_peerAddress) == true) {
-//			m_socket[i]->Bind6();
-//			m_socket[i]->Connect(
-//					Inet6SocketAddress(BaseTopology::hostTranslation[i],
-//							m_peerPort));
-//		}
 	}
 
 	RegisterCallBackFunctions();
@@ -566,62 +492,6 @@ void ssUdpEchoClient::StopApplication(void) {
 
 // as discussed on Mar 15. Sanjeev (overcome bug)
 	if (!m_lastPacket) {
-
-//		for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
-//		{
-//			uint32_t chunk_value = destination_chunks[i-1];
-//
-//			uint32_t chunk_location = getChunkLocation(chunk_value, &version);
-//
-//			//NS_LOG_UNCOND("The chunk Location is "<<chunk_location<<" "<<chunk_value);
-//
-//			double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
-//
-//			Ipv4GlobalRouting::host_utilization[chunk_location] -= bandwidth_distribution;
-//
-//
-//			uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//			uint32_t node = chunk_location % Ipv4GlobalRouting::FatTree_k;
-//
-//			BaseTopology::p[pod].nodes[node].utilization -= bandwidth_distribution;
-//			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-//			{
-//				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
-//				{
-//					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
-//				}
-//			}
-//
-//
-//		}
-//		int incrDcr=0;
-//		uint32_t src=999,dest=999,chunk_no=999;
-//		BaseTopology:: calculateNewLocation(incrDcr,&src,&dest,&chunk_no);
-//
-//		if(src != 999)
-//		{
-//			NS_LOG_UNCOND("$$$$$$$$$$$$$$$");
-//			if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
-//			{
-//					BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-//					BaseTopology::chunkTracker.at(chunk_no).logical_node_id = dest;
-//			}
-//
-//			else
-//			{
-//				NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
-//			}
-//
-//			NS_LOG_UNCOND("src "<<src<<" dest "<<dest<<" chunk_no "<<chunk_no);
-//
-//		}
-
-
-		//calling the optimizer
-
-
-		//Simulator::Cancel(m_sendEvent);
 		SendLastPacket();
 	}
 // appl was already stopped. !!
