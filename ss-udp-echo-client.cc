@@ -248,22 +248,41 @@ void ssUdpEchoClient::RegisterCallBackFunctions(void) {
 }
 
 
-
 void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 {
 	uint32_t chunk_location;
 	double byte_to_mbit;
 
+	double time_diff;
+	uint32_t counter_for_time = 0;
+
+	double start_time,finish_time;
+	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
+	{
+		if(counter_for_time == 0) finish_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+		else start_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+
+		counter_for_time ++;
+
+		if(i==0) break;
+	}
+
+	time_diff = finish_time - start_time;
+
+
+
 	for(uint32_t i=count_for_index-1;i>=count_for_index-ENTRIES_PER_FLOW;i--)
 	{
 		uint32_t version;
-		byte_to_mbit = 8.0 *(currentflowinfo[i%ENTRIES_PER_FLOW].size/MegabyteToByte);
+		byte_to_mbit = 8.0 *((double)currentflowinfo[i%ENTRIES_PER_FLOW].size/(double)MegabyteToByte);
+
+		byte_to_mbit = byte_to_mbit/time_diff;
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
-		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) Ipv4GlobalRouting::FatTree_k * 2);
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
 
-		uint32_t node = ((chunk_location - 1)/2) % Ipv4GlobalRouting::FatTree_k;
+		uint32_t node = ((chunk_location - 1)/2) % (Ipv4GlobalRouting::FatTree_k);
 
 		BaseTopology::p[pod].nodes[node].utilization -= byte_to_mbit;
 
@@ -289,7 +308,7 @@ void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 		if(BaseTopology::chunkTracker.at(chunk_no).number_of_copy > 0)
 		{
 				BaseTopology::chunkTracker.at(chunk_no).number_of_copy --;
-				BaseTopology::chunkTracker.at(chunk_no).logical_node_id = 2 * dest + 1;
+				BaseTopology::chunkTracker.at(chunk_no).logical_node_id = (2 *dest + 1);
 		}
 
 		else
@@ -304,23 +323,40 @@ void ssUdpEchoClient::updateOptimizationVariablesLeavingFlow()
 
 void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 {
+
 	uint32_t chunk_location;
 	double byte_to_mbit;
+
+	double time_diff;
+	uint32_t counter_for_time = 0;
+
+	double start_time,finish_time;
+	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
+	{
+		if(counter_for_time == 0) start_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+		else finish_time = currentflowinfo[i%ENTRIES_PER_FLOW].next_schedule_in_ms;
+
+		counter_for_time ++;
+	}
+
+	time_diff = finish_time - start_time;
 
 	for(uint32_t i=count_for_index;i<count_for_index+ENTRIES_PER_FLOW;i++)
 	{
 		uint32_t version;
-		byte_to_mbit = 8.0 *(currentflowinfo[i%ENTRIES_PER_FLOW].size/MegabyteToByte);
+		byte_to_mbit = 8.0 *((double)currentflowinfo[i%ENTRIES_PER_FLOW].size/(double)MegabyteToByte);
+
+		byte_to_mbit = byte_to_mbit/time_diff;
+
+		//if(application_index == 15) NS_LOG_UNCOND(byte_to_mbit<<" "<<currentflowinfo[i%ENTRIES_PER_FLOW].size);
 
 		chunk_location = getChunkLocation(currentflowinfo[i%ENTRIES_PER_FLOW].chunk_id, &version);
 
 		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
 
-		uint32_t node = (2 * chunk_location -1) % Ipv4GlobalRouting::FatTree_k;
+		uint32_t node = ((chunk_location - 1)/2) % (Ipv4GlobalRouting::FatTree_k);
 
 		BaseTopology::p[pod].nodes[node].utilization += byte_to_mbit;
-
-		if(application_index == 15) NS_LOG_UNCOND(byte_to_mbit<<" "<<currentflowinfo[i].size<<" "<<currentflowinfo[i].size/MegabyteToByte<<" "<<currentflowinfo[i].next_schedule_in_ms);;
 
 		for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
 		{
@@ -331,15 +367,6 @@ void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 		}
 
 
-	}
-
-	for(int i=0;i<16;i++)
-	{
-		uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
-		uint32_t node = i % Ipv4GlobalRouting::FatTree_k;
-		//NS_LOG_UNCOND("The utilization at node "<<i<<" "<<BaseTopology::p[pod].nodes[node].utilization);
-
-		if(i % Ipv4GlobalRouting::FatTree_k == 3) NS_LOG_UNCOND("");
 	}
 
 	int incrDcr=1;
@@ -354,11 +381,11 @@ void ssUdpEchoClient::updateOptimizationVariablesIncomingFlow()
 		BaseTopology::chunkTracker.at(chunk_no).number_of_copy++;
 		//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
 
-		BaseTopology::chunkTracker.at(chunk_no).logical_node_id = 2 * dest + 1;
+		BaseTopology::chunkTracker.at(chunk_no).logical_node_id =  (2 *dest + 1);
 
-		uint32_t pod = (uint32_t) floor((double) dest/ (double) Ipv4GlobalRouting::FatTree_k);
+		uint32_t pod = (uint32_t) floor((double) chunk_location/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
 
-		uint32_t node = dest % Ipv4GlobalRouting::FatTree_k;
+		uint32_t node = ((chunk_location - 1)/2) % (Ipv4GlobalRouting::FatTree_k);
 
 		bool entry_already_exists = false;
 
@@ -418,6 +445,8 @@ void ssUdpEchoClient::FlowOperations()
 		}
 
 
+
+
 		BaseTopology::fp[this->application_index] = fopen(assigned_sub_trace_file, "r");
 		//if(this->application_index==27) NS_LOG_UNCOND("The count value "<<count_for_index<<" Simulator::Now().ToDouble(Time::MS) "<<Simulator::Now().ToDouble(Time::MS));
 		while (fgets(str, 1000, BaseTopology::BaseTopology::fp[this->application_index]) != NULL)
@@ -444,10 +473,6 @@ void ssUdpEchoClient::FlowOperations()
 					//NS_LOG_UNCOND("Here I am "<<(next_counter - count_for_index)<<" App_id "<<this->application_index);
 					break;
 				}
-
-				local_counter++;
-
-
 			}
 		}
 
@@ -777,9 +802,11 @@ void ssUdpEchoClient::Send(void) {
 
 		dest_value = getChunkLocation(chunk_id, &version);
 
-		if(dest_value % 2 == 0) NS_LOG_UNCOND("Destination value is even ");
+		if(dest_value % 2 ==0) NS_LOG_UNCOND("Even destination found");
 
 		uint32_t number_of_packets = this->currentflowinfo[count_for_index%ENTRIES_PER_FLOW].size / m_packetSize;
+
+
 
 		for(uint32_t packets=0;packets<number_of_packets;packets++)
 		{
@@ -835,7 +862,7 @@ void ssUdpEchoClient::Send(void) {
 		//NS_LOG_UNCOND("THe size of BaseTopology::chunkCopyLocations1 "<<BaseTopology::chunkCopyLocations.size());
 	}
 
-	count_for_index++;;
+	count_for_index++;
 
 	// did we send the last packet?, no need for further packet creation/sending
 	if (m_lastPacket) {
