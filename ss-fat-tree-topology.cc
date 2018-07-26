@@ -320,7 +320,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 			uint32_t count = 0;
 
 			uint32_t host;
-//			/printf("The string is %s\n", str);
+			printf("The string is %s\n", str);
 			pch = strtok (str," ,;");
 
 			while (pch != NULL)
@@ -338,7 +338,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 					value = value - 1;
 					ns3::BaseTopology::application_assignment_to_node[host][0]++;
 					ns3::BaseTopology::application_assignment_to_node[host][count] = value;
-					//printf ("**%d\n",value);
+					printf ("**%d\n",value);
 				}
 				count++;
 				pch = strtok (NULL, " ,.-\n");
@@ -416,6 +416,7 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 
 			BaseTopology::p[i].nodes = new Fat_tree_Node[nodes_in_pod];
 			BaseTopology::p[i].pod_number = (int) i;
+			BaseTopology::p[i].Pod_utilization=0.0;
 		}
 		for(uint32_t i = 0; i<number_of_hosts; i++)
 		{
@@ -428,11 +429,16 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 		}
 		for(uint32_t i = 0; i<simulationRunProperties::total_chunk; i++)
 		{
+			//Madhurima added on July 20th
+			BaseTopology::chnkCopy[i].count=0;  //this line added
+			//Madhurima added on July 20th
 		   BaseTopology::chnkCopy[i].exists=new uint32_t[number_of_hosts];
 		   for(uint32_t j = 0; j<number_of_hosts; j++)
 			   BaseTopology::chnkCopy[i].exists[j]=0;
 		}
 		BaseTopology::nodeU=new nodedata[number_of_hosts];
+
+		BaseTopology::res = new Result[501];
 
 
 

@@ -149,10 +149,16 @@ struct HWLDataCollected {
 typedef struct datachunk{
 	uint32_t chunk_number;
 	double intensity_sum;
+	int processed;
+	int highCopyCount;
+	int emerCopyCount;
 	datachunk()
 	{
 		chunk_number = simulationRunProperties::total_chunk + 1;
 		intensity_sum = 0.0;
+		highCopyCount=0;
+		emerCopyCount=0;
+		processed=0;
 	}
 }Dchunk;
 
@@ -185,9 +191,14 @@ typedef struct chunk{
 	}
 
 }chunkCopy;
+//Madhurima added on July 20th
+typedef struct result{
+	uint32_t src;
+	uint32_t dest;
+	uint32_t chunk_number;
+}Result;
 
-
-
+//Madhurima added on July 20th
 class chunk_info{
 public:
 	uint32_t chunk_no;
@@ -300,9 +311,13 @@ public:
 
 	static Pod *p;
 
-	static void calculateNewLocation(int incrDcr,uint32_t *src, uint32_t *dest, uint32_t *chunk_no); //this function will set the variable Tuple t
+	static Result *res;
+	static void calculateNewLocation(int incrDcr); //this function will set the variable Tuple t
 
 	static bool createflag;
+
+	static int counter_;
+	static int Incrcounter_;
 
 	static chunkCopy *chnkCopy;
 
