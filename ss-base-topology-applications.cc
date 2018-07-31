@@ -301,12 +301,12 @@ void BaseTopology::InjectANewRandomFlow(void) {
 		return;
 	}
 	t_x = getRandomServerNode(t_b, t_reqBW);
-	if (t_x < 0) {
-		// If returns NO suitable host found, abandon new flow...
-		SS_APPLIC_LOG(
-				"*************************** New flow NOT injected:: Failed to find dstNode[" << t_x << "]");
-		return;
-	}
+//	if (t_x < 0) {
+//		// If returns NO suitable host found, abandon new flow...
+//		SS_APPLIC_LOG(
+//				"*************************** New flow NOT injected:: Failed to find dstNode[" << t_x << "]");
+//		return;
+//	}
 	// now with suitable src & dst , do sanity check...
 	t_client = DynamicCast<ssNode>(hosts.Get(t_b));
 	t_server = DynamicCast<ssNode>(hosts.Get(t_x));

@@ -234,20 +234,10 @@ int BaseTopology::getRandomServerNode(const int &conflictClientNodeId,
 			// try our random selector for 'n times only...
 			hostId = getRandomServerNode(conflictClientNodeId);
 			node = DynamicCast<ssNode>(hosts.Get(hostId));
+
+			requiredHost = hostId;
 			// sanjeev, additional check May 8
-			NS_ASSERT_MSG((node->nodeType == ssNode::HOST),
-					"getRandomServerNode:: returned wrong host node " << hostId);
-			// check additional constraint, (see ssNode:maxAppAllowed also)
-			// sanjeev apr 3, VMC logic
-			if ((node->m_currentAvailableBW_In >= reqBW)
-					& (node->m_NumberOfApps_In < node->m_maxFlowPerNode)) {
-				requiredHost = hostId;
-				break; // we found the required dst host node
-			} else {
-				// sanjeev, debug- SS, May 9th
-				NS_LOG_LOGIC(
-						"getRandomServerNode returned [" << hostId << "] constrains failed, noOfApps_In [" << node->m_NumberOfApps_In << "] AvailBW_In [" << node->m_currentAvailableBW_In << "] retry again RequiredBW: [" << reqBW << "]");
-			}
+			break;
 		}  // end 2nd for loop..
 		if (requiredHost == HOST_NOT_FOUND) {
 			NS_LOG_LOGIC(

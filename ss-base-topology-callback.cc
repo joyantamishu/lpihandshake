@@ -69,6 +69,11 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 		//NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
 		{
+			BaseTopology::total_packet_count--;
+
+			BaseTopology::total_packet_count_inc += BaseTopology::total_packet_count;
+
+			//NS_LOG_UNCOND("total_packet_count "<<BaseTopology::total_packet_count<<" Time "<<Simulator::Now().ToDouble(Time::US));
 			//NS_LOG_UNCOND("The Destination has reached");
 			Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination = Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination +1;
 
@@ -77,6 +82,8 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			double delay_by_packet = current_simulation_time - packet->creation_time;
 
 			Ipv4GlobalRouting::flow_map.at(m_flowId).delaysum += delay_by_packet + DEFAULT_LOCAL_ACCESS_LATENCY;
+
+			BaseTopology::sum_delay_ms += current_simulation_time - packet->creation_time;
 
 			//NS_LOG_UNCOND("delay_by_packet "<<delay_by_packet);
 
@@ -211,7 +218,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceSendCallBack(
 
 	if (packet->sub_flow_dest_physical == n->GetId())
 	{
-		Ipv4GlobalRouting::total_number_of_packets_to_destination++;
+		//Ipv4GlobalRouting::total_number_of_packets_to_destination++;
 	}
 	//
 #endif

@@ -29,7 +29,7 @@
 
 // Energy source/model values
 #define DefaultEnergyMeterUpdateIntervalSec		0.01			// sanjeev. mar 23. May 1st = moved here
-#define CLIENTSTOPTHRESHOLD						0.95
+#define CLIENTSTOPTHRESHOLD						0.85
 
 #define NUMBER_OF_ACTIVE_FLOWS						(m_flowCount - m_totalStoppedFlowCounter)
 
@@ -344,6 +344,12 @@ public:
 	/**********************************************/
 
 	static int total_appication;
+
+	static double sum_delay_ms;
+
+	static uint64_t total_packet_count;
+
+	static uint64_t total_packet_count_inc;
 
 protected:
 	virtual void DoDispose(void);
