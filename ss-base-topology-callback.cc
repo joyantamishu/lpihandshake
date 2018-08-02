@@ -73,7 +73,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			BaseTopology::total_packet_count_inc += BaseTopology::total_packet_count;
 
-			//NS_LOG_UNCOND("total_packet_count "<<BaseTopology::total_packet_count<<" Time "<<Simulator::Now().ToDouble(Time::US));
+			//NS_LOG_UNCOND("total_packet_count "<<BaseTopology::total_packet_count);
 			//NS_LOG_UNCOND("The Destination has reached");
 			Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination = Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination +1;
 

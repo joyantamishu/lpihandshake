@@ -477,6 +477,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 			BooleanValue(true)); // enable multi-path route
 	Config::SetDefault("ns3::Ipv4GlobalRouting::RespondToInterfaceEvents",
 			BooleanValue(true));
+	Config::SetDefault("ns3::DropTailQueue::MaxPackets", UintegerValue(1000000));
 	/*
 	 FROM WIKIPAGES:
 	 https://en.wikipedia.org/wiki/Data_center_network_architectures
