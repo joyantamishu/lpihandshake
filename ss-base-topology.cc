@@ -29,9 +29,11 @@ std::vector<chunk_info> BaseTopology::chunkTracker;
 
 std::vector<MultipleCopyOfChunkInfo> BaseTopology::chunkCopyLocations;
 
-Ipv4Address* BaseTopology::hostTranslation = new Ipv4Address[simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k];
+uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
-uint32_t* BaseTopology::hostaddresslogicaltophysical = new uint32_t[((simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4) +1 ];
+Ipv4Address* BaseTopology::hostTranslation = new Ipv4Address[total_hosts_in_system+1];
+
+uint32_t* BaseTopology::hostaddresslogicaltophysical = new uint32_t[total_hosts_in_system +1 ];
 
 uint32_t BaseTopology::num_of_retried_packets = 0;
 
@@ -39,7 +41,9 @@ uint32_t BaseTopology::num_of_retired_packets_specific_node = 0;
 
 uint32_t** BaseTopology::chunk_assignment_to_applications = new uint32_t*[simulationRunProperties::total_applications + 1]; //application and which chunks
 
-uint32_t** BaseTopology::application_assignment_to_node = new uint32_t*[uint32_t(simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/ 4];
+
+
+uint32_t** BaseTopology::application_assignment_to_node = new uint32_t*[total_hosts_in_system];
 
 double** BaseTopology::chunk_assignment_probability_to_applications = new double*[simulationRunProperties::total_applications + 1];
 

@@ -387,6 +387,8 @@ void BaseTopology::InjectANewRandomFlow(void) {
 #endif
 	if (WRITE_VM_PLACEMENT_TO_FILE)
 		WriteVMPlacementMetricsToFile();
+
+	NS_LOG_UNCOND("-------------------Exiting InjectANewRandomFlow--------------------------");
 }
 
 /*************************************************************/

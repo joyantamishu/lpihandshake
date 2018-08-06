@@ -29,12 +29,13 @@ FatTreeTopology::FatTreeTopology(void) :
 	NS_LOG_FUNCTION(this);
 	BuildInitialTopology();
 	SetUpInitialOpmizationVariables();
-	SetUpInitialChunkPosition();
+
 
 	SetUpNodeUtilizationStatistics();
 
 	SetUpInitialApplicationPosition();
 
+	SetUpInitialChunkPosition();
 	SetUpApplicationAssignment();
 
 	SetUpIntensityPhraseChangeVariables();
@@ -76,6 +77,10 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 	uint32_t chunk_number = simulationRunProperties::total_chunk;
 
 	uint32_t total_hosts = hosts.GetN();
+
+	uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
+
+	//uint32_t physical_host_number;
 	for(uint32_t index= 0 ; index <chunk_number; index++)
 	{
 		uint32_t logical_node_id = index%total_hosts;
@@ -122,10 +127,12 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 			uint32_t value = 0;
 
 			uint32_t logical_host_number;
-			uint32_t physical_host_number;
+			//uint32_t physical_host_number;
 
 			uint32_t pod;
 			uint32_t node;
+
+			uint32_t round_robin_counter = 0;
 			//printf("%s\n", pch);
 
 			while (pch != NULL)
@@ -133,17 +140,25 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				sscanf(pch,"%d",&value);
 				if(count == 0)
 				{
-					logical_host_number = 2 * value + 1;
-					physical_host_number = hosts.Get(logical_host_number)->GetId();
-					pod = (uint32_t) floor((double) logical_host_number/ (double) (Ipv4GlobalRouting::FatTree_k * 2));
-					node = ((logical_host_number - 1)/2) % Ipv4GlobalRouting::FatTree_k;
+					logical_host_number = (SSD_PER_RACK + 1) * value + 1;
+					//physical_host_number = hosts.Get(logical_host_number)->GetId();
+					pod = (uint32_t) floor((double) logical_host_number/ (double) total_hosts_in_pod);
+					node = ((logical_host_number - 1)/(SSD_PER_RACK + 1)) % Ipv4GlobalRouting::FatTree_k;
 					printf("-------The chunk node id %d-------------------\n", logical_host_number);
+
+					NS_LOG_UNCOND("The pod is "<<pod);
+
+					NS_LOG_UNCOND("The node is "<<node);
 				}
 				else
 				{
 					value = value -1;
-					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number;
-					BaseTopology::chunkTracker.at(value).node_id = physical_host_number;
+					round_robin_counter = (count -1) % (SSD_PER_RACK);
+
+					NS_LOG_UNCOND(" logical_host_number "<<logical_host_number+round_robin_counter);
+
+					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number+round_robin_counter;
+					BaseTopology::chunkTracker.at(value).node_id = hosts.Get(logical_host_number+round_robin_counter)->GetId();
 
 					BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value;
 					//
@@ -329,7 +344,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 
 				if(count == 0)
 				{
-					host = 2 * value;
+					host = (SSD_PER_RACK+1) * value;
 
 					printf("The application node id %d\n", host);
 				}
@@ -491,12 +506,17 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	//=========== Define parameters based on value of k ===========//
 	int n_pods = k;
 // these are PER POD nodes
-	hosts_per_pod = (2 *k * k) / 4;	// number of hosts switch in a pod
+		// number of hosts switch in a pod
 	n_edge_routers = k / 2;	// number of bridge in a pod
-	n_aggregate_routers = (k / 2);	// number of core switch in a group
-	hosts_per_edge = hosts_per_pod / n_edge_routers; // number of hosts per edge router
 
-	n_core_routers = hosts_per_pod/2;	// no of core switches
+	hosts_per_edge = (SSD_PER_RACK + 1) * (k/2); // number of hosts per edge router
+
+	hosts_per_pod = hosts_per_edge * n_edge_routers;
+
+	n_aggregate_routers = (k / 2);	// number of core switch in a group
+
+
+	n_core_routers = (k/2) * (k/2);	// no of core switches
 // these are TOTAL nodes....
 	total_hosts = hosts_per_pod * k;	// number of hosts in the entire network
 	total_aggregate_routers = k * n_aggregate_routers;
@@ -541,7 +561,9 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	iStack.Install(allNodes);
 
 	ssPointToPointHelper p2p;
+	ssPointToPointHelper p2pSSD;
 	p2p.SetQueue("ns3::DropTailQueue");
+	p2pSSD.SetQueue("ns3::DropTailQueue");
 
 	char *add;
 	const char *ipv4Mask = "255.255.255.0";
@@ -611,15 +633,20 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	//count = count / 2;
 	percentage_of_overall_bandwidth = (double)count * Ipv4GlobalRouting::threshold_percentage_for_dropping;
 	percentage_count = (uint32_t) percentage_of_overall_bandwidth ;
-	p2p.SetDeviceAttribute("DataRate",
-			StringValue(simulationRunProperties::edgeDeviceDataRate));
+//	p2p.SetDeviceAttribute("DataRate",
+//			StringValue(simulationRunProperties::edgeDeviceDataRate));
+	p2pSSD.SetDeviceAttribute("DataRate", StringValue(simulationRunProperties::edgeDeviceDataRate));
+
 	for (a = 0, b1 = 0; a < n_pods; a++) {
 		for (b = 0; b < n_edge_routers; b++, b1++) {
 			x = (n_edge_routers * a) + b;
 			for (c = 0; c < hosts_per_edge; c++) {
 				//NS_LOG_UNCOND(percentage_count);
 				y = (hosts_per_edge * b1) + c;
-				ndc3 = p2p.Install(edgeRouters.Get(x), hosts.Get(y));
+
+				if(y% (SSD_PER_RACK+1) == 0) ndc3 = p2p.Install(edgeRouters.Get(x), hosts.Get(y));
+				else ndc3 = p2pSSD.Install(edgeRouters.Get(x), hosts.Get(y));
+
 				add = getNewIpv4Address();
 				NS_LOG_LOGIC(
 						"Connect edge [" << x << "] to host [" << y << "] ipv4 [" << add << "] linkDataRate [" << simulationRunProperties::edgeDeviceDataRate << "]");
