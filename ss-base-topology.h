@@ -29,7 +29,7 @@
 
 // Energy source/model values
 #define DefaultEnergyMeterUpdateIntervalSec		0.01			// sanjeev. mar 23. May 1st = moved here
-#define CLIENTSTOPTHRESHOLD						0.85
+#define CLIENTSTOPTHRESHOLD						1.0
 
 #define NUMBER_OF_ACTIVE_FLOWS						(m_flowCount - m_totalStoppedFlowCounter)
 
@@ -350,6 +350,36 @@ public:
 	static uint64_t total_packet_count;
 
 	static uint64_t total_packet_count_inc;
+
+	static uint32_t *host_assignment_round_robin_counter;
+
+	static double *host_running_avg_bandwidth;
+
+	static uint32_t *host_running_avg_counter;
+
+	static double *application_probability;
+
+	static uint32_t current_number_of_flows;
+
+	static uint32_t *total_packets_to_hosts_bits;
+
+	static uint32_t total_events;
+
+	static uint32_t total_events_learnt;
+
+	////remove this variable after all done
+
+	static uint32_t *total_packets_to_chunk;
+
+	static uint32_t *total_packets_to_chunk_destination;
+
+	static double last_point_of_entry;
+
+	static double total_sum_of_entry;
+
+	static double sum_of_number_time_packets;
+
+	static uint64_t sum_of_times;
 
 protected:
 	virtual void DoDispose(void);

@@ -52,8 +52,6 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 	//NS_LOG_UNCOND("Packet required bw "<< pFlowInfo1.m_requiredBW);
 
-
-
 	if (Ipv4GlobalRouting::flow_map.count(m_flowId) <= 0)
 	{
 		flow_entry = flow_info();
@@ -66,12 +64,15 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 	}
 	else
 	{
+
 		//NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
 		{
+			//NS_LOG_UNCOND("packet->sub_flow_dest_physical "<<packet->sub_flow_dest_physical);
+
 			BaseTopology::total_packet_count--;
 
-			BaseTopology::total_packet_count_inc += BaseTopology::total_packet_count;
+			BaseTopology::total_packets_to_hosts_bits[packet->sub_flow_dest] ++;
 
 			//NS_LOG_UNCOND("total_packet_count "<<BaseTopology::total_packet_count);
 			//NS_LOG_UNCOND("The Destination has reached");
@@ -83,7 +84,44 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			Ipv4GlobalRouting::flow_map.at(m_flowId).delaysum += delay_by_packet + DEFAULT_LOCAL_ACCESS_LATENCY;
 
-			BaseTopology::sum_delay_ms += current_simulation_time - packet->creation_time;
+			//NS_LOG_UNCOND("BaseTopology::sum_delay_ms "<<BaseTopology::sum_delay_ms);
+
+			if(Ipv4GlobalRouting::has_system_learnt)
+			{
+
+
+
+				if(BaseTopology::last_point_of_entry <= 0.0)
+				{
+					BaseTopology::last_point_of_entry = Simulator::Now().ToDouble(Time::MS);
+				}
+				else
+				{
+					double time_diff = Simulator::Now().ToDouble(Time::MS) - BaseTopology::last_point_of_entry;
+
+					BaseTopology::last_point_of_entry = Simulator::Now().ToDouble(Time::MS);
+
+					BaseTopology::sum_of_number_time_packets += (BaseTopology::total_packet_count + 1) * time_diff;
+
+					BaseTopology::total_sum_of_entry += time_diff;
+				}
+
+
+
+
+				BaseTopology::sum_delay_ms += current_simulation_time - packet->creation_time;
+
+				BaseTopology::total_events_learnt++;
+
+				BaseTopology::total_packet_count_inc += BaseTopology::total_packet_count;
+
+				BaseTopology::total_events++;
+
+			}
+
+			BaseTopology::total_packets_to_chunk_destination[packet->sub_flow_id]++;
+
+
 
 			//NS_LOG_UNCOND("delay_by_packet "<<delay_by_packet);
 
@@ -149,7 +187,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 	}
 
-	if(Simulator::Now().ToDouble(Time::MS) >= simulationRunProperties::simStop * 1000.00 * 0.2 && !Ipv4GlobalRouting::has_system_learnt)
+	if(Simulator::Now().ToDouble(Time::MS) >= 1000.00 * 0.2 && !Ipv4GlobalRouting::has_system_learnt)
 	{
 		Ipv4GlobalRouting::has_system_learnt = true;
 
@@ -159,6 +197,16 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			Ipv4GlobalRouting::lower_utilization_threshold = 0.4 * Ipv4GlobalRouting::upper_utilization_threshold;
 		}
 	}
+//	if(!Ipv4GlobalRouting::has_system_learnt)
+//	{
+//		Ipv4GlobalRouting::has_system_learnt = true;
+//
+//		if (!Ipv4GlobalRouting::has_drop_occured) //so drop has been made
+//		{
+//			NS_LOG_UNCOND("Entered here for threshold");
+//			Ipv4GlobalRouting::lower_utilization_threshold = 0.4 * Ipv4GlobalRouting::upper_utilization_threshold;
+//		}
+//	}
 
 	//NS_LOG_UNCOND("The simulation time "<<Simulator::Now().ToDouble(Time::MS));
 	//	if(Ipv4GlobalRouting::total_number_of_packets_to_destination >= 10000)

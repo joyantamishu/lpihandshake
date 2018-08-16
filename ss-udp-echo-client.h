@@ -38,6 +38,8 @@ public:
 
 	uint32_t physical_node_number;
 
+	int socket_index;
+
 	local_chunk_info(uint32_t chunk_id, uint32_t node_id, uint32_t version_number, uint32_t physical_node_number)
 	{
 		this->chunk_id = chunk_id;
@@ -45,8 +47,24 @@ public:
 		this->version = version_number;
 
 		this->physical_node_number = physical_node_number;
+
+		this->socket_index = -1;
 	}
 };
+
+class MappingSocket{
+public:
+	uint32_t socket_id;
+	uint32_t location;
+	MappingSocket(uint32_t socket_id, uint32_t location)
+	{
+		this->socket_id = socket_id;
+		this->location = location;
+	}
+
+};
+
+
 // copied from UdpEchoClientHelper
 class ssUdpEchoClientHelper {
 public:
@@ -81,15 +99,17 @@ public:
 	static int flows_dropped;	// sanjeev, small change, moved variable here.
 
 	/******** Chunk Specific Change ***************/
-	uint32_t getChunkLocation(uint32_t chunk, uint32_t *version);
+	uint32_t getChunkLocation(uint32_t chunk, uint32_t *version, int *socket_index);
 	bool consistency_flow;
 	bool fixed_dest;
 	uint32_t single_destination;
-	uint32_t *possible_dest;
+	//uint32_t *possible_dest;
 
 	uint32_t node_index;
 	uint32_t application_index;
 	uint32_t *destination_chunks;
+	std::vector<MappingSocket> socket_mapping;
+	uint32_t distinct_items;
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
 	/*********************************************/

@@ -273,11 +273,11 @@ void BaseTopology::InjectANewRandomFlow(void) {
 
 	t_appStopTimeRandom = Time::FromDouble(m_flowStopDurationTimer->GetValue(),
 			Time::MS);
-	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
-		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
-				<< "] exceeds simStop time");
-		return;
-	}
+//	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
+//		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
+//				<< "] exceeds simStop time");
+//		return;
+//	}
 	// removed MR while loop... (take from previous backup code if needed),,,sanjeev May 10
 	t_reqBW = m_randomBWVariable->GetInteger();
 
@@ -300,7 +300,10 @@ void BaseTopology::InjectANewRandomFlow(void) {
 				"*********************** New flow NOT injected:: Failed to find srcNode[" << t_b << "]");
 		return;
 	}
-	t_x = getRandomServerNode(t_b, t_reqBW);
+	//NS_LOG_UNCOND("Here's the issue");
+	t_x = t_b+1;
+
+	//NS_LOG_UNCOND("Here's the issue1");
 //	if (t_x < 0) {
 //		// If returns NO suitable host found, abandon new flow...
 //		SS_APPLIC_LOG(

@@ -52,10 +52,10 @@
 #define DefaultMarkovETA1Value				0 //0.1 //Madhurima Changed on May 4***** Simple constant Model in default
 
 // network device parameters
-#define CoreDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define AggrDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define EdgeDeviceLinkDataRate 						"9000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define Count										1000
+#define CoreDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define AggrDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define EdgeDeviceLinkDataRate 						"100Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define Count										100
 #define MAX_QUEUE_DEPTH 							0			// port queue depth threshold before dropping packets (vary this to test diff results in packet drop), set non-zero value
 
 // should we enable energy management -monitor idle time, sleep state etc? true/false?
@@ -93,7 +93,7 @@
 #define POLICY_NUMBER									3
 
 /******Chunk Specific Change *******************/
-#define DEFAULT_CHUNK_NUMBER						500
+#define DEFAULT_CHUNK_NUMBER						1500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
 #define READ_WRITE_RATIO							0.9
 
@@ -102,15 +102,15 @@
 #define DEFAULT_SHARED_CHUNKS						4
 
 #define DEFAULT_POPULARITY_CHANGE_START_TIME_MS		80.0
-#define DEFAULT_POPULARITY_CHANGE_INTERVAL_TIME_MS	60.0
-#define DEFAULT_FRACTION_CHUNK_CHANGES_POPULARITY	0.00 //turn it to zero to make the popularity change feature deactivated
+#define DEFAULT_POPULARITY_CHANGE_INTERVAL_TIME_MS	200.0
+#define DEFAULT_FRACTION_CHUNK_CHANGES_POPULARITY	0.05 //turn it to zero to make the popularity change feature deactivated
 
 #define DEFAULT_INTENSITY_CHANGE_START_TIME_MS		80.0
 
 #define DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE	4
 
-#define DEFAULT_LOCAL_ACCESS_LATENCY				100 //100 microsecond
+#define DEFAULT_LOCAL_ACCESS_LATENCY				0 //100 microsecond
 
-#define SSD_PER_RACK								6
+#define SSD_PER_RACK								8
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

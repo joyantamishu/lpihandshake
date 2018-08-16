@@ -27,9 +27,12 @@ NS_LOG_COMPONENT_DEFINE("VMController");
 
 /*************************************************************/
 int BaseTopology::getRandomServerNode(const int &conflictClientNodeId) {
+
+	NS_LOG_UNCOND("conflictClientNodeId "<<conflictClientNodeId);
 	NS_LOG_FUNCTION(this);
 	do {
 		t_x = m_randomServerNodeSelector->GetInteger();
+		NS_LOG_UNCOND(t_x);
 	} while (t_x == conflictClientNodeId);
 	return t_x;
 }
@@ -44,21 +47,68 @@ uint32_t BaseTopology::getCustomizedRandomClientNode(uint32_t &application_id)
 {
 	uint32_t total_hosts = hosts.GetN();
 
-	uint32_t app_id = ns3::BaseTopology::application_selector -> GetInteger();
+	double app_id = ns3::BaseTopology::application_selector -> GetValue();
 
-	application_id = app_id;
-	for (uint32_t i =0;i<total_hosts;i++)
+	NS_LOG_UNCOND("App_id "<<app_id);
+
+
+	double sum_application_probability = 0;
+
+	uint32_t application_index = 0;
+	for(application_index=0;simulationRunProperties::total_applications;application_index++)
+	{
+		sum_application_probability += BaseTopology::application_probability[application_index];
+
+		//NS_LOG_UNCOND(" BaseTopology::application_probability[application_index] "<<BaseTopology::application_probability[application_index]);
+
+		if(sum_application_probability >= app_id) break;
+	}
+
+	application_id = application_index;
+
+	NS_LOG_UNCOND("The app id "<<application_index);
+
+	uint32_t i;
+	for (i =0;i<total_hosts;i++)
 	{
 		for(uint32_t index =1; index <=ns3::BaseTopology::application_assignment_to_node[i][0];index++)
 		{
-			if(app_id == ns3::BaseTopology::application_assignment_to_node[i][index])
+			if(i == 1) NS_LOG_UNCOND("App id 1 status "<<ns3::BaseTopology::application_assignment_to_node[i][index]);
+
+			if(application_id == ns3::BaseTopology::application_assignment_to_node[i][index])
 			{
+				NS_ASSERT_MSG(i%(SSD_PER_RACK+1) == 0, "Source should be multiple of "<<(SSD_PER_RACK+1)<<" Currently it is "<<i);
+				NS_LOG_UNCOND("The node id "<<i<<" Host translation "<<BaseTopology::hostaddresslogicaltophysical[i]<<" the value of application "<<ns3::BaseTopology::application_assignment_to_node[i][index]);
 				return i;
 			}
 		}
 	}
+	NS_ASSERT_MSG(i<total_hosts, " Source Not Found ");
+	return -1;
 
-	return 0;
+//	uint32_t total_hosts = hosts.GetN();
+//
+//	uint32_t app_id = ns3::BaseTopology::application_selector -> GetInteger();
+//	application_id = app_id;
+//
+//	uint32_t i;
+//	NS_LOG_UNCOND("The app id "<<app_id);
+//	for (i =0;i<total_hosts;i++)
+//	{
+//		for(uint32_t index =1; index <=ns3::BaseTopology::application_assignment_to_node[i][0];index++)
+//		{
+//			if(i == 1) NS_LOG_UNCOND("App id 1 status "<<ns3::BaseTopology::application_assignment_to_node[i][index]);
+//
+//			if(application_id == ns3::BaseTopology::application_assignment_to_node[i][index])
+//			{
+//				NS_ASSERT_MSG(i%(SSD_PER_RACK+1) == 0, "Source should be multiple of "<<(SSD_PER_RACK+1)<<" Currently it is "<<i);
+//				NS_LOG_UNCOND("The node id "<<i<<" Host translation "<<BaseTopology::hostaddresslogicaltophysical[i]<<" the value of application "<<ns3::BaseTopology::application_assignment_to_node[i][index]);
+//				return i;
+//			}
+//		}
+//	}
+//	NS_ASSERT_MSG(i<total_hosts, " Source Not Found ");
+//	return -1;
 }
 
 /*************************************************************/
@@ -231,6 +281,7 @@ int BaseTopology::getRandomServerNode(const int &conflictClientNodeId,
 		requiredHost = HOST_NOT_FOUND;
 		hostId = HOST_NOT_FOUND;
 		for (h = 0; h < n * ARBITRARY_FORLOOP_NUMBER; h++) {
+			NS_LOG_UNCOND("In side For Loop");
 			// try our random selector for 'n times only...
 			hostId = getRandomServerNode(conflictClientNodeId);
 			node = DynamicCast<ssNode>(hosts.Get(hostId));
@@ -250,6 +301,7 @@ int BaseTopology::getRandomServerNode(const int &conflictClientNodeId,
 					"WRONG getRandomServerNode, at least one SERVER should be free???");
 		}
 	} // end else
+
 	return requiredHost;
 }
 // Sanjeev May 9th, adjust available & utilized.

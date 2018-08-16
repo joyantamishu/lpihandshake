@@ -89,6 +89,31 @@ uint64_t BaseTopology::total_packet_count = 0;
 
 uint64_t BaseTopology::total_packet_count_inc = 0;
 
+uint32_t *BaseTopology::host_assignment_round_robin_counter = new uint32_t[(simulationRunProperties::k*simulationRunProperties::k*simulationRunProperties::k)/4];
+
+double *BaseTopology::host_running_avg_bandwidth = new double[total_hosts_in_system + 1];
+
+uint32_t *BaseTopology::host_running_avg_counter = new uint32_t[total_hosts_in_system + 1];
+
+double *BaseTopology::application_probability = new double[simulationRunProperties::total_applications];
+
+uint32_t BaseTopology::current_number_of_flows = 0;
+
+uint32_t *BaseTopology::total_packets_to_hosts_bits = new uint32_t[total_hosts_in_system];
+
+uint32_t BaseTopology::total_events = 0;
+
+uint32_t BaseTopology::total_events_learnt = 0;
+
+uint32_t *BaseTopology::total_packets_to_chunk = new uint32_t[simulationRunProperties::total_chunk];
+
+uint32_t *BaseTopology::total_packets_to_chunk_destination = new uint32_t[simulationRunProperties::total_chunk];
+
+double BaseTopology::last_point_of_entry = 0.0;
+
+double BaseTopology::total_sum_of_entry = 0.0;
+
+double BaseTopology::sum_of_number_time_packets = 0.0;
 
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
@@ -314,9 +339,9 @@ void BaseTopology::DoRun(void) {
 /*Result **/void BaseTopology::calculateNewLocation(int incrDcr)
 {
 
-	float cuttoffnode_low=100.0;
-	float cuttoffnode_high=400.0;
-	float cuttoffnode_emer=700.0;
+	float cuttoffnode_low=80;
+	float cuttoffnode_high=320;
+	float cuttoffnode_emer=560.0;
 	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
 	uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
 	float cuttoffpod=nodes_in_pod*cuttoffnode_high; //this has to be made dynamic
@@ -327,6 +352,8 @@ void BaseTopology::DoRun(void) {
 	uint32_t min_pod=0;
 	uint32_t r=0;
 	uint32_t res_index=0;
+
+	NS_LOG_UNCOND("enetering");
 
 	if(BaseTopology::createflag!=true)
 	{
@@ -470,7 +497,7 @@ void BaseTopology::DoRun(void) {
 
 
 
-		   NS_LOG_UNCOND("Found chunk utilization--------------------------------------------------------------------------------------$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ :"<<max_chunk_no<<" "<<max_chunk_u<<"totalchunk on the node"<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);		  //last_max_chunk=max_chunk_no;
+		   //NS_LOG_UNCOND("Found chunk utilization--------------------------------------------------------------------------------------$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ :"<<max_chunk_no<<" "<<max_chunk_u<<"totalchunk on the node"<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);		  //last_max_chunk=max_chunk_no;
 		   //if
 		   uint32_t action = 0;
 		   int flag=0;
@@ -486,7 +513,7 @@ void BaseTopology::DoRun(void) {
 			   //We are deciding which pod is best here
 			  	 for (int i=Ipv4GlobalRouting::FatTree_k-1;i>=0;i--)
 			  		{
-			  		 NS_LOG_UNCOND(BaseTopology::p[i].Pod_utilization);
+			  		 //NS_LOG_UNCOND(BaseTopology::p[i].Pod_utilization);
 			  		 if(BaseTopology::p[i].Pod_utilization+max_chunk_u<cuttoffpod) //placement can lead to exceed the pod level threshold
 			  		 {
 			  			 //diff_from_pod_cuttoff=cuttoffpod-(BaseTopology::p[i].Pod_utilization+max_chunk_u);
@@ -535,7 +562,7 @@ void BaseTopology::DoRun(void) {
 			  	if(target_pod!=999 && target_node!=999)
 			  	{
 
-			  		printf("gotcha ------------------------------------((((())))))))))))))))))))))))))))))))))---------%d-----------%d\n",target_node,target_pod);
+			  		//printf("gotcha ------------------------------------((((())))))))))))))))))))))))))))))))))---------%d-----------%d\n",target_node,target_pod);
 			  		BaseTopology::res[res_index].src=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
 			  		BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
 			  		BaseTopology::res[res_index].chunk_number=max_chunk_no;
@@ -569,7 +596,7 @@ void BaseTopology::DoRun(void) {
 		break; //no break before we exhaust x% of the busy item in the node
  	 }//end of for
 
-   	printf("res_index%d\n",res_index);
+   	//printf("res_index%d\n",res_index);
    	BaseTopology::res[res_index].src=99999;
    	BaseTopology::res[res_index].dest=99999;
    	BaseTopology:: res[res_index].chunk_number=99999;
@@ -591,7 +618,7 @@ void BaseTopology::DoRun(void) {
 
      for (uint32_t i = 0; i < number_of_hosts ; i++)
      {
-    	 NS_LOG_UNCOND("here-------------------"<<nodeU[i].U<<"-----------------"<<nodeU[i].nodenumber);
+    	 //NS_LOG_UNCOND("here-------------------"<<nodeU[i].U<<"-----------------"<<nodeU[i].nodenumber);
     }
 
 //here the major for loop starts
@@ -604,7 +631,7 @@ void BaseTopology::DoRun(void) {
 		min_chunk_no=9999;
 		min_chunk_u=9999.0;
 		uint32_t nodeN=nodeU[i].nodenumber;
-		NS_LOG_UNCOND("HHHHHHHHHHHH\n");
+		//NS_LOG_UNCOND("HHHHHHHHHHHH\n");
 		if(nodeU[i].U>cuttoffnode_low)
 			break;
 		uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
@@ -619,7 +646,7 @@ void BaseTopology::DoRun(void) {
 			 min_node_no=nodeN%Ipv4GlobalRouting::FatTree_k;
 			 min_pod=pod;
 
-        NS_LOG_UNCOND("The minimally used node is-----------------------------------------------------------------------------------------: "<<min_node_no<<" ::: "<<min_pod);
+        //NS_LOG_UNCOND("The minimally used node is-----------------------------------------------------------------------------------------: "<<min_node_no<<" ::: "<<min_pod);
         processed_unit=0;
 
     	while(number_of_chunk_to_process>processed_unit)
@@ -646,7 +673,7 @@ void BaseTopology::DoRun(void) {
 		 {
 
 			 BaseTopology::p[min_pod].nodes[min_node_no].data[min_chunk_index].processed=1;
-			 NS_LOG_UNCOND("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Found chunk utilization---------------------------------------------------- :"<<min_chunk_no<<" "<<min_chunk_u);
+			 //NS_LOG_UNCOND("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Found chunk utilization---------------------------------------------------- :"<<min_chunk_no<<" "<<min_chunk_u);
 			 //find the location of the minimum chunk
 
 
@@ -669,7 +696,7 @@ void BaseTopology::DoRun(void) {
 		 }
 		 else
 		 {
-			 NS_LOG_UNCOND("for this node we are not able to find a chunk that can statify all the conditions so going to some other node");
+			 //NS_LOG_UNCOND("for this node we are not able to find a chunk that can statify all the conditions so going to some other node");
 			 break;
 		 }
 

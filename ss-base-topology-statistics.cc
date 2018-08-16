@@ -57,7 +57,7 @@ void BaseTopology::DisplayJBFlowStatistics(void) {
 		{
 			flow_count++;
 			//NS_LOG_UNCOND("it->second.delaysum "<<it->second.delaysum);
-			fprintf(fp_flow,"%d,%d\n",it->first,it->second.total_packet_to_destination);
+			fprintf(fp_flow,"%d,%d,%d\n",it->first,it->second.total_packet_to_destination, it->second.bandwidth);
 
 			sum_avg_delay+= (it->second.delaysum / (double)it->second.total_packet_to_destination);
 
