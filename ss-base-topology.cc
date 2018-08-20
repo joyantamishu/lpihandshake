@@ -115,6 +115,16 @@ double BaseTopology::total_sum_of_entry = 0.0;
 
 double BaseTopology::sum_of_number_time_packets = 0.0;
 
+uint32_t *BaseTopology::chunk_version_tracker = new uint32_t[simulationRunProperties::total_chunk + 1];
+
+uint32_t** BaseTopology::chunk_version_node_tracker = new uint32_t* [simulationRunProperties::total_chunk];
+
+bool** BaseTopology::chunk_copy_node_tracker = new bool* [simulationRunProperties::total_chunk];
+
+uint32_t BaseTopology::consistency_flow = 0;
+
+NodeContainer BaseTopology::hosts_static;
+
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
 	DoDispose();

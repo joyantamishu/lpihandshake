@@ -95,6 +95,21 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		BaseTopology::total_packets_to_chunk_destination[index] = 0;
 
+		BaseTopology::chunk_version_tracker[index] = 0;
+
+		//for(uint32_t host_index=0; host_index<total_hosts/(SSD_PER_RACK+1); host_index++)
+		//{
+		BaseTopology::chunk_version_node_tracker[index] = new uint32_t[(total_hosts/(SSD_PER_RACK+1)) + 1];
+
+		BaseTopology::chunk_copy_node_tracker[index] = new bool [(total_hosts/(SSD_PER_RACK+1)) + 1];
+
+		for(uint32_t host_index = 0; host_index <(total_hosts/(SSD_PER_RACK+1)) + 1 ; host_index++)
+		{
+			BaseTopology::chunk_version_node_tracker[index][host_index] = 0;
+			BaseTopology::chunk_copy_node_tracker[index][host_index] = false;
+		}
+		//}
+
 
 		/*****************The struct set up ***********************/
 
@@ -170,6 +185,12 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value;
 					//
 					BaseTopology::p[pod].nodes[node].total_chunks++;
+
+					uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
+
+					BaseTopology::chunk_copy_node_tracker[value][host_number] = true;
+
+
 
 					//printf ("%d\n",value);
 
@@ -609,6 +630,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 		pNode = CreateObject<ssNode>();
 		pNode->setNodeType(ssNode::HOST);
 		hosts.Add(pNode);
+		BaseTopology::hosts_static.Add(pNode);
 	}
 	// NOW FOR LATER USE, GROUP ALL UNDER ONE COLLECTION.
 	allNodes.Add(coreRouters);

@@ -261,7 +261,47 @@ void BaseTopology::InjectInitialFlowsMR(const int &requiredInitialFlowCount) {
 	InjectANewRandomFlow();
 }
 
+void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets)
+{
+	NS_LOG_UNCOND("Inside InjectANewRandomFlowCopyCreation "<<" src "<<src<<" dest "<<dest<<" number_of_packets "<<number_of_packets);
+
+	Time static_t_appStopTimeRandom = Time::FromDouble(CONSISTENCY_FLOW_DUARTION_CONSTANT, Time::MS);
+
+	ApplicationContainer static_t_allClientApps;
+	ssUdpEchoClientHelper *static_t_echoClient;
+
+	Ptr<ssNode> static_t_client, static_t_server;
+
+	uint32_t static_t_x, static_t_b;
+
+	Ipv4Address static_t_addr;
+
+	static_t_b = src;
+
+	static_t_x = dest;
+
+	static_t_client = DynamicCast<ssNode>(BaseTopology::hosts_static.Get(static_t_b));
+	static_t_server = DynamicCast<ssNode>(BaseTopology::hosts_static.Get(static_t_x));
+
+	static_t_addr = static_t_server->GetNodeIpv4Address();
+	static_t_echoClient = new ssUdpEchoClientHelper(static_t_addr, UDP_ECHO_SERVER_PORT);
+
+	static_t_echoClient->SetAttribute("PacketSize", UintegerValue(simulationRunProperties::packetSize)); // run continuous till sim time ends
+	static_t_echoClient->SetAttribute("RemoteHost", UintegerValue(static_t_server->GetId()));
+	static_t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(BaseTopology::consistency_flow));
+	static_t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(100));
+	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets);
+
+	static_t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
+	static_t_allClientApps.Stop(static_t_appStopTimeRandom);
+
+	BaseTopology::consistency_flow++;
+
+	//m_flowCount++;
+}
+
 /*************************************************************/
+
 void BaseTopology::InjectANewRandomFlow(void) {
 
 
@@ -300,7 +340,7 @@ void BaseTopology::InjectANewRandomFlow(void) {
 				"*********************** New flow NOT injected:: Failed to find srcNode[" << t_b << "]");
 		return;
 	}
-	//NS_LOG_UNCOND("Here's the issue");
+	NS_LOG_UNCOND("Be careful, there could be some issue here");
 	t_x = t_b+1;
 
 	//NS_LOG_UNCOND("Here's the issue1");
@@ -333,6 +373,10 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	// set app start & stop time for apps..flows..
 	t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
 	t_allClientApps.Stop(t_appStopTimeRandom);
+
+	NS_LOG_UNCOND("The app id in injectRandom Flow "<<application_id);
+
+
 
 	// for flow generation adjustment. sanjeev 5/9
 	markFlowStartedMetric(m_flowCount, t_client->GetId(), t_server->GetId(),

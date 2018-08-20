@@ -112,5 +112,9 @@
 #define DEFAULT_LOCAL_ACCESS_LATENCY				0 //100 microsecond
 
 #define SSD_PER_RACK								8
+
+#define CONSISTENCY_FLOW_DUARTION_CONSTANT			50
+
+#define CONSISTENCY_FLOW_START_DUARTION_CONSTANT	0.0001
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

@@ -283,6 +283,8 @@ public:
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
 			const uint16_t &flowBW);
 
+	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets);
+
 	static FlowDataCollected *m_flowData;
 	static std::ofstream fpDeviceEnergy;
 
@@ -367,6 +369,12 @@ public:
 
 	static uint32_t total_events_learnt;
 
+	static uint32_t *chunk_version_tracker;
+
+	static uint32_t **chunk_version_node_tracker;
+
+	static bool **chunk_copy_node_tracker;
+
 	////remove this variable after all done
 
 	static uint32_t *total_packets_to_chunk;
@@ -380,6 +388,10 @@ public:
 	static double sum_of_number_time_packets;
 
 	static uint64_t sum_of_times;
+
+	static NodeContainer hosts_static;
+
+	static uint32_t consistency_flow;
 
 protected:
 	virtual void DoDispose(void);

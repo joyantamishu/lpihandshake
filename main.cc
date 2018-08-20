@@ -66,6 +66,10 @@ int main(int argc, char *argv[]) {
 
 
 
+//	for(uint32_t chunk=0;chunk<simulationRunProperties::total_chunk;chunk++)
+//	{
+//		NS_LOG_UNCOND("Chunk id "<<chunk<<" version no "<<BaseTopology::chunk_version_tracker[chunk]);
+//	}
 
 
 	int flow_count = 0;

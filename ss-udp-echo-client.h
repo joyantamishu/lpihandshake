@@ -72,11 +72,11 @@ public:
 	ssUdpEchoClientHelper(Ipv4Address ip, uint16_t port);
 	virtual ~ssUdpEchoClientHelper();
 	void SetAttribute(std::string name, const AttributeValue &value);
-	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id) const;
+	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0) const;
 	ApplicationContainer Install(NodeContainer c) const;
 
 protected:
-	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id) const;
+	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0) const;
 	ObjectFactory m_factory; //!< Object factory.
 };
 
@@ -101,7 +101,6 @@ public:
 	/******** Chunk Specific Change ***************/
 	uint32_t getChunkLocation(uint32_t chunk, uint32_t *version, int *socket_index);
 	bool consistency_flow;
-	bool fixed_dest;
 	uint32_t single_destination;
 	//uint32_t *possible_dest;
 
@@ -109,9 +108,13 @@ public:
 	uint32_t application_index;
 	uint32_t *destination_chunks;
 	std::vector<MappingSocket> socket_mapping;
+
+	uint32_t total_packets_to_send;
 	uint32_t distinct_items;
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
+	virtual void insertCopyInformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
+	virtual void deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
 	/*********************************************/
 
 protected:
@@ -129,6 +132,7 @@ protected:
 
 	void Send(void);
 	void SendLastPacket(void);
+
 	virtual void ForceStopApplication(void);
 	virtual void ScheduleTransmit(Time dt);
 	// simplified, sanjeev 2/25
