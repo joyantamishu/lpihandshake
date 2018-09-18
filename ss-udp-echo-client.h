@@ -113,8 +113,10 @@ public:
 	uint32_t distinct_items;
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
-	virtual void insertCopyInformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
-	virtual void deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
+	virtual uint32_t FindChunkAssignedHost(uint32_t chunk_id, uint32_t rack_id);
+	//virtual void deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
+
+	virtual uint32_t getHostInfoMadeBypolicy(uint32_t dest_id);
 	/*********************************************/
 
 protected:
@@ -153,6 +155,7 @@ protected:
 	// all flow control & connection variables
 	// simplified. sanjeev 2/25
 	Ptr<Socket> *m_socket;       //!< Associated socket
+	Ptr<Socket> *sync_sockets;
 	Address m_peerAddress; //!< Remote peer address
 	uint16_t m_peerPort; //!< Remote peer port
 	uint16_t m_dstHost; //!< Remote destinationhost
@@ -188,6 +191,12 @@ protected:
 	Ptr<UniformRandomVariable> ReadWriteCalculation;
 	uint32_t total_hosts;
 	std::vector<local_chunk_info> local_chunkTracker;
+
+	int *sync_socket_tracker;
+
+	uint32_t total_sync_sockets;
+
+	//uint32_t used_sync_sockets;
 	/**********************************************/
 
 };

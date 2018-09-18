@@ -68,6 +68,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 		//NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
 		{
+
 			//NS_LOG_UNCOND("packet->sub_flow_dest_physical "<<packet->sub_flow_dest_physical);
 
 			BaseTopology::total_packet_count--;
@@ -117,6 +118,19 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 				BaseTopology::total_events++;
 
+			}
+
+			if(packet->is_phrase_changed)
+			{
+				BaseTopology::sum_delay_ms_burst += current_simulation_time - packet->creation_time;
+
+				BaseTopology::total_events_learnt_burst++;
+			}
+			else
+			{
+				BaseTopology::sum_delay_ms_no_burst += current_simulation_time - packet->creation_time;
+
+				BaseTopology::total_events_learnt_no_burst++;
 			}
 
 			BaseTopology::total_packets_to_chunk_destination[packet->sub_flow_id]++;

@@ -99,11 +99,11 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		//for(uint32_t host_index=0; host_index<total_hosts/(SSD_PER_RACK+1); host_index++)
 		//{
-		BaseTopology::chunk_version_node_tracker[index] = new uint32_t[(total_hosts/(SSD_PER_RACK+1)) + 1];
+		BaseTopology::chunk_version_node_tracker[index] = new uint32_t[total_hosts];
 
-		BaseTopology::chunk_copy_node_tracker[index] = new bool [(total_hosts/(SSD_PER_RACK+1)) + 1];
+		BaseTopology::chunk_copy_node_tracker[index] = new bool [total_hosts];
 
-		for(uint32_t host_index = 0; host_index <(total_hosts/(SSD_PER_RACK+1)) + 1 ; host_index++)
+		for(uint32_t host_index = 0; host_index <total_hosts; host_index++)
 		{
 			BaseTopology::chunk_version_node_tracker[index][host_index] = 0;
 			BaseTopology::chunk_copy_node_tracker[index][host_index] = false;
@@ -169,6 +169,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					NS_LOG_UNCOND("The pod is "<<pod<<" value is "<<value);
 
 					NS_LOG_UNCOND("The node is "<<node);
+
 				}
 				else
 				{
@@ -182,13 +183,15 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number+round_robin_counter;
 					BaseTopology::chunkTracker.at(value).node_id = hosts.Get(logical_host_number+round_robin_counter)->GetId();
 
+					BaseTopology::chunk_copy_node_tracker[value][logical_host_number+round_robin_counter] = true;
+
 					BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value;
 					//
 					BaseTopology::p[pod].nodes[node].total_chunks++;
 
-					uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
+					//uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
 
-					BaseTopology::chunk_copy_node_tracker[value][host_number] = true;
+					//BaseTopology::chunk_copy_node_tracker[value][host_number] = true;
 
 
 
@@ -206,8 +209,15 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 	}
 	fclose(fp);
 
+
 	ns3::BaseTopology::Popularity_Change_Random_Variable->SetAttribute("Min", DoubleValue(0));
 	ns3::BaseTopology::Popularity_Change_Random_Variable->SetAttribute("Max", DoubleValue(simulationRunProperties::total_chunk-1));
+
+
+	ns3::BaseTopology::chunk_copy_selection->SetAttribute("Min", DoubleValue(0));
+	ns3::BaseTopology::chunk_copy_selection->SetAttribute("Max", DoubleValue(65536));
+
+	if(BaseTopology::chunk_copy_node_tracker[8][0]) NS_LOG_UNCOND("^^^^^Inside fat tree topolgy ^^^^^^^^^^^^^");
 
 	///Customized Multiple Copy, should remove later
 
@@ -456,7 +466,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_intensity_value[1] = 1.0;
 
-	BaseTopology::phrase_change_intensity_value[2] = 1.0;
+	BaseTopology::phrase_change_intensity_value[2] = 2.5;
 
 	BaseTopology::phrase_change_intensity_value[3] = 1.0;
 
@@ -465,9 +475,9 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_interval[0] = 80; //in ms
 
-	BaseTopology::phrase_change_interval[1] = 130;
+	BaseTopology::phrase_change_interval[1] = 800;
 
-	BaseTopology::phrase_change_interval[2] = 130;
+	BaseTopology::phrase_change_interval[2] = 800;
 
 	BaseTopology::phrase_change_interval[3] = 100;
 

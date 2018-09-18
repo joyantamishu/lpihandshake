@@ -132,7 +132,7 @@ int main(int argc, char *argv[]) {
 
 	fprintf(fp_host_by_packets,"Host, Total Packets, utilization_by_flow_calculation, utilization_by_packets\n");
 
-	fprintf(fp_chunks_by_packets,"Chunk, Total Packets, Total Packets Destination, Difference\n");
+	fprintf(fp_chunks_by_packets,"Chunk, Total Packets, Total Packets Destination, Difference, Total Copies\n");
 
 	uint32_t frequency;
 
@@ -230,7 +230,10 @@ int main(int argc, char *argv[]) {
 
 	for(uint32_t chunk_id=0;chunk_id<simulationRunProperties::total_chunk;chunk_id++)
 	{
-		fprintf(fp_chunks_by_packets,"%d,%d,%d,%d\n",chunk_id, BaseTopology::total_packets_to_chunk[chunk_id], BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::total_packets_to_chunk[chunk_id]- BaseTopology::total_packets_to_chunk_destination[chunk_id]);
+		if(BaseTopology::chunkTracker.at(chunk_id).number_of_copy >= 1)
+		{
+			fprintf(fp_chunks_by_packets,"%d,%d,%d,%d,%d\n",chunk_id, BaseTopology::total_packets_to_chunk[chunk_id], BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::total_packets_to_chunk[chunk_id]- BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::chunkTracker.at(chunk_id).number_of_copy);
+		}
 	}
 
 
@@ -274,6 +277,18 @@ int main(int argc, char *argv[]) {
 	NS_LOG_UNCOND("Currently Number of packets in the system "<<BaseTopology::total_packet_count);
 
 	NS_LOG_UNCOND("The avg no of packets "<<BaseTopology::sum_of_number_time_packets/BaseTopology::total_sum_of_entry);
+
+	NS_LOG_UNCOND("BaseTopology::total_consistency_packets "<<BaseTopology::total_consistency_packets);
+
+	NS_LOG_UNCOND("BaseTopology::total_non_consistency_packets "<<BaseTopology::total_non_consistency_packets);
+
+	double average_delay_burst = BaseTopology::sum_delay_ms_burst/ (double)BaseTopology::total_events_learnt_burst;
+
+	double average_delay_no_burst = BaseTopology::sum_delay_ms_no_burst/ (double)BaseTopology::total_events_learnt_no_burst;
+
+	NS_LOG_UNCOND("Avg Delay in ms When there is burst "<<average_delay_burst<<" in second "<<average_delay_burst/(double)1000000);
+
+	NS_LOG_UNCOND("Avg Delay in ms When there is no burst "<<average_delay_no_burst<<" in second "<<average_delay_no_burst/(double)1000000);
 
 
 

@@ -109,8 +109,6 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 		app->total_packets_to_send = no_of_packets;
 	}
 
-
-
 	NS_LOG_UNCOND("The random_application_id is "<<app_id);
 
 	//NS_LOG_UNCOND("ns3::BaseTopology::application_assignment[source_node][0] "<<ns3::BaseTopology::application_assignment[source_node][0]);
@@ -120,9 +118,6 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 
 	app->consistency_flow = single_destination_flow;
 	node->AddApplication(app);
-
-
-
 
 	return app;
 }
@@ -193,21 +188,63 @@ ssUdpEchoClient::ssUdpEchoClient() {
 
 	total_packets_to_send = 0;
 
-	for (std::vector<chunk_info>::iterator it = BaseTopology::chunkTracker.begin() ; it != BaseTopology::chunkTracker.end(); ++it)
-	{
-		uint32_t chunk_location = it->logical_node_id;
 
-		//if(it->logical_node_id %2 == 0) NS_LOG_UNCOND("Even logical node id");
-
-		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number, it->node_id));
-	}
 
 	// initialization only, will be overridden at StartApplication()
 	m_randomVariableInterPacketInterval = NULL;
 	m_startNewFlow_CallbackSS.Nullify();
 	total_hosts = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 	distinct_items = 0;
+
+	//if(BaseTopology::chunk_copy_node_tracker[8][0]) NS_LOG_UNCOND("^^^^^Inside udpclient ^^^^^^^^^^^^^");
+	for (std::vector<chunk_info>::iterator it = BaseTopology::chunkTracker.begin() ; it != BaseTopology::chunkTracker.end(); ++it)
+	{
+		uint32_t chunk_location = it->logical_node_id;
+
+		if(it->number_of_copy >= 1)
+		{
+			int count = -1;
+			int rand_val = BaseTopology::chunk_copy_selection->GetInteger() % (it->number_of_copy+1);
+
+			//NS_LOG_UNCOND( " rand_val "<<rand_val);
+
+			for(uint32_t index=0;index<total_hosts ; index++)
+			{
+				if(BaseTopology::chunk_copy_node_tracker[it->chunk_no][index]) count++;
+
+				if(count == rand_val)
+				{
+					chunk_location = index;
+
+					break;
+				}
+
+				//if(chunk_location == 0) NS_LOG_UNCOND("^^^^^^^^^Hello Shukhla^^^^^^^^^^^^^^^^^^");
+			}
+		}
+
+		//if((BaseTopology::chunk_copy_selection->GetInteger()))
+
+		//if(it->logical_node_id %2 == 0) NS_LOG_UNCOND("Even logical node id");
+
+		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number, it->node_id));
+	}
+
+
+	uint32_t total_racks = total_hosts/(SSD_PER_RACK +1 );
+
+	sync_socket_tracker = new int[total_racks];
+
+	for(uint32_t i=0;i<total_racks;i++)
+	{
+		sync_socket_tracker[i] = -1;
+	}
 	//m_socket = new Ptr<Socket>[total_hosts];
+
+
+	sync_sockets = new Ptr<Socket>[total_racks];
+
+	total_sync_sockets = 0;
 
 
 
@@ -277,15 +314,48 @@ void ssUdpEchoClient::ScheduleTransmit(Time dt) {
 	m_sendEvent = Simulator::Schedule(dt, &ssUdpEchoClient::Send, this);
 }
 
-void ssUdpEchoClient::insertCopyInformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version)
+uint32_t ssUdpEchoClient::FindChunkAssignedHost(uint32_t chunk_id, uint32_t rack_id)
 {
+	uint32_t host_starting = rack_id * (SSD_PER_RACK + 1) + 1;
+	uint32_t i;
+	for(i= 0;i<SSD_PER_RACK;i++)
+	{
+		if(BaseTopology::chunk_copy_node_tracker[chunk_id][host_starting+i])
+		{
+			return host_starting+i;
+		}
+	}
+	NS_ASSERT_MSG(i<SSD_PER_RACK, " Unable to Track the Chunk ");
 
+	return -1;
 	//BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(chunk_id, location, version));
 }
 
-void ssUdpEchoClient::deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location, uint32_t location_from, uint32_t version)
+//void ssUdpEchoClient::deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location, uint32_t location_from, uint32_t version)
+//{
+////	/for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin(); itr != BaseTopology::chunkCopyLocations.end(); ++itr)
+//}
+
+uint32_t ssUdpEchoClient::getHostInfoMadeBypolicy(uint32_t host_id)
 {
-//	/for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin(); itr != BaseTopology::chunkCopyLocations.end(); ++itr)
+	uint32_t rack_host_id = ((SSD_PER_RACK +1 ) * host_id) + 1 ;
+
+	uint32_t min_host_utilization = Ipv4GlobalRouting::host_utilization[rack_host_id];
+
+	uint32_t expected_host = rack_host_id;
+
+	for(uint32_t i= 0; i<SSD_PER_RACK;i++)
+	{
+		if(Ipv4GlobalRouting::host_utilization[rack_host_id + i] < min_host_utilization)
+		{
+			expected_host = rack_host_id + i;
+			min_host_utilization = Ipv4GlobalRouting::host_utilization[rack_host_id + i];
+		}
+	}
+
+	NS_LOG_UNCOND("host_id "<<host_id<<" expected_host "<<expected_host);
+
+	return expected_host;
 }
 
 void ssUdpEchoClient::StartApplication() {
@@ -295,7 +365,7 @@ void ssUdpEchoClient::StartApplication() {
 
 	if(this->consistency_flow)
 	{
-		NS_LOG_UNCOND("This is a consistency flow");
+		//NS_LOG_UNCOND("This is a consistency flow");
 
 		this->distinct_items = 1;
 
@@ -419,6 +489,8 @@ void ssUdpEchoClient::StartApplication() {
 
 	m_socket = new Ptr<Socket>[distinct_items+1];
 
+
+
 	for(uint32_t i=0;i<distinct_items;i++)
 	{
 		TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
@@ -460,84 +532,71 @@ void ssUdpEchoClient::StartApplication() {
 
 	/********Uncomment it when function ReturnSomething is ready */
 
-	if(BaseTopology::Incrcounter_==0)
-	{
-		BaseTopology::Incrcounter_=0;
-		int incrDcr=1;
-
-		/*Result *p =*/ BaseTopology::calculateNewLocation(incrDcr);
-
-		int i=0;
-
-		while(BaseTopology::res[i].src != 99999)// && BaseTopology::res!=NULL)
-		{
-			printf("++++++++++++++++++++++++++++\n");
-			NS_LOG_UNCOND(BaseTopology::res[i].chunk_number);
-			BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
-
-			//uint32_t no_of_packets = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
-
-//			if(BaseTopology::res[i].src == BaseTopology::res[i].dest)
+//	if(BaseTopology::Incrcounter_==0)
+//	{
+//		BaseTopology::Incrcounter_=0;
+//		int incrDcr=1;
+//
+//		BaseTopology::calculateNewLocation(incrDcr);
+//
+//		int i=0;
+//
+//		while(BaseTopology::res[i].src != 99999)// && BaseTopology::res!=NULL)
+//		{
+//			printf("++++++++++++++++++++++++++++\n");
+//			NS_LOG_UNCOND(BaseTopology::res[i].chunk_number);
+//
+//
+//
+//			BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
+//
+//			uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
+//			if(num_of_packets_to_send > 0) BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, num_of_packets_to_send);
+//
+//
+//			BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]++;
+//
+//			BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1 + (BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]%SSD_PER_RACK);
+//
+//
+//			BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id] = true;
+//
+//			//BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = getHostInfoMadeBypolicy(BaseTopology::res[i].dest);
+//
+//			NS_LOG_UNCOND("The chunk address is "<<BaseTopology::hostaddresslogicaltophysical[BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id]<<" BaseTopology::res[i].dest "<<BaseTopology::res[i].dest);
+//
+//
+//			uint32_t pod = (uint32_t) floor((double) BaseTopology::res[i].dest/ (double) Ipv4GlobalRouting::FatTree_k);
+//
+//			uint32_t node = BaseTopology::res[i].dest % Ipv4GlobalRouting::FatTree_k;
+//
+//			NS_LOG_UNCOND("BaseTopology::res[i].dest "<<BaseTopology::res[i].dest<<" Pod "<<pod<<" Ipv4GlobalRouting::FatTree_k "<<Ipv4GlobalRouting::FatTree_k);
+//
+//			bool entry_already_exists = false;
+//
+//			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
 //			{
-//				i++;
-//				continue;
+//				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == BaseTopology::res[i].chunk_number)
+//				{
+//					entry_already_exists = true;
+//				}
 //			}
 //
-//			else
+//			if(!entry_already_exists)
 //			{
-//				exit(0);
+//				BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = BaseTopology::res[i].chunk_number;
+//				BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].intensity_sum = 0.0;
+//
+//				BaseTopology::p[pod].nodes[node].total_chunks++;
 //			}
-
-//			BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, 10);
-
-			//insertCopyInformation(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src, BaseTopology::res[i].dest, 0);
-			//NS_LOG_UNCOND("prev BaseTopology::chunkTracker.at(chunk_no).logical_node_id "<<BaseTopology::chunkTracker.at(chunk_no).logical_node_id);
-			//Need to change here
-
-
-
-			//BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (2 *BaseTopology::res[i].dest + 1);
-
-			//uint32_t round_robin_counter = BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest] % SSD_PER_RACK;
-
-			BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]++;
-
-			BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1 + (BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]%SSD_PER_RACK);
-
-			NS_LOG_UNCOND("The chunk address is "<<BaseTopology::hostaddresslogicaltophysical[BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id]<<" BaseTopology::res[i].dest "<<BaseTopology::res[i].dest);
-
-
-			uint32_t pod = (uint32_t) floor((double) BaseTopology::res[i].dest/ (double) Ipv4GlobalRouting::FatTree_k);
-
-			uint32_t node = BaseTopology::res[i].dest % Ipv4GlobalRouting::FatTree_k;
-
-			NS_LOG_UNCOND("BaseTopology::res[i].dest "<<BaseTopology::res[i].dest<<" Pod "<<pod<<" Ipv4GlobalRouting::FatTree_k "<<Ipv4GlobalRouting::FatTree_k);
-
-			bool entry_already_exists = false;
-
-			for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
-			{
-				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == BaseTopology::res[i].chunk_number)
-				{
-					entry_already_exists = true;
-				}
-			}
-
-			if(!entry_already_exists)
-			{
-				BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = BaseTopology::res[i].chunk_number;
-				BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].intensity_sum = 0.0;
-
-				BaseTopology::p[pod].nodes[node].total_chunks++;
-			}
-
-			NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
-
-			printf("%d %d %d\n", BaseTopology::res[i].src,BaseTopology::res[i].dest,BaseTopology::res[i].chunk_number);
-			i++;
-		}
-	/*****************************************************************************/
-	}
+//
+//			NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
+//
+//			printf("%d %d %d\n", BaseTopology::res[i].src,BaseTopology::res[i].dest,BaseTopology::res[i].chunk_number);
+//			i++;
+//		}
+//
+//	}
 	//calling the optimizer
 
 
@@ -573,7 +632,7 @@ void ssUdpEchoClient::StopApplication(void) {
 
 	NS_LOG_UNCOND("Here The stop app ");
 
-	BaseTopology::current_number_of_flows--;
+	if(!consistency_flow) BaseTopology::current_number_of_flows--;
 
 	NS_LOG_UNCOND("^^^^^^^^^^^^^Current number of flows^^^^^^^^^^^^^^^"<< BaseTopology::current_number_of_flows);
 
@@ -633,35 +692,42 @@ void ssUdpEchoClient::StopApplication(void) {
 			}
 		}
 
-		BaseTopology::counter_++;
+		//BaseTopology::counter_++;
 		/********Uncomment it when function ReturnSomething is ready */
-		if(BaseTopology::counter_==0)
-		{
-			int incrDcr=0;
-
-			/*Result *p=*/  BaseTopology::calculateNewLocation(incrDcr);
-
-			int i=0;
-
-			while(BaseTopology::res[i].src != 99999 && BaseTopology::res!=NULL)
-			{
-				if(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
-				{
-						//uint32_t round_robin_counter = BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest] % SSD_PER_RACK;
-						BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy --;
-						BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
-				}
-
-				else
-				{
-					NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
-				}
-
-				i++;
-
-			}
-			BaseTopology::counter_=0;
-		}
+//		if(BaseTopology::counter_==0)
+//		{
+//			int incrDcr=0;
+//
+//			BaseTopology::calculateNewLocation(incrDcr);
+//
+//			int i=0;
+//
+//			while(BaseTopology::res[i].src != 99999 && BaseTopology::res!=NULL)
+//			{
+//				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].src] = false;
+//				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest] = true;
+//				NS_ASSERT_MSG(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0, " SomeThing Wrong in deletion of the copy ");
+//				if(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
+//				{
+//					uint32_t chunk_location = FindChunkAssignedHost(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src);
+//						//uint32_t round_robin_counter = BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest] % SSD_PER_RACK;
+//					BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy --;
+//					BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
+//
+//					BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][chunk_location] = false;
+//				}
+//
+//				else
+//				{
+//					NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+//
+//				}
+//
+//				i++;
+//
+//			}
+//			BaseTopology::counter_=0;
+//		}
 
 
 
@@ -674,6 +740,8 @@ void ssUdpEchoClient::StopApplication(void) {
 // appl was already stopped. !!
 	NS_ASSERT_MSG(m_socket, "Appl stopped, socket closed");
 
+	//if(this->consistency_flow) NS_LOG_UNCOND(" This is almost end");
+
 	for(uint32_t i=0;i<distinct_items;i++)
 	{
 		m_socket[i]->Close();
@@ -681,6 +749,15 @@ void ssUdpEchoClient::StopApplication(void) {
 		m_socket[i] = 0;
 
 	}
+
+	for(uint32_t i=0;i<total_sync_sockets;i++)
+	{
+		sync_sockets[i]->Close();
+		sync_sockets[i]->SetRecvCallback(MakeNullCallback<void, Ptr<Socket> >());
+		sync_sockets[i] = 0;
+	}
+
+	//if(this->consistency_flow) NS_LOG_UNCOND(" This is almost end 1");
 //	for(uint32_t i=0; i<total_hosts;i++)
 //	{
 //		m_socket[i]->Close();
@@ -688,6 +765,8 @@ void ssUdpEchoClient::StopApplication(void) {
 //		m_socket[i] = 0;
 //	}
 	m_socket = NULL;
+
+	sync_sockets = NULL;
 
 	if (WRITE_PACKET_TIMING_TO_FILE)
 		fp2.close();
@@ -705,9 +784,18 @@ void ssUdpEchoClient::StopApplication(void) {
 				m_dstHost, m_flowRequiredBW);
 		m_startNewFlow_CallbackSS.Nullify();
 	}
+	//if(this->consistency_flow) NS_LOG_UNCOND(" This is almost end 4");
 	local_chunkTracker.clear();
-	delete[] destination_chunks;
+	//if(this->consistency_flow) NS_LOG_UNCOND(" This is almost end 5");
+	if(!this->consistency_flow)
+	{
+		delete[] destination_chunks;
+
+		delete[] sync_socket_tracker;
+	}
+	//if(this->consistency_flow) NS_LOG_UNCOND(" This is almost end 3");
 	socket_mapping.clear();
+	//if(this->consistency_flow) NS_LOG_UNCOND(" This is almost end 2");
 }
 
 
@@ -857,7 +945,7 @@ void ssUdpEchoClient::setFlowVariables(void) {
 void ssUdpEchoClient::Send(void) {
 	NS_LOG_FUNCTION(this);
 
-	if(consistency_flow) NS_LOG_UNCOND("Entered Here");
+	//if(consistency_flow) NS_LOG_UNCOND("Entered Here");
 	//NS_LOG_UNCOND("Entered Here");
 	if (m_socket == NULL)
 			return;
@@ -891,7 +979,16 @@ void ssUdpEchoClient::Send(void) {
 	uint32_t num_of_packets_to_send = 1;
 
 	bool is_write = false;
-	BaseTopology::total_packet_count++;
+
+
+	if(consistency_flow)
+	{
+		if(this->total_packets_to_send > 0) BaseTopology::total_packet_count += this->total_packets_to_send;
+	}
+	else
+	{
+		BaseTopology::total_packet_count ++;
+	}
 
 	if(Ipv4GlobalRouting::has_system_learnt)
 	{
@@ -941,7 +1038,9 @@ void ssUdpEchoClient::Send(void) {
 
 		if(ReadWriteCalculation->GetValue() > READ_WRITE_RATIO) //this is write request
 		{
-			//num_of_packets_to_send = BaseTopology::chunkTracker.at(chunk_value).number_of_copy + 1;
+			num_of_packets_to_send = BaseTopology::chunkTracker.at(chunk_value).number_of_copy + 1;
+
+			BaseTopology::total_packet_count += num_of_packets_to_send -1 ;
 			is_write = true;
 			BaseTopology::chunk_version_tracker[chunk_value]++;
 		}
@@ -962,6 +1061,7 @@ void ssUdpEchoClient::Send(void) {
 
 	if((!is_write || num_of_packets_to_send == 1) && !consistency_flow)
 	{
+		BaseTopology::total_non_consistency_packets++;
 		dest_value = getChunkLocation(chunk_value, &version, &socket_index);
 
 		BaseTopology::total_packets_to_chunk[chunk_value]++;
@@ -1005,10 +1105,12 @@ void ssUdpEchoClient::Send(void) {
 	{
 		if(consistency_flow)
 		{
-			NS_LOG_UNCOND(" ^^^^^^^^^^^^^^^^^^This is Consistency traffic^^^^^^^^^^^^^^^^");
+			//BaseTopology::total_packet_count += this->total_packets_to_send -1;
+			//NS_LOG_UNCOND(" ^^^^^^^^^^^^^^^^^^This is Consistency traffic^^^^^^^^^^^^^^^^");
 			for(uint32_t cpacket=0;cpacket<this->total_packets_to_send;cpacket++)
 			{
-				NS_LOG_UNCOND("Inside For loop");
+				BaseTopology::total_consistency_packets++;
+				//NS_LOG_UNCOND("Inside For loop");
 				t_p = createPacket(0, single_destination, is_write, 0);
 				m_txTrace(t_p);
 				int actual = m_socket[0]->Send(t_p);
@@ -1022,30 +1124,94 @@ void ssUdpEchoClient::Send(void) {
 
 			this->total_packets_to_send = 0;
 		}
-		else
+		else //this is not consistency flow and number of packets to be sent is more than 1
 		{
-			for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin(); itr != BaseTopology::chunkCopyLocations.end(); ++itr)
+
+			NS_LOG_UNCOND("&&&&&&&&&&&& num_of_packets_to_send &&&&&&&&&&&&& "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
+			for(uint32_t host_index=0;host_index<total_hosts;host_index++)
 			{
-				if(itr->chunk_id == chunk_value)
+				bool sync_traffic = true;
+				uint32_t rack_id ;
+				if(BaseTopology::chunk_copy_node_tracker[chunk_value][host_index])
 				{
-					t_p = createPacket(chunk_value, itr->location, is_write, itr->version);
+					BaseTopology::total_consistency_packets++;
+					if(local_chunkTracker.at(chunk_value).node_id == host_index) //there is a socket already opened for it
+					{
+						sync_traffic = false;
+					}
+					else
+					{
+						rack_id = host_index/(SSD_PER_RACK + 1);
+
+						if(sync_socket_tracker[(int)rack_id] == -1)
+						{
+							sync_socket_tracker[(int)rack_id] = total_sync_sockets;
+
+							TypeId tid = TypeId::LookupByName("ns3::UdpSocketFactory");
+							sync_sockets[total_sync_sockets] = Socket::CreateSocket(GetNode(), tid);
+
+							if (Ipv4Address::IsMatchingType(m_peerAddress) == true) {
+								sync_sockets[total_sync_sockets]->Bind();
+								sync_sockets[total_sync_sockets]->Connect(InetSocketAddress(BaseTopology::hostTranslation[host_index], m_peerPort));
+							}
+
+							total_sync_sockets ++;
+
+						}
+
+
+					}
+					t_p = createPacket(chunk_value, host_index, is_write, 0);
 
 					m_txTrace(t_p);
 
-					NS_LOG_UNCOND("The subflow dest id "<<t_p->sub_flow_dest <<" Chunk id is "<<t_p->sub_flow_id);
+					int actual;
 
-					int actual = m_socket[t_p->sub_flow_dest]->Send(t_p);
+					if(sync_traffic)
+					{
+						actual = sync_sockets[sync_socket_tracker[(int)rack_id]]->Send(t_p);
 
-					if ((unsigned) actual != m_packetSize) {
-						NS_ABORT_MSG(
-								"ssUdpEchoClient Node [" << m_node->GetId() << "] error sending packet");
+					}
+					else
+					{
+						actual = m_socket[local_chunkTracker.at(chunk_value).socket_index]->Send(t_p);
+					}
+
+					if ((unsigned) actual != m_packetSize)
+					{
+						NS_ABORT_MSG("ssUdpEchoClient Node [" << m_node->GetId() << "] error sending packet");
 					}
 					NS_LOG_LOGIC(
 							this << " At time " << Simulator::Now ().GetSeconds () << "s client " << m_srcIpv4Address << " sent flowid " << m_currentFlowCount << " packet# " << t_sentPacketCount << " packetUid [" << t_p->GetUid() << "]");
 
 					t_sentPacketCount++;
+
 				}
 			}
+
+			BaseTopology::total_consistency_packets = BaseTopology::total_consistency_packets -1;
+//			for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin(); itr != BaseTopology::chunkCopyLocations.end(); ++itr)
+//			{
+//				if(itr->chunk_id == chunk_value)
+//				{
+//					t_p = createPacket(chunk_value, itr->location, is_write, itr->version);
+//
+//					m_txTrace(t_p);
+//
+//					NS_LOG_UNCOND("The subflow dest id "<<t_p->sub_flow_dest <<" Chunk id is "<<t_p->sub_flow_id);
+//
+//					int actual = m_socket[t_p->sub_flow_dest]->Send(t_p);
+//
+//					if ((unsigned) actual != m_packetSize) {
+//						NS_ABORT_MSG(
+//								"ssUdpEchoClient Node [" << m_node->GetId() << "] error sending packet");
+//					}
+//					NS_LOG_LOGIC(
+//							this << " At time " << Simulator::Now ().GetSeconds () << "s client " << m_srcIpv4Address << " sent flowid " << m_currentFlowCount << " packet# " << t_sentPacketCount << " packetUid [" << t_p->GetUid() << "]");
+//
+//					t_sentPacketCount++;
+//				}
+//			}
 		}
 		//NS_LOG_UNCOND("THe size of BaseTopology::chunkCopyLocations1 "<<BaseTopology::chunkCopyLocations.size());
 	}
@@ -1113,6 +1279,13 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	t_p->is_write = is_write;
 	t_p->creation_time = Simulator::Now().ToDouble(Time::US);
 	t_p->version = version;
+
+	t_p->is_phrase_changed = false;
+
+	if(BaseTopology::total_phrase_changed == 3)
+	{
+		t_p->is_phrase_changed = true;
+	}
 	//NS_LOG_UNCOND(t_p->srcNodeId);
 	if(t_p->sub_flow_dest_physical == t_p->srcNodeId)
 	{

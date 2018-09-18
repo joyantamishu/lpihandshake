@@ -55,6 +55,8 @@ double BaseTopology::popularity_change_simulation_interval = simulationRunProper
 
 Ptr<RandomVariableStream> BaseTopology::Popularity_Change_Random_Variable = CreateObject<UniformRandomVariable>();
 
+Ptr<RandomVariableStream> BaseTopology::chunk_copy_selection = CreateObject<UniformRandomVariable>();
+
 ApplicationMetrics *BaseTopology::application_metrics = new ApplicationMetrics[simulationRunProperties::total_applications];
 
 uint32_t BaseTopology::phrase_change_counter = 0;
@@ -123,7 +125,19 @@ bool** BaseTopology::chunk_copy_node_tracker = new bool* [simulationRunPropertie
 
 uint32_t BaseTopology::consistency_flow = 0;
 
+uint32_t BaseTopology::total_consistency_packets = 0;
+
+uint32_t BaseTopology::total_non_consistency_packets = 0;
+
 NodeContainer BaseTopology::hosts_static;
+
+double BaseTopology::sum_delay_ms_burst = 0.0;
+
+uint32_t BaseTopology::total_events_learnt_burst = 0;
+
+double BaseTopology::sum_delay_ms_no_burst = 0.0;
+
+uint32_t BaseTopology::total_events_learnt_no_burst = 0;
 
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
@@ -471,7 +485,7 @@ void BaseTopology::DoRun(void) {
 
 
 		NS_LOG_UNCOND("The maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: "<<max_node_no<<" ::: "<<max_pod<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);
-		uint32_t targettedChunksCount=BaseTopology::p[max_pod].nodes[max_node_no].total_chunks*.05; //these are the desired number of chunks that we want to replicate
+		uint32_t targettedChunksCount=BaseTopology::p[max_pod].nodes[max_node_no].total_chunks*.01; //these are the desired number of chunks that we want to replicate
 		//printf("targettedChunksCount %d\n",targettedChunksCount);
 
 
@@ -573,7 +587,7 @@ void BaseTopology::DoRun(void) {
 			  	{
 
 			  		//printf("gotcha ------------------------------------((((())))))))))))))))))))))))))))))))))---------%d-----------%d\n",target_node,target_pod);
-			  		BaseTopology::res[res_index].src=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
+			  		BaseTopology::res[res_index].src=(max_pod*Ipv4GlobalRouting::FatTree_k)+max_node_no;
 			  		BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
 			  		BaseTopology::res[res_index].chunk_number=max_chunk_no;
 					res_index++;
@@ -642,7 +656,7 @@ void BaseTopology::DoRun(void) {
 		min_chunk_u=9999.0;
 		uint32_t nodeN=nodeU[i].nodenumber;
 		//NS_LOG_UNCOND("HHHHHHHHHHHH\n");
-		if(nodeU[i].U>cuttoffnode_low)
+		if(nodeU[i].U < cuttoffnode_low)
 			break;
 		uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
 

@@ -329,6 +329,8 @@ public:
 
 	static Ptr<RandomVariableStream> Popularity_Change_Random_Variable;
 
+	static Ptr<RandomVariableStream> chunk_copy_selection;
+
 	static ApplicationMetrics *application_metrics;
 
 	static uint32_t phrase_change_counter;
@@ -392,6 +394,15 @@ public:
 	static NodeContainer hosts_static;
 
 	static uint32_t consistency_flow;
+
+	static uint32_t total_consistency_packets;
+	static uint32_t total_non_consistency_packets;
+
+	static double sum_delay_ms_burst;
+	static uint32_t total_events_learnt_burst;
+
+	static double sum_delay_ms_no_burst;
+	static uint32_t total_events_learnt_no_burst;
 
 protected:
 	virtual void DoDispose(void);

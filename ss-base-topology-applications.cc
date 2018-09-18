@@ -325,6 +325,8 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	NS_LOG_UNCOND("=======The t_reqBW prev====== "<<t_reqBW);
 	t_reqBW = t_reqBW * BaseTopology::intensity_change_scale;
 	NS_LOG_UNCOND("======The t_reqBW after======="<<t_reqBW);
+
+	NS_LOG_UNCOND("BaseTopology::total_phrase_changed "<<BaseTopology::total_phrase_changed);
 	//////////////////////////////////////////////////////
 	// show output to user for clarity...
 	NS_LOG_LOGIC(
