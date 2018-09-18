@@ -55,7 +55,7 @@
 #define CoreDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
 #define AggrDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
 #define EdgeDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define Count										100
+#define Count										1000
 #define MAX_QUEUE_DEPTH 							0			// port queue depth threshold before dropping packets (vary this to test diff results in packet drop), set non-zero value
 
 // should we enable energy management -monitor idle time, sleep state etc? true/false?
@@ -111,7 +111,7 @@
 
 #define DEFAULT_LOCAL_ACCESS_LATENCY				0 //100 microsecond
 
-#define SSD_PER_RACK								16
+#define SSD_PER_RACK								8
 
 #define CONSISTENCY_FLOW_DUARTION_CONSTANT			50
 

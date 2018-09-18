@@ -563,6 +563,8 @@ void ssUdpEchoClient::StartApplication() {
 
 			//BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = getHostInfoMadeBypolicy(BaseTopology::res[i].dest);
 
+			NS_LOG_UNCOND(" BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id "<<BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id);
+
 			NS_LOG_UNCOND("The chunk address is "<<BaseTopology::hostaddresslogicaltophysical[BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id]<<" BaseTopology::res[i].dest "<<BaseTopology::res[i].dest);
 
 

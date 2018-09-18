@@ -78,7 +78,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 	uint32_t total_hosts = hosts.GetN();
 
-	uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
+	uint32_t total_hosts_in_pod = total_hosts / simulationRunProperties::k;
 
 	//uint32_t physical_host_number;
 	for(uint32_t index= 0 ; index <chunk_number; index++)
@@ -219,7 +219,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 	ns3::BaseTopology::chunk_copy_selection->SetAttribute("Min", DoubleValue(0));
 	ns3::BaseTopology::chunk_copy_selection->SetAttribute("Max", DoubleValue(65536));
 
-	if(BaseTopology::chunk_copy_node_tracker[8][0]) NS_LOG_UNCOND("^^^^^Inside fat tree topolgy ^^^^^^^^^^^^^");
+	//if(BaseTopology::chunk_copy_node_tracker[8][0]) NS_LOG_UNCOND("^^^^^Inside fat tree topolgy ^^^^^^^^^^^^^");
 
 	///Customized Multiple Copy, should remove later
 
@@ -249,9 +249,6 @@ Ipv4Address FatTreeTopology::GetIpv4Address(uint32_t node_id)
 
 void FatTreeTopology::SetUpApplicationAssignment()
 {
-
-
-
 
 
 	uint32_t max_total_chunk_per_application = 100;
@@ -607,6 +604,10 @@ void FatTreeTopology::BuildInitialTopology(void) {
 
 	hosts_per_pod = hosts_per_edge * n_edge_routers;
 
+
+	NS_LOG_UNCOND("hosts_per_edge "<<hosts_per_edge);
+	NS_LOG_UNCOND("hosts_per_pod "<<hosts_per_pod);
+
 	n_aggregate_routers = (k / 2);	// number of core switch in a group
 
 
@@ -798,6 +799,10 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	{
 		BaseTopology::hostaddresslogicaltophysical[i] = hosts.Get(i)->GetId();
 	}
+
+//	NS_LOG_UNCOND("total_hosts "<<total_hosts);
+//
+//	exit(0);
 
 }
 
