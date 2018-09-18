@@ -183,6 +183,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number+round_robin_counter;
 					BaseTopology::chunkTracker.at(value).node_id = hosts.Get(logical_host_number+round_robin_counter)->GetId();
 
+					BaseTopology::chunkTracker.at(value).number_of_copy = 0;
+
 					BaseTopology::chunk_copy_node_tracker[value][logical_host_number+round_robin_counter] = true;
 
 					BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value;
@@ -601,7 +603,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 		// number of hosts switch in a pod
 	n_edge_routers = k / 2;	// number of bridge in a pod
 
-	hosts_per_edge = (SSD_PER_RACK + 1) * (k/2); // number of hosts per edge router
+	hosts_per_edge = (SSD_PER_RACK + 1); // number of hosts per edge router
 
 	hosts_per_pod = hosts_per_edge * n_edge_routers;
 
