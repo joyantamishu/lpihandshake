@@ -397,7 +397,7 @@ void ssUdpEchoClient::StartApplication() {
 	uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
 
 	//ChangePopularity();
-	ChangeIntensity();
+	//ChangeIntensity();
 
 	//NS_LOG_UNCOND("%^&%&^%&^^&^&^&*^ "<<m_flowRequiredBW);
 

@@ -474,9 +474,9 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_interval[0] = 80; //in ms
 
-	BaseTopology::phrase_change_interval[1] = 800;
+	BaseTopology::phrase_change_interval[1] = 200;
 
-	BaseTopology::phrase_change_interval[2] = 800;
+	BaseTopology::phrase_change_interval[2] = 200;
 
 	BaseTopology::phrase_change_interval[3] = 100;
 
@@ -600,7 +600,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 		// number of hosts switch in a pod
 	n_edge_routers = k / 2;	// number of bridge in a pod
 
-	hosts_per_edge = (SSD_PER_RACK + 1); // number of hosts per edge router
+	hosts_per_edge = (SSD_PER_RACK + 1) * (k/2); // number of hosts per edge router
 
 	hosts_per_pod = hosts_per_edge * n_edge_routers;
 
@@ -800,9 +800,9 @@ void FatTreeTopology::BuildInitialTopology(void) {
 		BaseTopology::hostaddresslogicaltophysical[i] = hosts.Get(i)->GetId();
 	}
 
-//	NS_LOG_UNCOND("total_hosts "<<total_hosts);
+	NS_LOG_UNCOND("total_hosts "<<total_hosts);
 //
-//	exit(0);
+	//exit(0);
 
 }
 
