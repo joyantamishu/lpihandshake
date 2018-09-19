@@ -182,12 +182,17 @@ int nodenumber;
 double U;
 }nodedata;
 
+
 typedef struct chunk{
-  uint32_t count;
+  uint32_t count; //this is also used to index the array called exists
   uint32_t *exists;
+  int highCopyCount;
+  int emerCopyCount;
   chunk()
 	{
 	  count = 0;
+	  highCopyCount=0;
+	  emerCopyCount=0;
 	}
 
 }chunkCopy;
