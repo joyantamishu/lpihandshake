@@ -14,7 +14,7 @@
 #include "flow-duration-random-variable-stream.h"
 #include "ns3/log.h"
 #include "ss-tos-point-to-point-netdevice.h"
-
+#include "parameters.h"
 namespace ns3 {
 
 NS_LOG_COMPONENT_DEFINE("BaseTopology");
@@ -357,15 +357,12 @@ void BaseTopology::DoRun(void) {
 
 	Simulator::Destroy();
 }
-
-//-----------------------------------------------------------------------------------
-//Madhurima added on July 20th
 /*Result **/void BaseTopology::calculateNewLocation(int incrDcr)
 {
 
-	float cuttoffnode_low=400.0;
-	float cuttoffnode_high=1600.0;
-	float cuttoffnode_emer=2800.0;
+	float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.2;//80;
+	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.4;//320;
+	float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
 	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
 	uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
 	float cuttoffpod=nodes_in_pod*cuttoffnode_high; //this has to be made dynamic
@@ -376,6 +373,7 @@ void BaseTopology::DoRun(void) {
 	uint32_t min_pod=0;
 	uint32_t r=0;
 	uint32_t res_index=0;
+
 
 	NS_LOG_UNCOND("enetering");
 
@@ -450,10 +448,11 @@ void BaseTopology::DoRun(void) {
    	 float max_chunk_u;
    	 uint32_t target_pod;
    	 uint32_t target_node;
-   	 uint32_t action=0;
+   	// uint32_t action=0;
    	 uint32_t max_chunk_index;
-
-
+   	 float beyond_cutoff;
+   	 float target_utilization=0.0;
+   	 float estimated_utlization; //this is the utilization we exopect on each of the chunk after copy creation
 	//float diff_from_pod_cuttoff=0.0;
 	float diff_from_node_cutoff=0.0;
 	//float max_diff_from_pod_cuttoff=0.0;
@@ -468,11 +467,13 @@ void BaseTopology::DoRun(void) {
      	max_chunk_no=9999;
         max_chunk_u=0;
         max_chunk_index=99999;
+        uint32_t nodeN;
 
-        uint32_t nodeN=nodeU[i].nodenumber;
         printf("PPPPPPPPPP\n");
         if(nodeU[i].U<cuttoffnode_high)
         	break;
+        else
+        	nodeN=nodeU[i].nodenumber;
 
      //   else
       	//    numberOfNodeProcessed++;
@@ -484,33 +485,36 @@ void BaseTopology::DoRun(void) {
 		//if the highest utilized node is below high cut off then retur
 
 
-		NS_LOG_UNCOND("The maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: "<<max_node_no<<" ::: "<<max_pod<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);
-		uint32_t targettedChunksCount=BaseTopology::p[max_pod].nodes[max_node_no].total_chunks*.01; //these are the desired number of chunks that we want to replicate
+		NS_LOG_UNCOND("The maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: max_node_no "<<max_node_no<<" ::: max_pod "<<max_pod<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);
+		beyond_cutoff=max_node_u-cuttoffnode_high;
+		target_utilization=0.0;
+		//uint32_t targettedChunksCount=1;//BaseTopology::p[max_pod].nodes[max_node_no].total_chunks*.01; //these are the desired number of chunks that we want to replicate
 		//printf("targettedChunksCount %d\n",targettedChunksCount);
-
-
-
-		action=0;
+        //action=0;
 
 //we are checking if a node is beyond the high range and below the emergency range
-	    if(cuttoffnode_high<max_node_u  && cuttoffnode_emer>max_node_u && targettedChunksCount>0 )
+	    if(cuttoffnode_high<max_node_u /* && cuttoffnode_emer>max_node_u*/ && beyond_cutoff>0.0 )
 	    {
 
-	       while(action<targettedChunksCount)
+	       while(target_utilization<beyond_cutoff)
 	       {
 	    	   max_chunk_no=9999;
 	    	   max_chunk_u=0;
 	    	   max_chunk_index=99999;
 
+	    	   NS_LOG_UNCOND("here we are and the pod number , node number a :"<<max_pod<<"::::"<<max_node_no);
 		   for(uint32_t i = 0; i<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks; i++)
 		      	 	 {
-		      	 		 if( BaseTopology::p[max_pod].nodes[max_node_no].data[i].highCopyCount<1
+
+		      	 		 if( BaseTopology::p[max_pod].nodes[max_node_no].data[i].highCopyCount<2
+		      	 		     && BaseTopology::chnkCopy[BaseTopology::p[max_pod].nodes[max_node_no].data[i].chunk_number].highCopyCount<2
 		      	 		     && BaseTopology::p[max_pod].nodes[max_node_no].data[i].processed!=1
 							 && max_chunk_u<BaseTopology::p[max_pod].nodes[max_node_no].data[i].intensity_sum
-							 && BaseTopology::p[max_pod].nodes[max_node_no].data[i].intensity_sum>0
+							 && BaseTopology::p[max_pod].nodes[max_node_no].data[i].intensity_sum>0.5*beyond_cutoff
 		   					 /*&& BaseTopology::chnkCopy[BaseTopology::p[max_pod].nodes[max_node_no].data[i].chunk_number].count<number_of_hosts*/) //also check whether the chunk is valid in the node -sinceit could be deleted
 		      	 		 {
-
+//		      	 		     if(BaseTopology::p[max_pod].nodes[max_node_no].data[i].chunk_number==247)
+//		      	 		    	 NS_LOG_UNCOND("How come we are here for node 247"<<BaseTopology::chnkCopy[BaseTopology::p[max_pod].nodes[max_node_no].data[i].chunk_number].highCopyCount);
 		      	 			 max_chunk_no=BaseTopology::p[max_pod].nodes[max_node_no].data[i].chunk_number;
 		      	 			 max_chunk_u = BaseTopology::p[max_pod].nodes[max_node_no].data[i].intensity_sum;
 		      	 			 max_chunk_index=i;
@@ -521,12 +525,13 @@ void BaseTopology::DoRun(void) {
 
 
 
-		   //NS_LOG_UNCOND("Found chunk utilization--------------------------------------------------------------------------------------$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ :"<<max_chunk_no<<" "<<max_chunk_u<<"totalchunk on the node"<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);		  //last_max_chunk=max_chunk_no;
+		   NS_LOG_UNCOND("Found chunk utilization--------------------------------------------------------------------------------------max_chunk_no :"<<max_chunk_no<<" ::: max_pod "<<max_pod<<" ::::max_chunk_u "<<max_chunk_u<<" :::::totalchunk on the node"<<BaseTopology::p[max_pod].nodes[max_node_no].total_chunks);		  //last_max_chunk=max_chunk_no;
 		   //if
-		   uint32_t action = 0;
+		  // uint32_t action = 0;
 		   int flag=0;
 		   if(max_chunk_no!=9999)// && action<targettedChunksCount)
 		   {
+			   estimated_utlization=((max_chunk_u*BaseTopology::chnkCopy[max_chunk_no].count)/(BaseTopology::chnkCopy[max_chunk_no].count+1));
 			   BaseTopology::p[max_pod].nodes[max_node_no].data[max_chunk_index].processed=1;
 			 //  diff_from_pod_cuttoff=0.0;
 			   diff_from_node_cutoff=0.0;
@@ -538,19 +543,12 @@ void BaseTopology::DoRun(void) {
 			  	 for (int i=Ipv4GlobalRouting::FatTree_k-1;i>=0;i--)
 			  		{
 			  		 //NS_LOG_UNCOND(BaseTopology::p[i].Pod_utilization);
-			  		 if(BaseTopology::p[i].Pod_utilization+max_chunk_u<cuttoffpod) //placement can lead to exceed the pod level threshold
+			  		 if(BaseTopology::p[i].Pod_utilization+estimated_utlization<cuttoffpod) //placement can lead to exceed the pod level threshold
 			  		 {
-			  			 //diff_from_pod_cuttoff=cuttoffpod-(BaseTopology::p[i].Pod_utilization+max_chunk_u);
-			  			 //if(max_diff_from_pod_cuttoff<=diff_from_pod_cuttoff)
-			  			 //{
-			  				//max_diff_from_pod_cuttoff=diff_from_pod_cuttoff;
-			  				//
-			  			// }
-
 
 			  	 //selecting the destination node for the chunk
-				 for(uint32_t j=0;j<nodes_in_pod;j++)
-				 {
+			  		 for(uint32_t j=0;j<nodes_in_pod;j++)
+				     {
 					 flag=0;
 					 for(uint32_t q=0;q<BaseTopology::p[i].nodes[j].total_chunks;q++)
 					 {
@@ -562,7 +560,7 @@ void BaseTopology::DoRun(void) {
 							 }
 					 }
 
-					 if(BaseTopology::p[i].nodes[j].utilization+max_chunk_u<cuttoffnode_high && !flag /*&& BaseTopology::p[i].nodes[j].utilization>0*/)  //placement can lead to exceed the node level threshold
+					 if(BaseTopology::p[i].nodes[j].utilization+estimated_utlization<cuttoffnode_high && !flag /*&& BaseTopology::p[i].nodes[j].utilization>0*/)  //placement can lead to exceed the node level threshold
 					 {
 						 diff_from_node_cutoff=cuttoffnode_high-(BaseTopology::p[i].nodes[j].utilization+max_chunk_u);
 						 //register benefit
@@ -591,13 +589,23 @@ void BaseTopology::DoRun(void) {
 			  		BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
 			  		BaseTopology::res[res_index].chunk_number=max_chunk_no;
 					res_index++;
-					action++;
-					BaseTopology::p[target_pod].nodes[target_node].utilization=BaseTopology::p[target_pod].nodes[target_node].utilization+max_chunk_u;
-					BaseTopology::p[target_pod].Pod_utilization=BaseTopology::p[target_pod].Pod_utilization+max_chunk_u;
+					//action++;
+					target_utilization=target_utilization+estimated_utlization;
+					BaseTopology::p[target_pod].nodes[target_node].utilization=BaseTopology::p[target_pod].nodes[target_node].utilization+estimated_utlization;
+					BaseTopology::p[target_pod].Pod_utilization=BaseTopology::p[target_pod].Pod_utilization+estimated_utlization;
 					uint32_t location=BaseTopology::chnkCopy[max_chunk_no].count;
 					BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
 					BaseTopology::chnkCopy[max_chunk_no].exists[location]=((target_pod*Ipv4GlobalRouting::FatTree_k)+target_node);
 					BaseTopology::p[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::p[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
+//					if(max_chunk_no==247)
+//					{
+//						NS_LOG_UNCOND("Treating chunk 247 before"<<BaseTopology::chnkCopy[max_chunk_no].highCopyCount);
+//					}
+					BaseTopology::chnkCopy[max_chunk_no].highCopyCount=BaseTopology::chnkCopy[max_chunk_no].highCopyCount+1;
+//					if(max_chunk_no==247)
+//					{
+//						NS_LOG_UNCOND("Treating chunk 247 after"<<BaseTopology::chnkCopy[max_chunk_no].highCopyCount);
+//					}
 			  	    target_pod=999;
 			  	    target_node=999;
 			  	    //diff_from_pod_cuttoff=0;
@@ -639,11 +647,12 @@ void BaseTopology::DoRun(void) {
 		uint32_t min_chunk_index=9999;
 		uint32_t number_of_chunk_to_process=1;
 		uint32_t processed_unit=0;
-
-     for (uint32_t i = 0; i < number_of_hosts ; i++)
-     {
+		float target_u;
+		float utilizationOnEach;
+    // for (uint32_t i = 0; i < number_of_hosts ; i++)
+    // {
     	 //NS_LOG_UNCOND("here-------------------"<<nodeU[i].U<<"-----------------"<<nodeU[i].nodenumber);
-    }
+   // }
 
 //here the major for loop starts
     for(uint32_t i = 0; i<number_of_hosts; i++)
@@ -652,11 +661,11 @@ void BaseTopology::DoRun(void) {
 		target_node=999;
 		min_node_no=99999;
 		min_pod=9999;
-		min_chunk_no=9999;
+		min_chunk_no=1000000;
 		min_chunk_u=9999.0;
 		uint32_t nodeN=nodeU[i].nodenumber;
-		//NS_LOG_UNCOND("HHHHHHHHHHHH\n");
-		if(nodeU[i].U < cuttoffnode_low)
+		NS_LOG_UNCOND("HHHHHHHHHHHH\n");
+		if(nodeU[i].U > cuttoffnode_low)
 			break;
 		uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
 
@@ -666,61 +675,99 @@ void BaseTopology::DoRun(void) {
 			 && BaseTopology::p[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].utilization<cuttoffnode_low
 			 && BaseTopology::p[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].total_chunks>0)
 	 {
-			// min_node_u=BaseTopology::p[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].utilization;
+			 //min_node_u=BaseTopology::p[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].utilization;
 			 min_node_no=nodeN%Ipv4GlobalRouting::FatTree_k;
 			 min_pod=pod;
 
-        //NS_LOG_UNCOND("The minimally used node is-----------------------------------------------------------------------------------------: "<<min_node_no<<" ::: "<<min_pod);
+        NS_LOG_UNCOND("The minimally used node is-----------------------------------------------------------------------------------------: "<<min_node_no<<" ::: "<<min_pod);
         processed_unit=0;
 
     	while(number_of_chunk_to_process>processed_unit)
     	{
-
     		min_chunk_u=99999;
 			min_chunk_index=1000000;
 			min_chunk_no=1000000;
 
 		 for(uint32_t j = 0; j<BaseTopology::p[min_pod].nodes[min_node_no].total_chunks; j++)
 		 {
+
 			 uint32_t l=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
 			 if( BaseTopology::chnkCopy[l].count>1
 					 && BaseTopology::p[min_pod].nodes[min_node_no].data[j].processed!=1
 					 && BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum>0) //also check whether the chunk is valid in the node -sinceit could be deleted
 			 {
+				 if(min_chunk_no==1000000) //this is only for the first time per node
+				 {
+			        min_chunk_no=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
+			        min_chunk_u = BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum;
+			        min_chunk_index=j;
+				 }
+				 else if(min_chunk_no!=1000000 && min_chunk_u<BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum)
+				 {
+					min_chunk_no=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
+					min_chunk_u = BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum;
+					min_chunk_index=j;
+				 }
 
-				 min_chunk_no=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
-				 min_chunk_u = BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum;
-				 min_chunk_index=j;
 			 }
 		 }
-		 if(min_chunk_no!=9999)
+		// NS_LOG_UNCOND("We camw out clean-----");
+		 if(min_chunk_no!=1000000)
 		 {
 
 			 BaseTopology::p[min_pod].nodes[min_node_no].data[min_chunk_index].processed=1;
-			 //NS_LOG_UNCOND("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Found chunk utilization---------------------------------------------------- :"<<min_chunk_no<<" "<<min_chunk_u);
-			 //find the location of the minimum chunk
+			 NS_LOG_UNCOND("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@Found chunk utilization---------------------------------------------------- :"<<min_chunk_no<<"::::: "<<min_chunk_u);
+			 //based on the mean  utilization of the minimum chunk calculate the utilization of the rest
 
+			 //find the location of the minimum chunk
+			 utilizationOnEach=((BaseTopology::chnkCopy[min_chunk_no].count + 1)*min_chunk_u)/BaseTopology::chnkCopy[min_chunk_no].count;
 
 			 for (uint32_t n = 0; n<BaseTopology::chnkCopy[min_chunk_no].count; n++)
 			 {  uint32_t node_=BaseTopology::chnkCopy[min_chunk_no].exists[n];
 				uint32_t pod_node=node_/Ipv4GlobalRouting::FatTree_k;
 				node_=node_%Ipv4GlobalRouting::FatTree_k;
 
-				if(node_!=min_node_no
-						&& pod_node!=min_pod
-						&& BaseTopology::p[pod_node].Pod_utilization+min_chunk_u<=cuttoffpod
-						&& BaseTopology::p[pod_node].nodes[node_].utilization+min_chunk_u<=cuttoffnode_high)
+				if(node_==min_node_no
+						&& pod_node==min_pod)
+					//	&& BaseTopology::p[pod_node].Pod_utilization+min_chunk_u<=cuttoffpod
+					//	&& BaseTopology::p[pod_node].nodes[node_].utilization+min_chunk_u<=cuttoffnode_high)
 				{
-					//current_min_u=BaseTopology::p[pod_node].nodes[node_].data[min_chunk_no].intensity_sum;
-					target_node=node_;
-					target_pod=pod_node;
-
+					continue;
+				}
+				else
+				{
+					if( BaseTopology::p[pod_node].nodes[node_].utilization+utilizationOnEach<cuttoffnode_high)
+					{
+						if(target_node==999) //for the first time we will do this
+						//current_min_u=BaseTopology::p[pod_node].nodes[node_].data[min_chunk_no].intensity_sum;
+						{
+							target_node=node_;
+							target_pod=pod_node;
+							target_u=BaseTopology::p[pod_node].nodes[node_].utilization;
+						}
+						else if(target_node!=999
+								&& target_u<BaseTopology::p[pod_node].nodes[node_].utilization)
+						{
+							target_node=node_;
+							target_pod=pod_node;
+							target_u=BaseTopology::p[pod_node].nodes[node_].utilization;
+						}
+					}
+					else
+					{
+						NS_LOG_UNCOND("any one of the node from the whole lot can not sustain the load"<<BaseTopology::p[pod_node].nodes[node_].utilization<<"-----"<<utilizationOnEach);
+						target_pod=999;
+						target_node=999;
+						break;
+					}
 				}
 			 }
+
+
 		 }
 		 else
 		 {
-			 //NS_LOG_UNCOND("for this node we are not able to find a chunk that can statify all the conditions so going to some other node");
+			 NS_LOG_UNCOND("for this node we are not able to find a chunk that can statify all the conditions so going to some other node");
 			 break;
 		 }
 
@@ -728,13 +775,15 @@ void BaseTopology::DoRun(void) {
 		 if(target_pod!=999 && target_node!=999)
 		{
 
-			BaseTopology::res[res_index].src=(min_pod*Ipv4GlobalRouting::FatTree_k)+min_node_no;
-			BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
+			NS_LOG_UNCOND("target_pod to delete from  "<<target_pod<<" target_node delete from"<<target_node);
+			NS_LOG_UNCOND("source pod to move to "<<min_pod<<" source node to move to"<<min_node_no);
+			BaseTopology::res[res_index].src=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
+			BaseTopology::res[res_index].dest=(min_pod*Ipv4GlobalRouting::FatTree_k)+min_node_no;
 			BaseTopology::res[res_index].chunk_number=min_chunk_no;
 			res_index++;
 			processed_unit++;
-			BaseTopology::p[target_pod].nodes[target_node].utilization=BaseTopology::p[target_pod].nodes[target_node].utilization+min_chunk_u;
-			BaseTopology::p[target_pod].Pod_utilization=BaseTopology::p[target_pod].Pod_utilization+min_chunk_u;
+			//BaseTopology::p[min_pod].nodes[min_node_no].utilization=BaseTopology::p[target_pod].nodes[target_node].utilization+utilizationOnEach;
+			//BaseTopology::p[target_pod].Pod_utilization=BaseTopology::p[target_pod].Pod_utilization+min_chunk_u;
 
 			 for (uint32_t n = 0; n<BaseTopology::chnkCopy[min_chunk_no].count; n++)
 			 {
@@ -742,13 +791,14 @@ void BaseTopology::DoRun(void) {
 	           uint32_t node_=BaseTopology::chnkCopy[min_chunk_no].exists[n];
 	           uint32_t pod_node=node_/Ipv4GlobalRouting::FatTree_k;
 			   node_=node_%Ipv4GlobalRouting::FatTree_k;
-			   if(node_== min_node_no && pod_node==min_pod)
-					{ loc=n;
-					  break;
-					}
+			   if(node_== target_pod && pod_node==target_pod)
+				{
+				  loc=n;
+				  break;
+				}
 
 			 }
-			//NS_LOG_UNCOND("the next location in the array where we want to the new copy nodes is");
+			NS_LOG_UNCOND("the next location in the array where we want to the new copy nodes is"<<loc);
 			//we have to shift the whole data structure
 			for (uint32_t n = loc; n<BaseTopology::chnkCopy[min_chunk_no].count-1; n++)
 			{
@@ -756,6 +806,14 @@ void BaseTopology::DoRun(void) {
 			}
 
 			BaseTopology::chnkCopy[min_chunk_no].count=BaseTopology::chnkCopy[min_chunk_no].count-1;
+
+			 for (uint32_t n = 0; n<BaseTopology::chnkCopy[min_chunk_no].count; n++)
+			 {  uint32_t node_=BaseTopology::chnkCopy[min_chunk_no].exists[n];
+				uint32_t pod_node=node_/Ipv4GlobalRouting::FatTree_k;
+				node_=node_%Ipv4GlobalRouting::FatTree_k;
+				BaseTopology::p[pod_node].nodes[node_].utilization=BaseTopology::p[pod_node].nodes[node_].utilization+utilizationOnEach;
+			 }
+
 
 			target_pod=999;
 			target_node=999;
@@ -767,7 +825,8 @@ void BaseTopology::DoRun(void) {
 		}
 		 else
 		 {
-		 NS_LOG_UNCOND("***********************************target_node*********************************************************************"<<target_node);}
+		 NS_LOG_UNCOND("***********************************target_node*********************************************************************"<<target_node);
+		 }
 
 		 }//end of while
 
@@ -787,7 +846,6 @@ void BaseTopology::DoRun(void) {
 }
 //Madhurima added on July 20th
 //-----------------------------------------------------------------------------------
-
 
 
 

@@ -52,10 +52,10 @@
 #define DefaultMarkovETA1Value				0 //0.1 //Madhurima Changed on May 4***** Simple constant Model in default
 
 // network device parameters
-#define CoreDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define AggrDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define EdgeDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define Count										1000
+#define CoreDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define AggrDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define EdgeDeviceLinkDataRate 						"100Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define Count										100
 #define MAX_QUEUE_DEPTH 							0			// port queue depth threshold before dropping packets (vary this to test diff results in packet drop), set non-zero value
 
 // should we enable energy management -monitor idle time, sleep state etc? true/false?

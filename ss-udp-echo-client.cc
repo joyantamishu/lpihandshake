@@ -397,7 +397,7 @@ void ssUdpEchoClient::StartApplication() {
 	uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
 
 	//ChangePopularity();
-	//ChangeIntensity();
+	ChangeIntensity();
 
 	//NS_LOG_UNCOND("%^&%&^%&^^&^&^&*^ "<<m_flowRequiredBW);
 
@@ -698,6 +698,7 @@ void ssUdpEchoClient::StopApplication(void) {
 		/********Uncomment it when function ReturnSomething is ready */
 		if(BaseTopology::counter_==0)
 		{
+
 			int incrDcr=0;
 
 			BaseTopology::calculateNewLocation(incrDcr);
@@ -706,8 +707,10 @@ void ssUdpEchoClient::StopApplication(void) {
 
 			while(BaseTopology::res[i].src != 99999 && BaseTopology::res!=NULL)
 			{
+				printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].src] = false;
 				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest] = true;
+				NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
 				NS_ASSERT_MSG(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0, " SomeThing Wrong in deletion of the copy ");
 				if(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
 				{
