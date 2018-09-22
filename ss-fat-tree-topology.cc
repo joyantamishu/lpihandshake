@@ -539,6 +539,8 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 		}
 		BaseTopology::nodeU=new nodedata[number_of_hosts];
 
+		BaseTopology::nodeOldUtilization=new nodedata[number_of_hosts];
+
 		BaseTopology::res = new Result[simulationRunProperties::total_chunk+1];
 
 		for(uint32_t i=0; i<number_of_hosts;i++)

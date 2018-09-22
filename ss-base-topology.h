@@ -180,6 +180,7 @@ typedef struct Fat_pod{
 typedef struct noden{
 int nodenumber;
 double U;
+int counter;
 }nodedata;
 
 
@@ -194,8 +195,9 @@ typedef struct chunk{
 	  highCopyCount=0;
 	  emerCopyCount=0;
 	}
-
 }chunkCopy;
+
+
 //Madhurima added on July 20th
 typedef struct result{
 	uint32_t src;
@@ -327,6 +329,9 @@ public:
 	static int Incrcounter_;
 
 	static chunkCopy *chnkCopy;
+
+
+	static nodedata *nodeOldUtilization;;
 
 	static nodedata *nodeU;
 
