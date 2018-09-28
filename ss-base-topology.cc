@@ -364,7 +364,7 @@ void BaseTopology::DoRun(void) {
 {
 
 	float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.2;//80;
-	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.4;//320;
+	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.5;//320;
 	float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
 	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
 	uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
@@ -419,7 +419,7 @@ void BaseTopology::DoRun(void) {
     float alpha =0.75;
 	for (int i=0;i<Ipv4GlobalRouting::FatTree_k;i++)
 		{
-		NS_LOG_UNCOND("--------------------------------"<<BaseTopology::p[i].Pod_utilization);
+		NS_LOG_UNCOND("------POD--------------------------"<<BaseTopology::p[i].Pod_utilization);
 			for(uint32_t j=0;j<nodes_in_pod;j++)
 			{
 				int nod=j+i*Ipv4GlobalRouting::FatTree_k;
@@ -429,6 +429,7 @@ void BaseTopology::DoRun(void) {
 						break;
 				}
 				nodeU[k].U=(alpha*BaseTopology::p[i].nodes[j].utilization)+(nodeU[k].U*(1-alpha));
+				NS_LOG_UNCOND("------NODE--------------------------"<<"node number:----"<<nod<<"utilization:----"<<BaseTopology::p[i].nodes[j].utilization);
 				//nodeU[k].nodenumber=j+i*Ipv4GlobalRouting::FatTree_k;
 
 			}
