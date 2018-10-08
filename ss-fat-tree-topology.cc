@@ -476,7 +476,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_interval[1] = 1000;
 
-	BaseTopology::phrase_change_interval[2] = 3000;
+	BaseTopology::phrase_change_interval[2] = 2000;
 
 	BaseTopology::phrase_change_interval[3] = 100;
 
