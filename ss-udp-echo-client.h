@@ -117,6 +117,13 @@ public:
 	//virtual void deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
 
 	virtual uint32_t getHostInfoMadeBypolicy(uint32_t dest_id);
+
+	uint32_t chunk_placement_policy1(uint32_t rack_id); //round-robin-policy
+
+	uint32_t chunk_placement_policy2(uint32_t rack_id); // least-loaded policy
+
+	//uint32_t chunk_placement_policy2(uint32_t rack_id); //least-loaded policy
+
 	/*********************************************/
 
 protected:

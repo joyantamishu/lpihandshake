@@ -358,6 +358,37 @@ uint32_t ssUdpEchoClient::getHostInfoMadeBypolicy(uint32_t host_id)
 	return expected_host;
 }
 
+uint32_t ssUdpEchoClient::chunk_placement_policy1(uint32_t rack_id) //round-robin-policy
+{
+	 return (SSD_PER_RACK + 1) * rack_id + 1 + (BaseTopology::host_assignment_round_robin_counter[rack_id]%SSD_PER_RACK);
+}
+
+uint32_t ssUdpEchoClient::chunk_placement_policy2(uint32_t rack_id) //least-loaded policy
+{
+
+
+	uint32_t translate = rack_id *(SSD_PER_RACK+1) + 1;
+
+	double min_utilization = Ipv4GlobalRouting::host_utilization[translate];
+
+	uint32_t min_host_id = translate;
+
+	for(uint32_t host_index=translate; host_index<translate+SSD_PER_RACK+1; host_index++)
+	{
+		NS_LOG_UNCOND("host_index "<<host_index<<" utilization "<<Ipv4GlobalRouting::host_utilization[host_index]);
+		if(Ipv4GlobalRouting::host_utilization[host_index] < min_utilization)
+		{
+			min_host_id = host_index;
+
+			min_utilization = Ipv4GlobalRouting::host_utilization[host_index];
+		}
+	}
+
+	NS_LOG_UNCOND("min_host_id "<<min_host_id);
+
+	return min_host_id;
+}
+
 void ssUdpEchoClient::StartApplication() {
 	NS_LOG_FUNCTION(this);
 
@@ -553,12 +584,21 @@ void ssUdpEchoClient::StartApplication() {
 			uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
 			//NS_LOG_UNCOND(num_of_packets_to_send);
 			//commenting off this following line will stop the copy creation
-			if(num_of_packets_to_send > 0) BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, num_of_packets_to_send);
+			//if(num_of_packets_to_send > 0) BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, num_of_packets_to_send);
 
 
 			BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]++;
 
-			BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1 + (BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]%SSD_PER_RACK);
+			BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = chunk_placement_policy1(BaseTopology::res[i].dest);
+
+			if(num_of_packets_to_send > 0)
+			{
+				uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
+
+				uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
+
+				BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+			}
 
 
 			BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id] = true;
