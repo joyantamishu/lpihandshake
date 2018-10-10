@@ -108,23 +108,6 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 			BaseTopology::chunk_version_node_tracker[index][host_index] = 0;
 			BaseTopology::chunk_copy_node_tracker[index][host_index] = false;
 		}
-		//}
-
-
-		/*****************The struct set up ***********************/
-
-//		uint32_t pod = (uint32_t) floor((double) logical_node_id/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//		uint32_t node = logical_node_id % Ipv4GlobalRouting::FatTree_k;
-//
-//		uint32_t chunk_index = BaseTopology::p[pod].nodes[node].total_chunks;
-//
-//		BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number = index;
-//
-//		BaseTopology::p[pod].nodes[node].total_chunks++;
-
-//
-		//NS_LOG_UNCOND(host_id<<" "<<corresponding_ip);
 	}
 
 	FILE *fp;
@@ -160,7 +143,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				sscanf(pch,"%d",&value);
 				if(count == 0)
 				{
-					logical_host_number = (SSD_PER_RACK + 1) * value + 1;
+					//logical_host_number = (SSD_PER_RACK + 1) * value + 1;
+					logical_host_number = value;
 					//physical_host_number = hosts.Get(logical_host_number)->GetId();
 					pod = (uint32_t) floor((double) logical_host_number/ (double) total_hosts_in_pod);
 					node = ((logical_host_number - 1)/(SSD_PER_RACK + 1)) % Ipv4GlobalRouting::FatTree_k;
@@ -175,7 +159,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				{
 					//NS_LOG_UNCOND("Value is "<<value);
 					value = value -1;
-					round_robin_counter = (count -1) % (SSD_PER_RACK);
+					//round_robin_counter = (count -1) % (SSD_PER_RACK);
+					round_robin_counter = 0;
 
 					//NS_LOG_UNCOND(" logical_host_number "<<logical_host_number+round_robin_counter);
 
@@ -183,7 +168,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number+round_robin_counter;
 					BaseTopology::chunkTracker.at(value).node_id = hosts.Get(logical_host_number+round_robin_counter)->GetId();
 
-					BaseTopology::chunkTracker.at(value).number_of_copy = 0;
+					BaseTopology::chunkTracker.at(value).number_of_copy ++;
 
 					BaseTopology::chunk_copy_node_tracker[value][logical_host_number+round_robin_counter] = true;
 
@@ -210,6 +195,31 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 	}
 	fclose(fp);
+
+	//reduce the copy number by 1
+
+	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
+	{
+		BaseTopology::chunkTracker.at(chunk_index).number_of_copy --;
+	}
+
+	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
+	{
+		NS_LOG_UNCOND("Chunk id "<<chunk_index<<" Total Copies "<<BaseTopology::chunkTracker.at(chunk_index).number_of_copy);
+
+		if(BaseTopology::chunkTracker.at(chunk_index).number_of_copy >=1)
+		{
+			for(uint32_t host_id=0;host_id<total_hosts;host_id++)
+			{
+				if(BaseTopology::chunk_copy_node_tracker[chunk_index][host_id])
+				{
+					NS_LOG_UNCOND("Node "<<host_id);
+				}
+			}
+		}
+	}
+
+	//exit(0);
 
 
 	ns3::BaseTopology::Popularity_Change_Random_Variable->SetAttribute("Min", DoubleValue(0));
