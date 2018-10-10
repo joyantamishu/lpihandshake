@@ -159,6 +159,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				{
 					//NS_LOG_UNCOND("Value is "<<value);
 					value = value -1;
+					//NS_LOG_UNCOND("chunk number########## "<<value<<" node "<<node<<"pod "<<pod);
 					//round_robin_counter = (count -1) % (SSD_PER_RACK);
 					round_robin_counter = 0;
 
@@ -172,7 +173,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 					BaseTopology::chunk_copy_node_tracker[value][logical_host_number+round_robin_counter] = true;
 
-					BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value;
+					//BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value; //bug fix on Oct 8
+					BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
 					//
 					BaseTopology::p[pod].nodes[node].total_chunks++;
 

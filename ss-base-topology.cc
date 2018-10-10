@@ -363,7 +363,7 @@ void BaseTopology::DoRun(void) {
 /*Result **/void BaseTopology::calculateNewLocation(int incrDcr)
 {
 
-	//float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.2;//160;
+	float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.2;//160;
 	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.5;//400;
 	float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
 	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.3;// 240;
@@ -388,9 +388,12 @@ void BaseTopology::DoRun(void) {
 	{
 		for(uint32_t j=0;j<nodes_in_pod;j++)
 		{
+			NS_LOG_UNCOND("--------------------------"<<BaseTopology::p[i].nodes[j].total_chunks);
 			for(uint32_t q=0;q<BaseTopology::p[i].nodes[j].total_chunks;q++)
 			{
 				uint32_t  chunk_num=BaseTopology::p[i].nodes[j].data[q].chunk_number;
+
+				NS_LOG_UNCOND("--------------------------"<<chunk_num);
 				BaseTopology::chnkCopy[chunk_num].exists[BaseTopology::chnkCopy[chunk_num].count]=j+i*Ipv4GlobalRouting::FatTree_k;
 				BaseTopology::chnkCopy[chunk_num].count+=1;
 
@@ -743,7 +746,7 @@ void BaseTopology::DoRun(void) {
 		uint32_t min_chunk_no=9999;
 		float min_chunk_u=9999.0;
 		uint32_t min_chunk_index=9999;
-		uint32_t number_of_chunk_to_process=1;
+		uint32_t number_of_chunk_to_process=3;
 		uint32_t processed_unit=0;
 		float target_u;
 		float utilizationOnEach;
@@ -763,7 +766,7 @@ void BaseTopology::DoRun(void) {
 		min_chunk_u=9999.0;
 		uint32_t nodeN=nodeU[i].nodenumber;
 		NS_LOG_UNCOND("HHHHHHHHHHHH\n");
-		if(nodeU[i].U > cuttoffnode_real) //changed cuttoffnode_low to cuttoffnode_real  --Madhu
+		if(nodeU[i].U > cuttoffnode_low) //changed cuttoffnode_low to cuttoffnode_real  --Madhu
 			break;
 		uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
 
@@ -786,33 +789,36 @@ void BaseTopology::DoRun(void) {
 			min_chunk_index=1000000;
 			min_chunk_no=1000000;
 
+		//NS_LOG_UNCOND("the total number of chunks on the node"<<BaseTopology::p[min_pod].nodes[min_node_no].total_chunks);
 		 for(uint32_t j = 0; j<BaseTopology::p[min_pod].nodes[min_node_no].total_chunks; j++)
 		 {
 
 			 uint32_t l=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
+			// NS_LOG_UNCOND("chunk number"<<l<<" chunk copy count "<<BaseTopology::chnkCopy[l].count<<" utilization of the chunk copy "<< BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum <<" processed bit "<<BaseTopology::p[min_pod].nodes[min_node_no].data[j].processed);
 			 if( BaseTopology::chnkCopy[l].count>1
 					 && BaseTopology::p[min_pod].nodes[min_node_no].data[j].processed!=1
 					 && BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum>0) //also check whether the chunk is valid in the node -sinceit could be deleted
 			 {
+				// NS_LOG_UNCOND("chunk number that satisfy"<<l);
 				 if(min_chunk_no==1000000) //this is only for the first time per node
 				 {
 			        min_chunk_no=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
 			        min_chunk_u = BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum;
 			        min_chunk_index=j;
 				 }
-				 else if(min_chunk_no!=1000000 && min_chunk_u<BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum && energy==false)//  --Madhu
+				 else if(energy==false && min_chunk_no!=1000000 && min_chunk_u<BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum)//  --Madhu
 				 {
 					min_chunk_no=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
 					min_chunk_u = BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum;
 					min_chunk_index=j;
-					NS_LOG_UNCOND("no energy mode");
+				//	NS_LOG_UNCOND("no energy mode");
 				 }
-				 else if(min_chunk_no!=1000000 && min_chunk_u>BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum && energy==true) // --Madhu
+				 else if(energy==true && min_chunk_no!=1000000 && min_chunk_u>BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum) // --Madhu
 				 {
 					min_chunk_no=BaseTopology::p[min_pod].nodes[min_node_no].data[j].chunk_number;
 					min_chunk_u = BaseTopology::p[min_pod].nodes[min_node_no].data[j].intensity_sum;
 					min_chunk_index=j;
-					NS_LOG_UNCOND("energy mode");
+					//NS_LOG_UNCOND("energy mode");
 				 }
 
 			 }
