@@ -1014,16 +1014,23 @@ void BaseTopology::DoRun(void) {
 				}
 
 			 }
-			NS_LOG_UNCOND("the next location in the array where we want to the new copy nodes is"<<loc);
+			 NS_LOG_UNCOND("chunk number :"<<min_chunk_no);
+			 for (uint32_t n = 0; n<BaseTopology::chnkCopy[min_chunk_no].count; n++)
+			 {
+				 NS_LOG_UNCOND("node :"<<BaseTopology::chnkCopy[min_chunk_no].exists[n]<<" location in the array "<<n);
+		      }
+			NS_LOG_UNCOND("the location from where we want to delete the copy"<<loc<<" min_node_no "<<min_node_no<<" pod "<<min_pod);
 			//we have to shift the whole data structure
 			if(loc==BaseTopology::chnkCopy[min_chunk_no].count-1)
 			{
-				BaseTopology::chnkCopy[min_chunk_no].count=BaseTopology::chnkCopy[min_chunk_no].count-1;
+				 NS_LOG_UNCOND("stage1 "<<BaseTopology::chnkCopy[min_chunk_no].exists[loc]<<"-----"<<BaseTopology::chnkCopy[min_chunk_no].exists[BaseTopology::chnkCopy[min_chunk_no].count-1]);
+				 BaseTopology::chnkCopy[min_chunk_no].count=BaseTopology::chnkCopy[min_chunk_no].count-1;
 			}
 			else
 			{
 				for (uint32_t n = loc; n<BaseTopology::chnkCopy[min_chunk_no].count-1; n++)
 				{
+					NS_LOG_UNCOND("stage2: current "<<BaseTopology::chnkCopy[min_chunk_no].exists[n]<<" Next "<<BaseTopology::chnkCopy[min_chunk_no].exists[n]);
 					BaseTopology::chnkCopy[min_chunk_no].exists[n]=BaseTopology::chnkCopy[min_chunk_no].exists[n+1];
 				}
 				BaseTopology::chnkCopy[min_chunk_no].count=BaseTopology::chnkCopy[min_chunk_no].count-1;
