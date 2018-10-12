@@ -137,7 +137,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 			uint32_t round_robin_counter = 0;
 
-			bool flag=false;
+			//bool flag=false;
 			while (pch != NULL)
 			{
 				sscanf(pch,"%d",&value);
@@ -157,7 +157,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				}
 				else
 				{
-					flag=false;
+					//flag=false;
 					//NS_LOG_UNCOND("Value is "<<value);
 					value = value -1;
 					//NS_LOG_UNCOND("chunk number########## "<<value<<" node "<<node<<"pod "<<pod);
@@ -179,18 +179,18 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				    {
 				      if(value==BaseTopology::p[pod].nodes[node].data[t].chunk_number)
 				      {
-				    	 flag=true;
+				    	// flag=true;
 				    	 BaseTopology::p[pod].nodes[node].data[t].chunk_count++;
 				         break;
 				      }
 				    }
-				    if(!flag)
-					{
-					   BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
+				     //  if(!flag)
 					   BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_count = 1;
+
+				       BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
 					   //
 				       BaseTopology::p[pod].nodes[node].total_chunks++;
-					}
+
 					//uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
 
 					//BaseTopology::chunk_copy_node_tracker[value][host_number] = true;
@@ -501,7 +501,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_interval[1] = 1000;
 
-	BaseTopology::phrase_change_interval[2] = 2000;
+	BaseTopology::phrase_change_interval[2] = 1000;
 
 	BaseTopology::phrase_change_interval[3] = 100;
 

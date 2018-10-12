@@ -728,6 +728,7 @@ void ssUdpEchoClient::StartApplication() {
             {
                 BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
                 BaseTopology::p[pod].nodes[node].data[chunk_index].processed=0;
+                break;
             }
         }
     }
@@ -990,6 +991,7 @@ void ssUdpEchoClient::StopApplication(void) {
 					{
 						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum = ceil(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum );
 					}
+					break;
 				}
 			}
 
@@ -1035,28 +1037,35 @@ void ssUdpEchoClient::StopApplication(void) {
 
 					uint32_t node_name=BaseTopology::res[i].src%Ipv4GlobalRouting::FatTree_k;
 					uint32_t pod_name=BaseTopology::res[i].src/Ipv4GlobalRouting::FatTree_k;
-					uint32_t location;
-					 for(uint32_t j = 0; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks; j++)
+					uint32_t deletion_location;
+					uint32_t first_location=9999999;
+					for(uint32_t j = 0; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks; j++)
+					{
+					 if(BaseTopology::p[pod_name].nodes[node_name].data[j].chunk_number==BaseTopology::res[i].chunk_number)
 					 {
-						 if(BaseTopology::p[pod_name].nodes[node_name].data[j].chunk_number==BaseTopology::res[i].chunk_number)
-						 {
-						   location=j;
-						   break;
-						 }
+					   deletion_location=j;
+					   if(first_location==9999999)//get hold of the first index of the item in the list in the list
+						   first_location=deletion_location;
+					  // break;
 					 }
-					 if(location==BaseTopology::p[pod_name].nodes[node_name].total_chunks-1)
+					}
+					if(first_location!=deletion_location)
+					{
+						BaseTopology::p[pod_name].nodes[node_name].data[first_location].chunk_count--;
+					}
+					if(deletion_location==BaseTopology::p[pod_name].nodes[node_name].total_chunks-1)
+					{
+					 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+					}
+					else
+					{
+					 for(uint32_t j = deletion_location; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks-1; j++)
 					 {
-						 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+						 BaseTopology::p[pod_name].nodes[node_name].data[j]=BaseTopology::p[pod_name].nodes[node_name].data[j+1]; //copying structure
 					 }
-					 else
-					 {
-						 for(uint32_t j = location; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks-1; j++)
-						 {
-							 BaseTopology::p[pod_name].nodes[node_name].data[j]=BaseTopology::p[pod_name].nodes[node_name].data[j+1]; //copying structure
-						 }
-						 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
-					 }
-				}
+					 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+					}
+					}
 
 				else
 				{
