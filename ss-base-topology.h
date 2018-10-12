@@ -149,6 +149,7 @@ struct HWLDataCollected {
 typedef struct datachunk{
 	uint32_t chunk_number;
 	double intensity_sum;
+	uint32_t chunk_count;
 	int processed;
 	int highCopyCount;
 	int emerCopyCount;
@@ -159,6 +160,7 @@ typedef struct datachunk{
 		highCopyCount=0;
 		emerCopyCount=0;
 		processed=0;
+		chunk_count=0;
 	}
 }Dchunk;
 
@@ -319,6 +321,9 @@ public:
 	static Ptr<RandomVariableStream> application_selector;
 
 	static Pod *p;
+	static Pod *q;
+
+	static uint32_t sleeping_nodes;
 
 	static Result *res;
 	static void calculateNewLocation(int incrDcr); //this function will set the variable Tuple t

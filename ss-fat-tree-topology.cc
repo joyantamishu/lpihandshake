@@ -137,7 +137,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 			uint32_t round_robin_counter = 0;
 
-
+			bool flag=false;
 			while (pch != NULL)
 			{
 				sscanf(pch,"%d",&value);
@@ -157,6 +157,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 				}
 				else
 				{
+					flag=false;
 					//NS_LOG_UNCOND("Value is "<<value);
 					value = value -1;
 					//NS_LOG_UNCOND("chunk number########## "<<value<<" node "<<node<<"pod "<<pod);
@@ -174,10 +175,22 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					BaseTopology::chunk_copy_node_tracker[value][logical_host_number+round_robin_counter] = true;
 
 					//BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value; //bug fix on Oct 8
-					BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
-					//
-					BaseTopology::p[pod].nodes[node].total_chunks++;
-
+				    for(uint32_t t=0;t<BaseTopology::p[pod].nodes[node].total_chunks;t++)
+				    {
+				      if(value==BaseTopology::p[pod].nodes[node].data[t].chunk_number)
+				      {
+				    	 flag=true;
+				    	 BaseTopology::p[pod].nodes[node].data[t].chunk_count++;
+				         break;
+				      }
+				    }
+				    if(!flag)
+					{
+					   BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
+					   BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_count = 1;
+					   //
+				       BaseTopology::p[pod].nodes[node].total_chunks++;
+					}
 					//uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
 
 					//BaseTopology::chunk_copy_node_tracker[value][host_number] = true;
@@ -477,7 +490,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_intensity_value[1] = 1.0;
 
-	BaseTopology::phrase_change_intensity_value[2] = 2.5;
+	BaseTopology::phrase_change_intensity_value[2] = 1.0;
 
 	BaseTopology::phrase_change_intensity_value[3] = 1.0;
 
@@ -520,6 +533,7 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 {
 
 		BaseTopology::p= new Pod[Ipv4GlobalRouting::FatTree_k];
+		BaseTopology::q= new Pod[Ipv4GlobalRouting::FatTree_k];
 		uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
 		uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
 		BaseTopology::chnkCopy=new chunkCopy[simulationRunProperties::total_chunk];
@@ -530,6 +544,10 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 			BaseTopology::p[i].nodes = new Fat_tree_Node[nodes_in_pod];
 			BaseTopology::p[i].pod_number = (int) i;
 			BaseTopology::p[i].Pod_utilization=0.0;
+
+			BaseTopology::q[i].nodes = new Fat_tree_Node[nodes_in_pod];
+			BaseTopology::q[i].pod_number = (int) i;
+			BaseTopology::q[i].Pod_utilization=0.0;
 		}
 		for(uint32_t i = 0; i<number_of_hosts; i++)
 		{
@@ -538,6 +556,12 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+
+			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
+			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
+			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
+			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+
 
 		}
 		for(uint32_t i = 0; i<simulationRunProperties::total_chunk; i++)

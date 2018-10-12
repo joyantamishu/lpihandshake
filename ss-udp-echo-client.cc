@@ -723,6 +723,7 @@ void ssUdpEchoClient::StartApplication() {
 
         for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
         {
+
             if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
             {
                 BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum += bandwidth_distribution;
@@ -798,7 +799,19 @@ void ssUdpEchoClient::StartApplication() {
           }
     }
 
-
+    BaseTopology::sleeping_nodes=0;
+    uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+    //checking for the nodes that can go to sleep mode
+    for (uint32_t t=0;t<total_hosts_in_system;t++)
+    {
+    	if(t%(SSD_PER_RACK+1)!=0)
+    	{
+    	if(Ipv4GlobalRouting::host_utilization[t]==0)
+    		BaseTopology::sleeping_nodes++;
+    	}
+    }
+    NS_LOG_UNCOND("sleep count"<<BaseTopology::sleeping_nodes);
+ //dump the data into a csv
     /********Uncomment it when function ReturnSomething is ready */
 
     if(BaseTopology::Incrcounter_==0)
@@ -829,6 +842,7 @@ void ssUdpEchoClient::StartApplication() {
 
             BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =(SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1 + (BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]%SSD_PER_RACK);
 
+
             if(num_of_packets_to_send > 0)
             {
                 uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
@@ -836,6 +850,7 @@ void ssUdpEchoClient::StartApplication() {
                 uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
 
                 BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+
             }
 
 
@@ -951,7 +966,14 @@ void ssUdpEchoClient::StopApplication(void) {
 			{
 				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
 				{
-					BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
+
+
+
+					if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum>bandwidth_distribution)
+						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
+					else
+						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum=0.0;
+
 					BaseTopology::p[pod].nodes[node].data[chunk_index].processed=0;
 
 
