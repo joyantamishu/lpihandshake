@@ -367,7 +367,7 @@ void BaseTopology::DoRun(void) {
 /*Result **/void BaseTopology::calculateNewLocation(int incrDcr)
 {
 
-	float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.25;//160;
+	float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.2;//160;
 	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.6;//400;
 	float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
 	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.3;// 240;
@@ -386,25 +386,57 @@ void BaseTopology::DoRun(void) {
 
 	NS_LOG_UNCOND("enetering");
 
+	//copying the entire data set:
+
+
+	//*BaseTopology::q=*BaseTopology::p;
+
+
+	for (int i=0;i<Ipv4GlobalRouting::FatTree_k;i++)
+	{
+		BaseTopology::q[i].pod_number=BaseTopology::p[i].pod_number;
+		BaseTopology::q[i].Pod_utilization=BaseTopology::p[i].pod_number;
+		for(uint32_t j=0;j<nodes_in_pod;j++)
+		{
+			BaseTopology::q[i].nodes[j].node_number=BaseTopology::p[i].nodes[j].node_number;
+			BaseTopology::q[i].nodes[j].total_chunks=BaseTopology::p[i].nodes[j].total_chunks;
+			BaseTopology::q[i].nodes[j].utilization=BaseTopology::p[i].nodes[j].utilization;
+
+			 for(uint32_t k = 0 ;k < BaseTopology::p[i].nodes[j].total_chunks;k++)
+			{
+				 BaseTopology::q[i].nodes[j].data[k].chunk_number= BaseTopology::p[i].nodes[j].data[k].chunk_number;
+				 BaseTopology::q[i].nodes[j].data[k].intensity_sum= BaseTopology::p[i].nodes[j].data[k].intensity_sum;
+				 BaseTopology::q[i].nodes[j].data[k].chunk_count= BaseTopology::p[i].nodes[j].data[k].chunk_count;
+				 BaseTopology::q[i].nodes[j].data[k].processed= BaseTopology::p[i].nodes[j].data[k].processed;
+				 BaseTopology::q[i].nodes[j].data[k].highCopyCount= BaseTopology::p[i].nodes[j].data[k].highCopyCount;
+				 BaseTopology::q[i].nodes[j].data[k].emerCopyCount= BaseTopology::p[i].nodes[j].data[k].emerCopyCount;
+
+			}
+
+		}
+	}
+
+//	for (int i=0;i<Ipv4GlobalRouting::FatTree_k;i++)
+//	{
+//		NS_LOG_UNCOND("from jb"<<BaseTopology::p[i].Pod_utilization);
+//		NS_LOG_UNCOND("from me"<<BaseTopology::q[i].Pod_utilization);
+//	}
+
+
 		//for (int i=0;i<Ipv4GlobalRouting::FatTree_k;i++)
 		//{
 			//for(uint32_t j=0;j<nodes_in_pod;j++)
 			//{
+				NS_LOG_UNCOND("node 10- utilization"<<BaseTopology::p[2].nodes[2].utilization); //10 and 13
 				NS_LOG_UNCOND("node 10- utilization"<<BaseTopology::q[2].nodes[2].utilization);
 				for(uint32_t q=0;q<BaseTopology::q[2].nodes[2].total_chunks;q++)
 				{
-					NS_LOG_UNCOND("chunk number"<<BaseTopology::q[2].nodes[2].data[q].chunk_number);
 					NS_LOG_UNCOND("chunk number"<<BaseTopology::p[2].nodes[2].data[q].chunk_number);
-
+					NS_LOG_UNCOND("chunk number"<<BaseTopology::q[2].nodes[2].data[q].chunk_number);
 				}
 			//}
 		//}
 
-	//copying the entire data set:
-	for (int i=0;i<Ipv4GlobalRouting::FatTree_k;i++)
-	{
-		BaseTopology::q[i]=BaseTopology::p[i];
-	}
 
 
 	if(BaseTopology::createflag!=true)
@@ -672,7 +704,6 @@ void BaseTopology::DoRun(void) {
 				   NS_LOG_UNCOND("estimated_utlization"<<estimated_utlization<<" total copy "<<BaseTopology::chnkCopy[max_chunk_no].count);
 					 //Now split the load and assign to the nodes
 				   printf("here%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n");
-				   NS_LOG_UNCOND("estimated utilization"<<estimated_utlization);
 				   //We are deciding which pod is best here
 					 for (int i=0; i<Ipv4GlobalRouting::FatTree_k;i++)
 						{
@@ -811,13 +842,11 @@ void BaseTopology::DoRun(void) {
 
 
 
-	 if(BaseTopology::q[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].utilization>0
-			 /*&& BaseTopology::q[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].utilization<cuttoffnode_low //change to commented  --Madhu
-			 && BaseTopology::q[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].total_chunks>0*/) //change to commeneted  --Madhu
+	 if(BaseTopology::q[pod].nodes[nodeN%Ipv4GlobalRouting::FatTree_k].utilization>0)
 	 {
 
-			 min_node_no=nodeN%Ipv4GlobalRouting::FatTree_k;
-			 min_pod=pod;
+		 min_node_no=nodeN%Ipv4GlobalRouting::FatTree_k;
+		 min_pod=pod;
 
         NS_LOG_UNCOND("The minimally used node is-----------------------------------------------------------------------------------------: "<<min_node_no<<" ::: "<<min_pod);
         processed_unit=0;
@@ -838,7 +867,7 @@ void BaseTopology::DoRun(void) {
 					 && BaseTopology::q[min_pod].nodes[min_node_no].data[j].processed!=1
 					 && BaseTopology::q[min_pod].nodes[min_node_no].data[j].intensity_sum>0) //also check whether the chunk is valid in the node -sinceit could be deleted
 			 {
-				 NS_LOG_UNCOND("chunk number that satisfy"<<l);
+				// NS_LOG_UNCOND("chunk number that satisfy"<<l);
 				 if(min_chunk_no==1000000) //this is only for the first time per node
 				 {
 			        min_chunk_no=BaseTopology::q[min_pod].nodes[min_node_no].data[j].chunk_number;
@@ -850,14 +879,14 @@ void BaseTopology::DoRun(void) {
 					min_chunk_no=BaseTopology::q[min_pod].nodes[min_node_no].data[j].chunk_number;
 					min_chunk_u = BaseTopology::q[min_pod].nodes[min_node_no].data[j].intensity_sum;
 					min_chunk_index=j;
-				    NS_LOG_UNCOND("no energy mode");
+				   // NS_LOG_UNCOND("no energy mode");
 				 }
 				 else if(energy==true && min_chunk_no!=1000000 && min_chunk_u>BaseTopology::q[min_pod].nodes[min_node_no].data[j].intensity_sum) // --Madhu
 				 {
 					min_chunk_no=BaseTopology::q[min_pod].nodes[min_node_no].data[j].chunk_number;
 					min_chunk_u = BaseTopology::q[min_pod].nodes[min_node_no].data[j].intensity_sum;
 					min_chunk_index=j;
-					NS_LOG_UNCOND("energy mode");
+					//NS_LOG_UNCOND("energy mode");
 				 }
 
 			 }

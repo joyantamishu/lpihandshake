@@ -795,7 +795,6 @@ void ssUdpEchoClient::StartApplication() {
         BaseTopology::p[i].Pod_utilization=0;
          for(uint32_t j=0;j<nodes_in_pod;j++)
           {
-             //printf("here 88888888888888888888888888888888888------%f\n",BaseTopology::p[i].nodes[j].utilization);
              BaseTopology::p[i].Pod_utilization=BaseTopology::p[i].Pod_utilization+BaseTopology::p[i].nodes[j].utilization;
           }
     }
