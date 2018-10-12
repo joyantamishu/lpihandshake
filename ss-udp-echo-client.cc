@@ -802,6 +802,11 @@ void ssUdpEchoClient::StartApplication() {
     BaseTopology::sleeping_nodes=0;
     uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
     //checking for the nodes that can go to sleep mode
+
+	FILE *fp_sleep_tracking;
+
+	fp_sleep_tracking = fopen ("server_level_sleep.csv","a");
+
     for (uint32_t t=0;t<total_hosts_in_system;t++)
     {
     	if(t%(SSD_PER_RACK+1)!=0)
@@ -811,6 +816,9 @@ void ssUdpEchoClient::StartApplication() {
     	}
     }
     NS_LOG_UNCOND("sleep count"<<BaseTopology::sleeping_nodes);
+    fprintf(fp_sleep_tracking,"%d,\n",BaseTopology::sleeping_nodes);
+    fclose(fp_sleep_tracking);
+
  //dump the data into a csv
     /********Uncomment it when function ReturnSomething is ready */
 
