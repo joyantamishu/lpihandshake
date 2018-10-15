@@ -191,11 +191,15 @@ typedef struct chunk{
   uint32_t *exists;
   int highCopyCount;
   int emerCopyCount;
+  time_t last_created_timestamp_for_chunk;
+  time_t last_deleted_timestamp_for_chunk;
   chunk()
 	{
 	  count = 0;
 	  highCopyCount=0;
 	  emerCopyCount=0;
+	  last_created_timestamp_for_chunk=0;
+	  last_deleted_timestamp_for_chunk=0;
 	}
 }chunkCopy;
 

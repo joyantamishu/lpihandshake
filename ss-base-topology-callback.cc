@@ -73,6 +73,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			BaseTopology::total_packet_count--;
 
+
 			BaseTopology::total_packets_to_hosts_bits[packet->sub_flow_dest] ++;
 
 			//NS_LOG_UNCOND("total_packet_count "<<BaseTopology::total_packet_count);
@@ -89,7 +90,6 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			if(Ipv4GlobalRouting::has_system_learnt)
 			{
-
 
 
 				if(BaseTopology::last_point_of_entry <= 0.0)
@@ -201,7 +201,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 	}
 
-	if(Simulator::Now().ToDouble(Time::MS) >= 1000.00 * 0.2 && !Ipv4GlobalRouting::has_system_learnt)
+	if(Simulator::Now().ToDouble(Time::MS) >= 1000.00 * 0 && !Ipv4GlobalRouting::has_system_learnt)
 	{
 		Ipv4GlobalRouting::has_system_learnt = true;
 

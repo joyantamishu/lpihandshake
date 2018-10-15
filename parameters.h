@@ -43,7 +43,7 @@
 
 // Tick model parameter
 #define DefaultUseTickBasedModel			false
-#define DefaultTimeDurationMilliSec			0.6//4.5				// Apr 23, New Discussion
+#define DefaultTimeDurationMilliSec			2.77//4.5				// Apr 23, New Discussion
 
 // Markov Model parameters
 #define DefaultUseMarkovModel				false
@@ -95,7 +95,7 @@
 /******Chunk Specific Change *******************/
 #define DEFAULT_CHUNK_NUMBER						1500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
-#define READ_WRITE_RATIO							0.9
+#define READ_WRITE_RATIO							1
 
 #define DEFAULT_NUMBER_OF_APPLICATIONS				47
 

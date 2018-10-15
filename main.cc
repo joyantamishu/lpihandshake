@@ -8,7 +8,7 @@
 #include <string.h>
 #include <iostream>
 #include <ctime>
-
+#include <cstdio>
 #include "parameters.h"
 #include "ss-fat-tree-topology.h"
 #include "ns3/log.h"
@@ -45,6 +45,19 @@ int main(int argc, char *argv[]) {
 	// Allow the user to override any of the defaults at
 	// run-time, via command-line arguments
 	//
+
+	if(remove("host_utilization_madhurima.csv")!=0)
+	{
+		NS_LOG_UNCOND("error while deleting the file");
+	}
+	if(remove("flow_duration_madhurima.csv")!=0)
+	{
+		NS_LOG_UNCOND("error while deleting the file");
+	}
+	if(remove("server_level_sleep.csv")!=0)
+	{
+		NS_LOG_UNCOND("error while deleting the file");
+	}
 	BaseTopology* t1;
 
 	setStaticVariablesFromCommandLine(argc, argv);
@@ -70,6 +83,7 @@ int main(int argc, char *argv[]) {
 //	{
 //		NS_LOG_UNCOND("Chunk id "<<chunk<<" version no "<<BaseTopology::chunk_version_tracker[chunk]);
 //	}
+
 
 
 	int flow_count = 0;

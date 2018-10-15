@@ -308,11 +308,16 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	/////We need to put here the application selection logic
 
 
-
+	FILE *fp_flow_duration;
 	NS_LOG_FUNCTION(this);
 
 	t_appStopTimeRandom = Time::FromDouble(m_flowStopDurationTimer->GetValue(),
 			Time::MS);
+	fp_flow_duration = fopen ("flow_duration_madhurima.csv","a");
+	fprintf(fp_flow_duration,"%f\n",t_appStopTimeRandom.ToDouble(Time::MS) );
+	fclose(fp_flow_duration);
+
+
 //	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
 //		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
 //				<< "] exceeds simStop time");

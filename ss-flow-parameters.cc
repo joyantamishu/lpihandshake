@@ -69,6 +69,7 @@ void BaseTopology::InitializeRandomVariables(void) {
 		int flowBWmin = flowBWmean * beta_lower_limit_bw;
 		int flowBWmax = flowBWmean * gamma_upper_limit_bw;
 
+
 		m_randomBWVariable = CreateObject<TriangularRandomVariable>();
 		m_randomBWVariable->SetAttribute("Min", DoubleValue(flowBWmin));
 		m_randomBWVariable->SetAttribute("Max", DoubleValue(flowBWmax));
