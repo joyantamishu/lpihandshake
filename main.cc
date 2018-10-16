@@ -58,6 +58,12 @@ int main(int argc, char *argv[]) {
 	{
 		NS_LOG_UNCOND("error while deleting the file");
 	}
+	if(remove("copy_create_delete.csv")!=0)
+	{
+		NS_LOG_UNCOND("error while deleting the file");
+	}
+
+
 	BaseTopology* t1;
 
 	setStaticVariablesFromCommandLine(argc, argv);
