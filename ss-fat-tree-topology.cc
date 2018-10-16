@@ -384,7 +384,18 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 	}
 
+	for(uint32_t i=0;i<simulationRunProperties::total_applications;i++)
+	{
+		if(ns3::BaseTopology::chunk_assignment_to_applications[i][0] >= BaseTopology::max_chunk_by_application)
+		{
+			BaseTopology::max_chunk_by_application = ns3::BaseTopology::chunk_assignment_to_applications[i][0];
+		}
+
+	}
+
 	NS_LOG_UNCOND("End SetUpApplicationAssignment");
+
+	NS_LOG_UNCOND("BaseTopology::max_chunk_by_application "<<BaseTopology::max_chunk_by_application);
 
 
 }
@@ -803,6 +814,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	// always populate node BW data...
 	for (a = 0; a < total_hosts; a++) {
 		DynamicCast<ssNode>(hosts.Get(a))->InitializeNode();
+		//NS_LOG_UNCOND("The host id "<<hosts.Get(a)->GetId());
 	}
 	for (a = 0; a < total_aggregate_routers; a++) {
 		DynamicCast<ssNode>(aggrRouters.Get(a))->InitializeNode();

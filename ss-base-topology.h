@@ -423,6 +423,8 @@ public:
 	static double sum_delay_ms_no_burst;
 	static uint32_t total_events_learnt_no_burst;
 
+	static uint32_t max_chunk_by_application;
+
 protected:
 	virtual void DoDispose(void);
 	virtual void DisplayCommandLine(void);

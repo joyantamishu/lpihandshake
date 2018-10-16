@@ -146,6 +146,8 @@ uint32_t BaseTopology::total_events_learnt_no_burst = 0;
 
 uint32_t BaseTopology::sleeping_nodes = 0;
 
+uint32_t BaseTopology::max_chunk_by_application = 0;
+
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
 	DoDispose();

@@ -231,18 +231,18 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	}
 
 
-	uint32_t total_racks = total_hosts/(SSD_PER_RACK +1 );
+	//uint32_t total_racks = total_hosts/(SSD_PER_RACK +1 );
 
-	sync_socket_tracker = new int[total_racks];
+	sync_socket_tracker = new int[total_hosts];
 
-	for(uint32_t i=0;i<total_racks;i++)
+	for(uint32_t i=0;i<total_hosts;i++)
 	{
 		sync_socket_tracker[i] = -1;
 	}
 	//m_socket = new Ptr<Socket>[total_hosts];
 
 
-	sync_sockets = new Ptr<Socket>[total_racks];
+	sync_sockets = new Ptr<Socket>[BaseTopology::max_chunk_by_application];
 
 	total_sync_sockets = 0;
 
@@ -1408,6 +1408,7 @@ void ssUdpEchoClient::Send(void) {
 
 	if(consistency_flow)
 	{
+		//exit(0);
 		if(this->total_packets_to_send > 0) BaseTopology::total_packet_count += this->total_packets_to_send;
 	}
 	else
@@ -1536,6 +1537,7 @@ void ssUdpEchoClient::Send(void) {
 			//NS_LOG_UNCOND(" ^^^^^^^^^^^^^^^^^^This is Consistency traffic^^^^^^^^^^^^^^^^");
 			for(uint32_t cpacket=0;cpacket<this->total_packets_to_send;cpacket++)
 			{
+
 				BaseTopology::total_consistency_packets++;
 				//NS_LOG_UNCOND("Inside For loop");
 				t_p = createPacket(0, single_destination, is_write, 0);
@@ -1555,12 +1557,15 @@ void ssUdpEchoClient::Send(void) {
 		{
 
 			NS_LOG_UNCOND("&&&&&&&&&&&& num_of_packets_to_send &&&&&&&&&&&&& "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
+
+			//uint32_t total_sync_packets = 0;
 			for(uint32_t host_index=0;host_index<total_hosts;host_index++)
 			{
 				bool sync_traffic = true;
 				uint32_t rack_id ;
 				if(BaseTopology::chunk_copy_node_tracker[chunk_value][host_index])
 				{
+					//total_sync_packets++;
 					BaseTopology::total_consistency_packets++;
 					if(local_chunkTracker.at(chunk_value).node_id == host_index) //there is a socket already opened for it
 					{
@@ -1568,7 +1573,7 @@ void ssUdpEchoClient::Send(void) {
 					}
 					else
 					{
-						rack_id = host_index/(SSD_PER_RACK + 1);
+						rack_id = host_index;
 
 						if(sync_socket_tracker[(int)rack_id] == -1)
 						{
@@ -1616,7 +1621,9 @@ void ssUdpEchoClient::Send(void) {
 				}
 			}
 
-			BaseTopology::total_consistency_packets = BaseTopology::total_consistency_packets -1;
+			//NS_LOG_UNCOND("total_sync_packets "<<total_sync_packets<<" num_of_packets_to_send "<<num_of_packets_to_send);
+
+			//BaseTopology::total_consistency_packets = BaseTopology::total_consistency_packets -1;
 //			for(std::vector<MultipleCopyOfChunkInfo>::iterator itr = BaseTopology::chunkCopyLocations.begin(); itr != BaseTopology::chunkCopyLocations.end(); ++itr)
 //			{
 //				if(itr->chunk_id == chunk_value)

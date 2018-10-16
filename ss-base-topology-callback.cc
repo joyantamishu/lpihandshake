@@ -198,7 +198,6 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 		}
 
 
-
 	}
 
 	if(Simulator::Now().ToDouble(Time::MS) >= 1000.00 * 0 && !Ipv4GlobalRouting::has_system_learnt)
