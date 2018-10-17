@@ -530,12 +530,16 @@ void FatTreeTopology::SetUpNodeUtilizationStatistics()
 	int total_hosts = hosts.GetN();
 
 	Ipv4GlobalRouting::host_utilization = new double[total_hosts];
+	Ipv4GlobalRouting::host_utilization_smoothed= new double[total_hosts];
+	Ipv4GlobalRouting::host_congestion_flag=new uint32_t[total_hosts];
 
 	for(int i=0;i<total_hosts;i++)
 	{
 		Ipv4GlobalRouting::host_utilization[i] = 0.0;
 		BaseTopology::host_running_avg_bandwidth[i] = 0.0;
 		BaseTopology::host_running_avg_counter[i] = 0;
+		Ipv4GlobalRouting::host_utilization_smoothed[i]=0.0;
+		Ipv4GlobalRouting::host_congestion_flag[i]=0;
 	}
 }
 
@@ -567,11 +571,13 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
 			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
 
 			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
 			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
 			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
 			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
 
 
 		}

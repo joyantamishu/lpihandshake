@@ -352,6 +352,9 @@ BaseTopology::BaseTopology(void) {
 	t_a = t_b = t_x = t_i = t_reqBW = 0;
 }
 
+
+
+
 /**************************************************************/
 void BaseTopology::DoRun(void) {
 	NS_LOG_FUNCTION(this);
@@ -366,6 +369,33 @@ void BaseTopology::DoRun(void) {
 
 	Simulator::Destroy();
 }
+
+
+
+double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
+{
+	uint32_t rack_host_id = ((SSD_PER_RACK +1 ) * rack_id) + 1 ;
+
+	uint32_t min_host_utilization = Ipv4GlobalRouting::host_utilization[rack_host_id];
+
+	//uint32_t expected_host = rack_host_id;
+
+	for(uint32_t i= 0; i<SSD_PER_RACK;i++)
+	{
+		if(Ipv4GlobalRouting::host_utilization[rack_host_id + i] < min_host_utilization)
+		{
+			//expected_host = rack_host_id + i;
+			min_host_utilization = Ipv4GlobalRouting::host_utilization[rack_host_id + i];
+		}
+	}
+	//NS_LOG_UNCOND("host_id "<<rack_id<<" expected_host "<<expected_host);
+
+	return min_host_utilization;
+}
+
+
+
+
 /*Result **/void BaseTopology::calculateNewLocation(int incrDcr)
 {
 //Parameters
@@ -373,7 +403,7 @@ void BaseTopology::DoRun(void) {
 	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.5;//400;
 	float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
 	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.3;// 240;
-	uint32_t time_window=50;
+	uint32_t time_window=40;
 	float delta=.1;
 	float alpha =.9; //for smoothing
 	float theta =.1; //for picking up only significant chunks
@@ -408,6 +438,7 @@ void BaseTopology::DoRun(void) {
 			BaseTopology::q[i].nodes[j].node_number=BaseTopology::p[i].nodes[j].node_number;
 			BaseTopology::q[i].nodes[j].total_chunks=BaseTopology::p[i].nodes[j].total_chunks;
 			BaseTopology::q[i].nodes[j].utilization=BaseTopology::p[i].nodes[j].utilization;
+			BaseTopology::q[i].nodes[j].max_capacity_left=BaseTopology::p[i].nodes[j].max_capacity_left;
 
 			 for(uint32_t k = 0 ;k < BaseTopology::p[i].nodes[j].total_chunks;k++)
 			{

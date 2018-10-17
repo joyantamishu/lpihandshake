@@ -167,6 +167,7 @@ typedef struct datachunk{
 typedef struct Fat_Node {
 	uint32_t node_number;
 	double utilization;
+	double max_capacity_left;
 	Dchunk *data;
 	uint32_t total_chunks;
 }Fat_tree_Node;
@@ -314,6 +315,8 @@ public:
 	static uint32_t num_of_retired_packets_specific_node;
 
 
+
+	static double getMinUtilizedServerInRack(uint32_t rack_id);
 
 	static uint32_t **application_assignment_to_node;
 	static uint32_t **chunk_assignment_to_applications;
