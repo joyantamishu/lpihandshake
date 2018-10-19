@@ -310,6 +310,8 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_UNCOND("Avg Delay in ms When there is no burst "<<average_delay_no_burst<<" in second "<<average_delay_no_burst/(double)1000000);
 
+	NS_LOG_UNCOND("These are the number of packets sent during any copy creation "<<BaseTopology::total_number_of_packet_for_copy_creation);
+
 
 
 

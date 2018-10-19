@@ -148,6 +148,8 @@ uint32_t BaseTopology::sleeping_nodes = 0;
 
 uint32_t BaseTopology::max_chunk_by_application = 0;
 
+uint32_t BaseTopology::total_number_of_packet_for_copy_creation=0;
+
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
 	DoDispose();
@@ -400,10 +402,10 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 {
 //Parameters
 	//float cuttoffnode_low=(int(Count)*int(SSD_PER_RACK))*0.2;//160;
-	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.5;//400;
-	float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
+	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.7;//400;
+	//float cuttoffnode_emer=(int(Count)*int(SSD_PER_RACK))*0.8;// 640;
 	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.3;// 240;
-	uint32_t time_window=40;
+	uint32_t time_window=50;
 	float delta=.1;
 	float alpha =.9; //for smoothing
 	float theta =.1; //for picking up only significant chunks
@@ -562,15 +564,80 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
      	max_chunk_no=9999;
         max_chunk_u=0;
         max_chunk_index=99999;
-        uint32_t nodeN;
-
+        uint32_t nodeN=nodeU[i].nodenumber;
+        bool success;
         printf("PPPPPPPPPP\n");
         if(nodeU[i].U<cuttoffnode_high)
-        	break;
+        { //still look for any congested server within the rack and if found then place a copy locally
+			uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
+			uint32_t node =	nodeN%Ipv4GlobalRouting::FatTree_k;
+        	nodeOldUtilization[nodeN].U=nodeU[i].U;
+        	uint32_t ssd_number=nodeN*(SSD_PER_RACK +1)+1;
+        	//success=false; //per node one local copy permitted
+			//check if for the node any server violated the threshold lately
+			for(uint32_t k=ssd_number;k<ssd_number+SSD_PER_RACK;k++)
+			{
+				success=false;//per server one local copy permitted
+				if(Ipv4GlobalRouting::host_congestion_flag[k]==1 && Ipv4GlobalRouting::host_utilization_smoothed[k]>Count*.8) //while placing the last flow we have seen congestion at the server
+				{
+					//NS_LOG_UNCOND("we found pod"<<pod<<" node id "<<node);
+					//for those servers in the rack i need to know the chunk number on them and see if the rack utilization will be fine for local copy and alo
+					for(uint32_t q=0;q<BaseTopology::q[pod].nodes[node].total_chunks;q++)
+					{
+							uint32_t chunk_number=BaseTopology::q[pod].nodes[node].data[q].chunk_number;
+						//	NS_LOG_UNCOND("chunk_number"<<chunk_number);
+							uint32_t logical_node_id=BaseTopology::chunkTracker.at(chunk_number).logical_node_id;
+							if(logical_node_id==k)
+							{
+								//NS_LOG_UNCOND("we found a logical node id"<<rack_id<<" host id "<<logical_node_id<<" chunk number "<<chunk_number);
+//check for the existence of the chunk on that server while doing local placement
+								//check for the maximum chunk utilization and then repeat it until the utlization falls way behind the desired
+								if((now-BaseTopology::chnkCopy[chunk_number].last_deleted_timestamp_for_chunk)>time_window
+									&& ((now-BaseTopology::chnkCopy[chunk_number].last_created_timestamp_for_chunk)>time_window) //not sure
+									&&  BaseTopology::chnkCopy[chunk_number].highCopyCount<Ipv4GlobalRouting::FatTree_k
+									&&  BaseTopology::q[pod].nodes[node].data[q].processed!=1
+									&&  BaseTopology::q[pod].nodes[node].data[q].intensity_sum>Ipv4GlobalRouting::host_utilization_smoothed[k]*.75) //Parameter
+									{
+									if(BaseTopology::q[pod].nodes[node].max_capacity_left>BaseTopology::q[pod].nodes[node].data[q].intensity_sum
+										&& BaseTopology::q[pod].nodes[node].data[q].intensity_sum+BaseTopology::q[pod].nodes[node].utilization<cuttoffnode_real)
+									{
+										NS_LOG_UNCOND("the host that satisfy utilization????????"<<Ipv4GlobalRouting::host_utilization_smoothed[k]<<"chunk number "<<chunk_number<<"chunk utilization "<< BaseTopology::q[pod].nodes[node].data[q].intensity_sum);
+										BaseTopology::res[res_index].src=nodeN;
+										BaseTopology::res[res_index].dest=nodeN;
+										BaseTopology::res[res_index].chunk_number=chunk_number;
+										res_index++;
+
+										BaseTopology::chnkCopy[chunk_number].exists[BaseTopology::chnkCopy[chunk_number].count]=nodeN;
+										BaseTopology::chnkCopy[chunk_number].count++;
+
+										BaseTopology::q[pod].nodes[node].data[q].highCopyCount++;
+										//this is the time stamp per chunk level- i.e. when under the whole system any copy of the chunk created
+										BaseTopology::chnkCopy[chunk_number].last_created_timestamp_for_chunk=now;
+										BaseTopology::chnkCopy[chunk_number].highCopyCount++;
+										success=true;
+									}
+									//else //do we want to create a remote copy??
+
+									//anyways we have to mark this to be true
+									BaseTopology::q[pod].nodes[node].data[q].processed=1;
+									}
+							}
+						}
+					Ipv4GlobalRouting::host_congestion_flag[k]=0;
+					//for now create only one copy and break;
+					if(success)
+						break;
+				}
+				else
+				{
+					Ipv4GlobalRouting::host_congestion_flag[k]=0;
+				}
+			}
+
+        }
         else
 		{
-			nodeN=nodeU[i].nodenumber;
-			 //NS_LOG_UNCOND("nodeU[i].nodenumber  "<<nodeU[i].nodenumber<<" nodeOldUtilization[nodeN]  "<<nodeOldUtilization[nodeN].nodenumber<<" Current Utilization "<<nodeU[i].U<<" old Utilization "<<nodeOldUtilization[nodeN].U<<"  chnage since the last time"<<(nodeU[i].U-nodeOldUtilization[nodeN].U)/nodeOldUtilization[nodeN].U);
+        	//NS_LOG_UNCOND("nodeU[i].nodenumber  "<<nodeU[i].nodenumber<<" nodeOldUtilization[nodeN]  "<<nodeOldUtilization[nodeN].nodenumber<<" Current Utilization "<<nodeU[i].U<<" old Utilization "<<nodeOldUtilization[nodeN].U<<"  chnage since the last time"<<(nodeU[i].U-nodeOldUtilization[nodeN].U)/nodeOldUtilization[nodeN].U);
 			 if(nodeU[i].U<nodeOldUtilization[nodeN].U)
 			{
 				// NS_LOG_UNCOND("in the if phase");
@@ -578,23 +645,16 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 			}
 			else if(nodeOldUtilization[nodeN].U!=0.0 && (nodeU[i].U>nodeOldUtilization[nodeN].U) && (nodeU[i].U-nodeOldUtilization[nodeN].U)/nodeOldUtilization[nodeN].U<delta)
 			{
-				//NS_LOG_UNCOND("in the else if phase");
 				nodeOldUtilization[nodeN].U=nodeU[i].U; // this node is being selected but not qualified so updating the utilizaton with the current and smoothed value
-				//nodeOldUtilization[nodeN].counter++; //how many times one is selected for serive and either server or rejected
-				//if(nodeOldUtilization[nodeN].counter%20==0)
-				//{	nodeOldUtilization[nodeN].U=0.0;
-				//}
 				continue;
 			}
 
 			else
 			{
-				//NS_LOG_UNCOND("in the else phase");
-				//nodeOldUtilization[nodeN].counter++;
 				nodeOldUtilization[nodeN].U=nodeU[i].U;
 			}
 
-		}
+
 
      //   else
       	//    numberOfNodeProcessed++;
@@ -636,6 +696,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	    		   	     uint32_t l=BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number;
 		      	 		 if( BaseTopology::q[max_pod].nodes[max_node_no].data[i].highCopyCount<Ipv4GlobalRouting::FatTree_k
 		      	 		     && (now-BaseTopology::chnkCopy[l].last_deleted_timestamp_for_chunk)>time_window
+							 && (now-BaseTopology::chnkCopy[l].last_created_timestamp_for_chunk)>time_window //not sure
 		      	 		     && BaseTopology::chnkCopy[BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number].highCopyCount<Ipv4GlobalRouting::FatTree_k
 		      	 		     && BaseTopology::q[max_pod].nodes[max_node_no].data[i].processed!=1
 							 && max_chunk_u<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum
@@ -763,9 +824,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 			   }
 		  }
 
-
-
-			  }//end of if max chunk found
+	}//end of if max chunk found
 		   else
 			   break; //no max chunk on the node satisfy all the requirements
 			  	 //we have placed the item
@@ -804,11 +863,12 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	       }//end of while
 
 	      }//end of if for difference from cutoff
-	else if(cuttoffnode_emer<max_node_u)   //to be implemented
-		NS_LOG_UNCOND("!!!!!!!!!!!!!!!!!!!!!!!!!the node is under emergency range so we might have to create more than one copy of the most used chunk on them in order to relief"<<max_node_no);
-        //for now we are not creating copies just looking for an odd situation
+//	else if(cuttoffnode_emer<max_node_u)   //to be implemented
+//		NS_LOG_UNCOND("!!!!!!!!!!!!!!!!!!!!!!!!!the node is under emergency range so we might have to create more than one copy of the most used chunk on them in order to relief"<<max_node_no);
+//        //for now we are not creating copies just looking for an odd situation
 	else
 		break; //no break before we exhaust x% of the busy item in the node
+ 	  } //end of else condition where node cutoff is exceeded
  	 }//end of for
 
    	//printf("res_index%d\n",res_index);
@@ -857,7 +917,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 //			break;
 //		else if(nodeU[i].U<=0)
 //			continue;
-		uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
+	  uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
 
 
 
@@ -870,14 +930,14 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 
         NS_LOG_UNCOND("The minimally used node is-----------------------------------------------------------------------------------------: "<<min_node_no<<" ::: "<<min_pod<<" minimu node utilization"<<min_node_u);
         processed_unit=0;
-
+    	NS_LOG_UNCOND("the total number of chunks on the node"<<BaseTopology::q[min_pod].nodes[min_node_no].total_chunks);
     	while(number_of_chunk_to_process>processed_unit)
     	{
     		min_chunk_u=99999;
 			min_chunk_index=1000000;
 			min_chunk_no=1000000;
 
-		NS_LOG_UNCOND("the total number of chunks on the node"<<BaseTopology::q[min_pod].nodes[min_node_no].total_chunks);
+
 		 for(uint32_t j = 0; j<BaseTopology::q[min_pod].nodes[min_node_no].total_chunks; j++)
 		 {
 
@@ -986,8 +1046,8 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 					 utilizationOnEach=((BaseTopology::chnkCopy[min_chunk_no].count )*min_chunk_u)/(BaseTopology::chnkCopy[min_chunk_no].count-1);
 				 else
 				 {
-					 utilizationOnEach=0.0;
-					 min_chunk_u=0.0;
+					 utilizationOnEach=0;
+					 min_chunk_u=0;
 				 }
 				last_created_location=BaseTopology::chnkCopy[min_chunk_no].exists[BaseTopology::chnkCopy[min_chunk_no].count-1];
 				NS_LOG_UNCOND("last location  "<<last_created_location);
@@ -997,27 +1057,48 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 				{
 				  //set some flag since next part we will be doing anyways
 					flag=true;
+					NS_LOG_UNCOND("flag is set");
 				}
 				for (uint32_t n = 0; n<BaseTopology::chnkCopy[min_chunk_no].count; n++)
 				{
-					uint32_t node_=BaseTopology::chnkCopy[min_chunk_no].exists[n];
-					uint32_t pod_node=node_/Ipv4GlobalRouting::FatTree_k;
-					node_=node_%Ipv4GlobalRouting::FatTree_k;
+					uint32_t node_real=BaseTopology::chnkCopy[min_chunk_no].exists[n];
+					uint32_t pod_node=node_real/Ipv4GlobalRouting::FatTree_k;
+					uint32_t node_=node_real%Ipv4GlobalRouting::FatTree_k;
 
 
 					if(node_==min_node_no
 							&& pod_node==min_pod && flag)
-						//	&& BaseTopology::q[pod_node].Pod_utilization+min_chunk_u<=cuttoffpod
-						//	&& BaseTopology::q[pod_node].nodes[node_].utilization+min_chunk_u<=cuttoffnode_high)
 					{
-
 						continue;
-
 					}
 					else
 					{
 						NS_LOG_UNCOND("The utilization that the node"<<node_<<" will face "<<(BaseTopology::q[pod_node].nodes[node_].utilization-min_chunk_u)+utilizationOnEach<<" estimated "<<utilizationOnEach);
-						if( (BaseTopology::q[pod_node].nodes[node_].utilization-min_chunk_u)+utilizationOnEach<cuttoffnode_high)
+						if(utilizationOnEach==0)
+						{
+							NS_LOG_UNCOND("target node "<<target_node);
+							if(target_node==999 && node_real!=last_created_location) //for the first time we will do this
+							//current_min_u=BaseTopology::q[pod_node].nodes[node_].data[min_chunk_no].intensity_sum;
+							{
+
+									NS_LOG_UNCOND("default first time11");
+									target_node=node_;
+									target_pod=pod_node;
+									target_u=BaseTopology::q[pod_node].nodes[node_].utilization;
+
+							}
+							else if(target_node!=999
+									&& target_u>BaseTopology::q[pod_node].nodes[node_].utilization && node_real!=last_created_location)
+							{
+
+									NS_LOG_UNCOND("next time onward11");
+									target_node=node_;
+									target_pod=pod_node;
+									target_u=BaseTopology::q[pod_node].nodes[node_].utilization;
+
+							}
+						}
+						else if(utilizationOnEach>0 && (BaseTopology::q[pod_node].nodes[node_].utilization-min_chunk_u)+utilizationOnEach<cuttoffnode_high)
 						{
 							if(target_node==999 && node_!=last_created_at_node && pod_node!=last_created_at_pod) //for the first time we will do this
 							//current_min_u=BaseTopology::q[pod_node].nodes[node_].data[min_chunk_no].intensity_sum;

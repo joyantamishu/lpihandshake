@@ -314,7 +314,7 @@ public:
 	static uint32_t num_of_retried_packets;
 	static uint32_t num_of_retired_packets_specific_node;
 
-
+	static uint32_t total_number_of_packet_for_copy_creation;
 
 	static double getMinUtilizedServerInRack(uint32_t rack_id);
 

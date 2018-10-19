@@ -103,7 +103,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		BaseTopology::chunk_copy_node_tracker[index] = new bool [total_hosts];
 
-		for(uint32_t host_index = 0; host_index <total_hosts; host_index++)
+		for (uint32_t host_index = 0; host_index < total_hosts; host_index++)
 		{
 			BaseTopology::chunk_version_node_tracker[index][host_index] = 0;
 			BaseTopology::chunk_copy_node_tracker[index][host_index] = false;
