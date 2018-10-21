@@ -150,6 +150,12 @@ uint32_t BaseTopology::max_chunk_by_application = 0;
 
 uint32_t BaseTopology::total_number_of_packet_for_copy_creation=0;
 
+uint32_t** BaseTopology::transaction_rollback_packets = new uint32_t*[total_hosts_in_system];
+
+uint32_t** BaseTopology::transaction_rollback_write_tracker = new uint32_t *[total_hosts_in_system];
+
+uint32_t BaseTopology::rollback_packets = 0;
+
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
 	DoDispose();

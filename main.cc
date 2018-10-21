@@ -311,11 +311,11 @@ int main(int argc, char *argv[]) {
 
 	double average_delay_burst = BaseTopology::sum_delay_ms_burst/ (double)BaseTopology::total_events_learnt_burst;
 
-	NS_LOG_UNCOND("BaseTopology::sum_delay_ms"<<BaseTopology::sum_delay_ms);
+	NS_LOG_UNCOND("BaseTopology::sum_delay_ms "<<BaseTopology::sum_delay_ms);
 
-    NS_LOG_UNCOND("BaseTopology::sum_delay_ms_burst"<<BaseTopology::sum_delay_ms_burst);
+    NS_LOG_UNCOND("BaseTopology::sum_delay_ms_burst "<<BaseTopology::sum_delay_ms_burst);
 
-    NS_LOG_UNCOND("BaseTopology::sum_delay_ms_no_burst"<<BaseTopology::sum_delay_ms_no_burst);
+    NS_LOG_UNCOND("BaseTopology::sum_delay_ms_no_burst "<<BaseTopology::sum_delay_ms_no_burst);
 
 	NS_LOG_UNCOND("BaseTopology::total_events_learnt_burst "<<BaseTopology::total_events_learnt_burst);
 
@@ -330,6 +330,8 @@ int main(int argc, char *argv[]) {
 	NS_LOG_UNCOND("Avg Delay in ms When there is no burst "<<average_delay_no_burst<<" in second "<<average_delay_no_burst/(double)1000000);
 
 	NS_LOG_UNCOND("These are the number of packets sent during any copy creation "<<BaseTopology::total_number_of_packet_for_copy_creation);
+
+	NS_LOG_UNCOND("Total Roll-back Packets "<<BaseTopology::rollback_packets);
 
 
 
