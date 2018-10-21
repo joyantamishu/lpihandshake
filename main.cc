@@ -62,7 +62,10 @@ int main(int argc, char *argv[]) {
 	{
 		NS_LOG_UNCOND("error while deleting the file");
 	}
-
+	FILE *fp_packet;
+	fp_packet= fopen("all_packets.csv","w");
+	fprintf(fp_packet,"flowId, requiredBW, sub_flow_dest , sub_flow_dest_physical, application_id, is_First, packet_id, dstNodeId,srcNodeId, is_write, creation_time\n");
+	fclose(fp_packet);
 
 	BaseTopology* t1;
 
@@ -120,8 +123,6 @@ int main(int argc, char *argv[]) {
 
 	FILE *fp_host;
 
-	FILE *fp_packet;
-
 	FILE *fp_host_info;
 
 	FILE *fp_host_by_packets;
@@ -140,7 +141,7 @@ int main(int argc, char *argv[]) {
 
 	fp_chunks_by_packets = fopen("chunk_utilization_by_packets.csv","w");
 
-	fp_packet= fopen("all_packets.csv","w");
+
 
 	uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
@@ -158,7 +159,6 @@ int main(int argc, char *argv[]) {
 
 	fprintf(fp_chunks_by_packets,"Chunk, Total Packets, Total Packets Destination, Difference, Total Copies\n");
 
-	fprintf(fp_packet,"flowId, requiredBW, sub_flow_dest , sub_flow_dest_physical, application_id, is_First, packet_id, dstNodeId,srcNodeId, is_write, creation_time\n");
 
 	uint32_t frequency;
 
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
 	fclose(fp_host_info_packets);
 
 	fclose(fp_chunks_by_packets);
-	fclose(fp_packet);
+
 
 	NS_LOG_UNCOND(
 			"\nStatistics: JB: The Total number of flow that has minimum of 1 packets to the destination " << flow_count << " The number of dropped flow " << thresehold_flow);
