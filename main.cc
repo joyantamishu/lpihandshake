@@ -118,7 +118,9 @@ int main(int argc, char *argv[]) {
 	}
 
 
-	FILE * fp_host;
+	FILE *fp_host;
+
+	FILE *fp_packet;
 
 	FILE *fp_host_info;
 
@@ -138,6 +140,8 @@ int main(int argc, char *argv[]) {
 
 	fp_chunks_by_packets = fopen("chunk_utilization_by_packets.csv","w");
 
+	fp_packet= fopen("all_packets.csv","w");
+
 	uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
 	double total_utilization = 0.0;
@@ -153,6 +157,8 @@ int main(int argc, char *argv[]) {
 	fprintf(fp_host_by_packets,"Host, Total Packets, utilization_by_flow_calculation, utilization_by_packets\n");
 
 	fprintf(fp_chunks_by_packets,"Chunk, Total Packets, Total Packets Destination, Difference, Total Copies\n");
+
+	fprintf(fp_packet,"flowId, requiredBW, sub_flow_dest , sub_flow_dest_physical, application_id, is_First, packet_id, dstNodeId,srcNodeId, is_write, creation_time\n");
 
 	uint32_t frequency;
 
@@ -266,6 +272,7 @@ int main(int argc, char *argv[]) {
 	fclose(fp_host_info_packets);
 
 	fclose(fp_chunks_by_packets);
+	fclose(fp_packet);
 
 	NS_LOG_UNCOND(
 			"\nStatistics: JB: The Total number of flow that has minimum of 1 packets to the destination " << flow_count << " The number of dropped flow " << thresehold_flow);
@@ -303,6 +310,18 @@ int main(int argc, char *argv[]) {
 	NS_LOG_UNCOND("BaseTopology::total_non_consistency_packets "<<BaseTopology::total_non_consistency_packets);
 
 	double average_delay_burst = BaseTopology::sum_delay_ms_burst/ (double)BaseTopology::total_events_learnt_burst;
+
+	NS_LOG_UNCOND("BaseTopology::sum_delay_ms"<<BaseTopology::sum_delay_ms);
+
+    NS_LOG_UNCOND("BaseTopology::sum_delay_ms_burst"<<BaseTopology::sum_delay_ms_burst);
+
+    NS_LOG_UNCOND("BaseTopology::sum_delay_ms_no_burst"<<BaseTopology::sum_delay_ms_no_burst);
+
+	NS_LOG_UNCOND("BaseTopology::total_events_learnt_burst "<<BaseTopology::total_events_learnt_burst);
+
+	NS_LOG_UNCOND("BaseTopology::total_events_learnt_no_burst "<<BaseTopology::total_events_learnt_no_burst);
+
+	NS_LOG_UNCOND("BaseTopology::total_events_learnt "<<BaseTopology::total_events_learnt);
 
 	double average_delay_no_burst = BaseTopology::sum_delay_ms_no_burst/ (double)BaseTopology::total_events_learnt_no_burst;
 

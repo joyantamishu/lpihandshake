@@ -61,15 +61,16 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 		flow_entry.set_bandwidth(m_requiredBW);
 		flow_entry.destination_node = FindCorrespondingNodeId(m_dst);
 		Ipv4GlobalRouting::flow_map[m_flowId] = flow_entry;
+		NS_LOG_UNCOND(" flow id "<< m_flowId<<" flow source "<< m_src << " flow destination "<<m_dst<< " flow_entry.destination_node "<< flow_entry.destination_node);
 	}
 	else
 	{
 
-		//NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
+		NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
 		{
 
-			//NS_LOG_UNCOND("packet->sub_flow_dest_physical "<<packet->sub_flow_dest_physical);
+			NS_LOG_UNCOND("packet->sub_flow_dest_physical "<<packet->sub_flow_dest_physical);
 
 			BaseTopology::total_packet_count--;
 
@@ -110,7 +111,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 
 
-				BaseTopology::sum_delay_ms += current_simulation_time - packet->creation_time;
+				BaseTopology::sum_delay_ms += (current_simulation_time - packet->creation_time);
 
 				BaseTopology::total_events_learnt++;
 
@@ -122,13 +123,13 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			if(packet->is_phrase_changed)
 			{
-				BaseTopology::sum_delay_ms_burst += current_simulation_time - packet->creation_time;
+				BaseTopology::sum_delay_ms_burst += (current_simulation_time - packet->creation_time);
 
 				BaseTopology::total_events_learnt_burst++;
 			}
 			else
 			{
-				BaseTopology::sum_delay_ms_no_burst += current_simulation_time - packet->creation_time;
+				BaseTopology::sum_delay_ms_no_burst += (current_simulation_time - packet->creation_time);
 
 				BaseTopology::total_events_learnt_no_burst++;
 			}

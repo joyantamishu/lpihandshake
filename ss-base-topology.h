@@ -199,8 +199,8 @@ typedef struct chunk{
 	  count = 0;
 	  highCopyCount=0;
 	  emerCopyCount=0;
-	  last_created_timestamp_for_chunk=0;
-	  last_deleted_timestamp_for_chunk=0;
+	  last_created_timestamp_for_chunk=time(0);
+	  last_deleted_timestamp_for_chunk=time(0);
 	}
 }chunkCopy;
 

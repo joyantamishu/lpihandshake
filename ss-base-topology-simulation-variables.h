@@ -27,6 +27,8 @@
 
 #define COMPILE_CUSTOM_ROUTING_CODE				true
 
+#define OPTIMIZER								false
+
 namespace ns3 {
 
 enum PacketPriority {
