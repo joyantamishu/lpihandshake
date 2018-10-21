@@ -66,11 +66,14 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 	else
 	{
 
-		NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
+	//	NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
 		{
 
-			NS_LOG_UNCOND("packet->sub_flow_dest_physical "<<packet->sub_flow_dest_physical);
+			FILE *fp_packet;
+			fp_packet= fopen("all_packets_rcv.csv","a");
+
+		//	NS_LOG_UNCOND("packet->sub_flow_dest_physical "<<packet->sub_flow_dest_physical);
 
 			BaseTopology::total_packet_count--;
 
@@ -82,6 +85,10 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination = Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination +1;
 
 			double current_simulation_time = Simulator::Now().ToDouble(Time::US);
+
+			fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
+
+			fclose(fp_packet);
 
 			double delay_by_packet = current_simulation_time - packet->creation_time;
 

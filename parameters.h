@@ -43,7 +43,7 @@
 
 // Tick model parameter
 #define DefaultUseTickBasedModel			false
-#define DefaultTimeDurationMilliSec			2.77//4.5				// Apr 23, New Discussion
+#define DefaultTimeDurationMilliSec			.6//4.5				// Apr 23, New Discussion
 
 // Markov Model parameters
 #define DefaultUseMarkovModel				false

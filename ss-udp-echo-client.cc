@@ -1762,7 +1762,7 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 
 
 	FILE *fp_packet;
-	fp_packet= fopen("all_packets.csv","a");
+	fp_packet= fopen("all_packets_send.csv","a");
 	//value = getChunkLocation(value, &version);
 
 	/**********Added By Joyanta *************/
@@ -1787,7 +1787,7 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 
 	t_p->is_phrase_changed = false;
 
-	printf("%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
+//	printf("%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
 	fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
 
 	if(BaseTopology::total_phrase_changed == 3)

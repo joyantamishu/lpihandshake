@@ -63,9 +63,14 @@ int main(int argc, char *argv[]) {
 		NS_LOG_UNCOND("error while deleting the file");
 	}
 	FILE *fp_packet;
-	fp_packet= fopen("all_packets.csv","w");
+	fp_packet= fopen("all_packets_send.csv","w");
 	fprintf(fp_packet,"flowId, requiredBW, sub_flow_dest , sub_flow_dest_physical, application_id, is_First, packet_id, dstNodeId,srcNodeId, is_write, creation_time\n");
 	fclose(fp_packet);
+
+	FILE *fp_packet_s;
+	fp_packet_s= fopen("all_packets_rcv.csv","w");
+	fprintf(fp_packet_s,"flowId, requiredBW, sub_flow_dest , sub_flow_dest_physical, application_id, is_First, packet_id, dstNodeId,srcNodeId, is_write, creation_time, reached_at,e2eDelay\n");
+	fclose(fp_packet_s);
 
 	BaseTopology* t1;
 
