@@ -55,7 +55,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 
 				BaseTopology::rollback_packets +=  num_of_packets;
 				BaseTopology::transaction_rollback_packets[dest][index] = 0;
-				//BaseTopology::InjectANewRandomFlowCopyCreation (index, dest, num_of_packets);
+				BaseTopology::InjectANewRandomFlowCopyCreation (index, dest, num_of_packets);
 
 			}
 		}
