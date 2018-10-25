@@ -672,7 +672,7 @@ void ssUdpEchoClient::StartApplication() {
     //NS_LOG_UNCOND("%^&%&^%&^^&^&^&*^ "<<m_flowRequiredBW);
 
     uint32_t version;
-    float alpha =1;
+    float alpha =.75;
 
     int socket_index;
 
@@ -1026,7 +1026,7 @@ void ssUdpEchoClient::StopApplication(void) {
 
 	uint32_t version;
 
-	float alpha=1;
+	float alpha=.75;
 	int socket_index;
 	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
     //uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
@@ -1532,6 +1532,8 @@ void ssUdpEchoClient::Send(void) {
 
 		if(ReadWriteCalculation->GetValue() > READ_WRITE_RATIO) //this is write request
 		{
+			BaseTopology::chnkCopy[chunk_value].uniqueWrite++;
+
 			num_of_packets_to_send = BaseTopology::chunkTracker.at(chunk_value).number_of_copy + 1;
 
 			NS_LOG_UNCOND("The num_of_packets_to_send "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);

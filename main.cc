@@ -72,6 +72,11 @@ int main(int argc, char *argv[]) {
 	fprintf(fp_packet_s,"flowId, requiredBW, sub_flow_dest , sub_flow_dest_physical, application_id, is_First, packet_id, dstNodeId,srcNodeId, is_write, creation_time, reached_at,e2eDelay\n");
 	fclose(fp_packet_s);
 
+	FILE *fp_chunk_utilization;
+	fp_chunk_utilization = fopen("chunk_readwrite_utilization.csv","w");
+	fprintf(fp_chunk_utilization,"Chunk, RW, no of copies, read_count, read Utilization ,unique write count at send side, cumulative_write, write count ,write Utilization\n");
+	fclose(fp_chunk_utilization);
+
 	BaseTopology* t1;
 
 	setStaticVariablesFromCommandLine(argc, argv);
@@ -136,6 +141,8 @@ int main(int argc, char *argv[]) {
 
 	FILE *fp_chunks_by_packets;
 
+
+
 	fp_host = fopen ("host_utilization.csv","w");
 
 	fp_host_info = fopen ("host_utilization_by_host.csv","w");
@@ -145,7 +152,6 @@ int main(int argc, char *argv[]) {
 	fp_host_by_packets = fopen ("host_utilization_by_packets.csv","w");
 
 	fp_chunks_by_packets = fopen("chunk_utilization_by_packets.csv","w");
-
 
 
 	uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
@@ -279,6 +285,8 @@ int main(int argc, char *argv[]) {
 	fclose(fp_chunks_by_packets);
 
 
+
+
 	NS_LOG_UNCOND(
 			"\nStatistics: JB: The Total number of flow that has minimum of 1 packets to the destination " << flow_count << " The number of dropped flow " << thresehold_flow);
 
@@ -336,6 +344,7 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_UNCOND("These are the number of packets sent during any copy creation "<<BaseTopology::total_number_of_packet_for_copy_creation);
 
+	NS_LOG_UNCOND("tail latency"<<BaseTopology::tail_latency);
 
 
 

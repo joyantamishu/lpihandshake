@@ -318,11 +318,11 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	fclose(fp_flow_duration);
 
 
-//	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
-//		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
-//				<< "] exceeds simStop time");
-//		return;
-//	}
+	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
+		SS_APPLIC_LOG("New flow [" << m_flowCount << "] **disabled** because appDuration [" << t_appStopTimeRandom.ToDouble(Time::MS)
+				<< "] exceeds simStop time");
+		return;
+	}
 	// removed MR while loop... (take from previous backup code if needed),,,sanjeev May 10
 	t_reqBW = m_randomBWVariable->GetInteger();
 

@@ -35,7 +35,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			this << "Sanjeev: Add your custom ROUTING logic, and decide how to RECEIVE this packet routing");
 #if COMPILE_CUSTOM_ROUTING_CODE
 	Ptr<Node> n = GetNode();
-
+	double alpha=0.75;
 	//NS_LOG_UNCOND("The node id is "<<n->GetId());
 
 	flow_info flow_entry;
@@ -143,7 +143,68 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			BaseTopology::total_packets_to_chunk_destination[packet->sub_flow_id]++;
 
+			//keeping track of the tail latency
+			if ((current_simulation_time - packet->creation_time)>BaseTopology::tail_latency)
+				BaseTopology::tail_latency=(current_simulation_time - packet->creation_time);
 
+
+			//This is to keep chunk level read and write statistics------------------------
+			if(packet->is_write)
+			{
+				BaseTopology::chnkCopy[packet->sub_flow_id].writeCount++;
+				//BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization+=simulationRunProperties::packetSize;
+			}
+			else
+			{
+				BaseTopology::chnkCopy[packet->sub_flow_id].readCount++;
+				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
+			}
+
+			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered==0)
+				BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
+
+
+
+			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered!=0 && (current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered)>100000)//calculate after 100 millisec
+			{
+				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization=(BaseTopology::chnkCopy[packet->sub_flow_id].readCount*8*simulationRunProperties::packetSize)/Count*(current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered);
+				FILE * fp_chunk_utilization;
+				fp_chunk_utilization = fopen("chunk_readwrite_utilization.csv","a");
+
+				double numerator_r=(BaseTopology::chnkCopy[packet->sub_flow_id].readCount*8*simulationRunProperties::packetSize);
+				double denominator_r=Count*(current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered);
+				BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization=((numerator_r/denominator_r)*100)*alpha+(1-alpha)*BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization;
+
+				double numerator_w=(BaseTopology::chnkCopy[packet->sub_flow_id].writeCount*8*simulationRunProperties::packetSize);
+				double denominator_w=Count*(current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered);
+				BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization=((numerator_w/denominator_w)*100)*alpha+(1-alpha)*BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization;
+
+
+				//NS_LOG_UNCOND("chunk id "<<packet->sub_flow_id<<" BaseTopology::chnkCopy[packet->sub_flow_id].readCount  "<<BaseTopology::chnkCopy[packet->sub_flow_id].readCount<<"numereator read " <<numerator_r <<" denominator read "<< denominator_r<<"numereator write " <<numerator_w <<" denominator write "<< denominator_w<<" BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization  "<<BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization<<" BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization  "<<BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization);
+				BaseTopology::chnkCopy[packet->sub_flow_id].cumulative_write_sum+=BaseTopology::chnkCopy[packet->sub_flow_id].writeCount;
+
+				//calculate utilization and reset the counters ; need smoothing as well
+				if (packet->is_write)
+				{
+					fprintf(fp_chunk_utilization,"%d,write,%d,%d,%f,%d,%d,%d,%f\n",packet->sub_flow_id,BaseTopology::chnkCopy[packet->sub_flow_id].count,BaseTopology::chnkCopy[packet->sub_flow_id].readCount,BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization,BaseTopology::chnkCopy[packet->sub_flow_id].uniqueWrite,BaseTopology::chnkCopy[packet->sub_flow_id].cumulative_write_sum,BaseTopology::chnkCopy[packet->sub_flow_id].writeCount,BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization);
+					BaseTopology::chnkCopy[packet->sub_flow_id].readCount=0;
+					BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
+					BaseTopology::chnkCopy[packet->sub_flow_id].writeCount=1;
+
+				}
+				else
+				{
+					fprintf(fp_chunk_utilization,"%d,read,%d,%d,%f,%d,%d,%d,%f\n",packet->sub_flow_id,BaseTopology::chnkCopy[packet->sub_flow_id].count,BaseTopology::chnkCopy[packet->sub_flow_id].readCount,BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization,BaseTopology::chnkCopy[packet->sub_flow_id].uniqueWrite,BaseTopology::chnkCopy[packet->sub_flow_id].cumulative_write_sum,BaseTopology::chnkCopy[packet->sub_flow_id].writeCount,BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization);
+					BaseTopology::chnkCopy[packet->sub_flow_id].readCount=1;
+					BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
+					BaseTopology::chnkCopy[packet->sub_flow_id].writeCount=0;
+				}
+				//BaseTopology::chnkCopy[packet->sub_flow_id].uniqueWrite=0;
+				fclose(fp_chunk_utilization);
+
+			}
+
+				//This is to keep chunk level read and write statistics------------------------
 
 			//NS_LOG_UNCOND("delay_by_packet "<<delay_by_packet);
 

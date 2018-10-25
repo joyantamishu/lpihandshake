@@ -420,6 +420,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 		ns3::BaseTopology::application_assignment_to_node[i] = new uint32_t[total_applications+1];
 		ns3::BaseTopology::application_assignment_to_node[i][0] = 0;
 		BaseTopology::total_packets_to_hosts_bits[i] = 0;
+	//	BaseTopology::total_packets_to_hosts_bits_old[i] = 0;
 
 	}
 
@@ -501,7 +502,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_intensity_value[1] = 1.0;
 
-	BaseTopology::phrase_change_intensity_value[2] = 1.0;
+	BaseTopology::phrase_change_intensity_value[2] = 2.0;
 
 	BaseTopology::phrase_change_intensity_value[3] = 1.0;
 
@@ -512,7 +513,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_interval[1] = 1000;
 
-	BaseTopology::phrase_change_interval[2] = 1000;
+	BaseTopology::phrase_change_interval[2] = 3000;
 
 	BaseTopology::phrase_change_interval[3] = 100;
 
@@ -638,7 +639,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 			BooleanValue(true)); // enable multi-path route
 	Config::SetDefault("ns3::Ipv4GlobalRouting::RespondToInterfaceEvents",
 			BooleanValue(true));
-	Config::SetDefault("ns3::DropTailQueue::MaxPackets", UintegerValue(1000000));
+	//Config::SetDefault("ns3::DropTailQueue::MaxPackets", UintegerValue(10));
 	/*
 	 FROM WIKIPAGES:
 	 https://en.wikipedia.org/wiki/Data_center_network_architectures
@@ -713,8 +714,16 @@ void FatTreeTopology::BuildInitialTopology(void) {
 
 	ssPointToPointHelper p2p;
 	ssPointToPointHelper p2pSSD;
-	p2p.SetQueue("ns3::DropTailQueue");
-	p2pSSD.SetQueue("ns3::DropTailQueue");
+	//p2p.SetQueue("ns3::DropTailQueue");
+	//p2pSSD.SetQueue("ns3::DropTailQueue");
+
+//	p2p.SetQueue ("ns3::DropTailQueue",
+//	                                 "Mode", StringValue ("QUEUE_MODE_PACKETS"),
+//	                                 "MaxPackets", UintegerValue (100));
+//
+//	p2pSSD.SetQueue ("ns3::DropTailQueue",
+//	                                 "Mode", StringValue ("QUEUE_MODE_PACKETS"),
+//	                                 "MaxPackets", UintegerValue (100));
 
 	char *add;
 	const char *ipv4Mask = "255.255.255.0";

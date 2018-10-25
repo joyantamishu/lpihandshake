@@ -29,7 +29,7 @@
 
 // Energy source/model values
 #define DefaultEnergyMeterUpdateIntervalSec		0.01			// sanjeev. mar 23. May 1st = moved here
-#define CLIENTSTOPTHRESHOLD						1.0
+#define CLIENTSTOPTHRESHOLD						.98
 
 #define NUMBER_OF_ACTIVE_FLOWS						(m_flowCount - m_totalStoppedFlowCounter)
 
@@ -194,13 +194,27 @@ typedef struct chunk{
   int emerCopyCount;
   time_t last_created_timestamp_for_chunk;
   time_t last_deleted_timestamp_for_chunk;
+  uint32_t readCount;
+  uint32_t writeCount;
+  uint32_t uniqueWrite;
+  uint32_t cumulative_write_sum;
+  double readUtilization;
+  double writeUtilization;
+  double first_time_entered;
   chunk()
 	{
-	  count = 0;
-	  highCopyCount=0;
-	  emerCopyCount=0;
-	  last_created_timestamp_for_chunk=time(0);
-	  last_deleted_timestamp_for_chunk=time(0);
+		count = 0;
+		highCopyCount=0;
+		emerCopyCount=0;
+		last_created_timestamp_for_chunk=time(0);
+		last_deleted_timestamp_for_chunk=time(0);
+		readCount=0;
+		writeCount=0;
+		readUtilization=0.0;
+		writeUtilization=0.0;
+		first_time_entered=0.0;
+		uniqueWrite=0;
+		cumulative_write_sum=0;
 	}
 }chunkCopy;
 
@@ -330,6 +344,8 @@ public:
 	static Pod *p;
 	static Pod *q;
 
+	static double tail_latency;
+
 	static uint32_t sleeping_nodes;
 
 	static Result *res;
@@ -388,6 +404,8 @@ public:
 	static uint32_t current_number_of_flows;
 
 	static uint32_t *total_packets_to_hosts_bits;
+
+	//static uint32_t *total_packets_to_hosts_bits_old;
 
 	static uint32_t total_events;
 
