@@ -81,6 +81,19 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 	uint32_t total_hosts_in_pod = total_hosts / simulationRunProperties::k;
 
 	//uint32_t physical_host_number;
+
+	for(uint32_t host_index = 0; host_index < total_hosts ; host_index++)
+	{
+		BaseTopology::transaction_rollback_packets[host_index] = new uint32_t[total_hosts];
+		BaseTopology::transaction_rollback_write_tracker[host_index] = new uint32_t[total_hosts];
+
+		for(uint32_t index=0;index<total_hosts;index++)
+		{
+			BaseTopology::transaction_rollback_packets[host_index][index] = 0;
+			BaseTopology::transaction_rollback_write_tracker[host_index][index] = 0;
+		}
+	}
+
 	for(uint32_t index= 0 ; index <chunk_number; index++)
 	{
 		uint32_t logical_node_id = index%total_hosts;

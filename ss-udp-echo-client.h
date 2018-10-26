@@ -139,13 +139,16 @@ protected:
 	virtual void ScheduleTransmit(Time dt);
 	// simplified, sanjeev 2/25
 	virtual Ptr<Packet> createPacket(void);
-	virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
+	virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version, bool sync_packet = false, bool copy_creation = false);
+	//virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
 	virtual Ptr<Packet> createPacket(const uint32_t &flowId,
 			const uint32_t &packetId, const uint32_t &required,
 			const bool &last1, const appType &dummy2, const bool &isFirstPacket,
 			const uint64_t &FlowStartTimeNanoSec,
 			const PacketPriority &priority, const Ipv4Address &src,
-			const Ipv4Address &dst, uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
+			const Ipv4Address &dst, uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version,  bool sync_packet = false, bool copy_creation = false);
+			//const Ipv4Address &dst, uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
+
 	virtual void setFlowVariables(void);
 	virtual double GetHostSpecificVariance(void);		// may 14
 

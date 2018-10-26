@@ -346,7 +346,7 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_UNCOND("tail latency"<<BaseTopology::tail_latency);
 
-
+	NS_LOG_UNCOND("Total Roll-back Packets "<<BaseTopology::rollback_packets);
 
 
 	return 0;

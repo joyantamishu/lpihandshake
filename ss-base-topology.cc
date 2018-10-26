@@ -152,6 +152,12 @@ uint32_t BaseTopology::max_chunk_by_application = 0;
 
 uint32_t BaseTopology::total_number_of_packet_for_copy_creation=0;
 
+uint32_t** BaseTopology::transaction_rollback_packets = new uint32_t*[total_hosts_in_system];
+
+uint32_t** BaseTopology::transaction_rollback_write_tracker = new uint32_t *[total_hosts_in_system];
+
+uint32_t BaseTopology::rollback_packets = 0;
+
 double BaseTopology::tail_latency=0.0;
 
 
@@ -712,7 +718,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 							 && max_chunk_u<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum
 							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum>max_node_u*theta//0.5*beyond_cutoff  //not sure about this condition
 		   					 /*&& BaseTopology::chnkCopy[BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number].count<number_of_hosts*/
-							 && (double(1/BaseTopology::chnkCopy[l].count)-double(1/(BaseTopology::chnkCopy[max_chunk_no].count+1)))*BaseTopology::chnkCopy[l].readUtilization> (BaseTopology::chnkCopy[l].writeUtilization/double(BaseTopology::chnkCopy[l].count))) //also check whether the chunk is valid in the node -sinceit could be deleted
+							 && BaseTopology::chnkCopy[l].readUtilization> (BaseTopology::chnkCopy[l].writeUtilization/double(BaseTopology::chnkCopy[l].count))*(BaseTopology::chnkCopy[l].count+1)) //also check whether the chunk is valid in the node -sinceit could be deleted
 		      	 		 {
 		      	 			 max_chunk_no=BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number;
 		      	 			 max_chunk_u = BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum;

@@ -446,6 +446,12 @@ public:
 
 	static uint32_t max_chunk_by_application;
 
+	static uint32_t **transaction_rollback_packets;
+
+	static uint32_t **transaction_rollback_write_tracker;
+
+	static uint32_t rollback_packets;
+
 protected:
 	virtual void DoDispose(void);
 	virtual void DisplayCommandLine(void);
