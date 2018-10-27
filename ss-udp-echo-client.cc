@@ -664,6 +664,8 @@ void ssUdpEchoClient::StartApplication() {
 
                 BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
 
+                BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][destination] = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number];
+
             }
 
 
@@ -1302,10 +1304,10 @@ void ssUdpEchoClient::Send(void) {
 
 		if(is_write)
 		{
-			uint32_t host_id = dest_value/(SSD_PER_RACK+1);
+			//uint32_t host_id = dest_value/(SSD_PER_RACK+1);
 
 			//NS_LOG_UNCOND(" dest_value "<<dest_value<<" host_id "<<host_id);
-			BaseTopology::chunk_version_node_tracker[chunk_value][host_id]++;
+			//BaseTopology::chunk_version_node_tracker[chunk_value][host_id]++;
 		}
 
 		
