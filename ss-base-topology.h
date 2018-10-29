@@ -413,6 +413,8 @@ public:
 
 	static uint32_t *chunk_version_tracker;
 
+	static uint32_t *chunk_version_reached_tracker;
+
 	static uint32_t **chunk_version_node_tracker;
 
 	static bool **chunk_copy_node_tracker;

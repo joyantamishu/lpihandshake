@@ -126,6 +126,8 @@ double BaseTopology::sum_of_number_time_packets = 0.0;
 
 uint32_t *BaseTopology::chunk_version_tracker = new uint32_t[simulationRunProperties::total_chunk + 1];
 
+uint32_t *BaseTopology::chunk_version_reached_tracker = new uint32_t[simulationRunProperties::total_chunk + 1];
+
 uint32_t** BaseTopology::chunk_version_node_tracker = new uint32_t* [simulationRunProperties::total_chunk];
 
 bool** BaseTopology::chunk_copy_node_tracker = new bool* [simulationRunProperties::total_chunk];

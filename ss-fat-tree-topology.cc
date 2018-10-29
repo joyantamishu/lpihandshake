@@ -110,6 +110,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		BaseTopology::chunk_version_tracker[index] = 0;
 
+		BaseTopology::chunk_version_reached_tracker[index] = 0;
+
 		//for(uint32_t host_index=0; host_index<total_hosts/(SSD_PER_RACK+1); host_index++)
 		//{
 		BaseTopology::chunk_version_node_tracker[index] = new uint32_t[total_hosts];

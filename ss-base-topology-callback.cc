@@ -38,6 +38,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 	uint32_t source = (uint32_t)(packet->srcNodeId -20);
 	if(packet->sync_packet)
 	{
+
 		if(BaseTopology::transaction_rollback_write_tracker[dest][source] <=0)
 		{
 			NS_LOG_UNCOND(" dest "<<dest<<" source "<<source);
@@ -64,8 +65,14 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 	{
 		if(!packet->copy_creation_packet && BaseTopology::transaction_rollback_write_tracker[dest][source] > 0)
 		{
-			if(BaseTopology::chunk_version_tracker[packet->sub_flow_id] != BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]) BaseTopology::transaction_rollback_packets[dest][source]++;
+			if(BaseTopology::chunk_version_reached_tracker[packet->sub_flow_id] > BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest])
+			{
+				BaseTopology::transaction_rollback_packets[dest][source]++;
+			}
 		}
+
+			//if(BaseTopology::chunk_version_tracker[packet->sub_flow_id] != BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]) BaseTopology::transaction_rollback_packets[dest][source]++;
+
 	}
 }
 
@@ -108,7 +115,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 	}
 	else
 	{
-		uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+		//uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
 	//	NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination
@@ -199,27 +206,14 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			{
 				BaseTopology::chnkCopy[packet->sub_flow_id].writeCount++;
 
-//				bool update_required = true;
-//
-//				uint32_t result = 0;
-//
-//				for(uint32_t host_index=0; host_index<total_hosts_in_system;host_index++)
-//				{
-//					if(BaseTopology::chunk_copy_node_tracker[packet->sub_flow_id][host_index])
-//					{
-//						result += BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][host_index] ^ BaseTopology::chunk_version_tracker[packet->sub_flow_id];
-//
-//						if(result > 0)
-//						{
-//							update_required = false;
-//
-//							break;
-//						}
-//					}
-//				}
-
-				//if(update_required) BaseTopology::chunk_version_tracker[packet->sub_flow_id]++;
+				if(BaseTopology::chunk_version_reached_tracker[packet->sub_flow_id] < BaseTopology::chunk_version_tracker[packet->sub_flow_id])
+				{
+					//NS_LOG_UNCOND("BaseTopology::chunk_version_reached_tracker[packet->sub_flow_id] "<<BaseTopology::chunk_version_reached_tracker[packet->sub_flow_id]);
+					BaseTopology::chunk_version_reached_tracker[packet->sub_flow_id]++;
+				}
 				BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]++;
+
+				//BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]++;
 				//BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization+=simulationRunProperties::packetSize;
 			}
 			else
