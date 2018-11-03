@@ -79,8 +79,8 @@ void ssUdpEchoClientHelper::SetAttribute(std::string name,
 	m_factory.Set(name, value);
 }
 
-ApplicationContainer ssUdpEchoClientHelper::Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node, uint32_t no_of_packets) const {
-	return ApplicationContainer(InstallPriv(node,single_destination_flow, source_node, app_id, dest_node, no_of_packets));
+ApplicationContainer ssUdpEchoClientHelper::Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node, uint32_t no_of_packets, bool read_flow) const {
+	return ApplicationContainer(InstallPriv(node,single_destination_flow, source_node, app_id, dest_node, no_of_packets, read_flow));
 }
 
 ApplicationContainer ssUdpEchoClientHelper::Install(NodeContainer c) const {
@@ -95,7 +95,7 @@ ApplicationContainer ssUdpEchoClientHelper::Install(NodeContainer c) const {
 	return apps;
 }
 
-Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node, uint32_t no_of_packets) const {
+Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node, uint32_t no_of_packets, bool read_flow) const {
 	Ptr<ssUdpEchoClient> app = m_factory.Create<ssUdpEchoClient>();
 
 	NS_LOG_UNCOND("The source node is "<<source_node);
@@ -115,8 +115,10 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 
 	app->application_index = app_id;
 
-
 	app->consistency_flow = single_destination_flow;
+
+	app->read_flow = read_flow;
+
 	node->AddApplication(app);
 
 	return app;
@@ -245,6 +247,8 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	sync_sockets = new Ptr<Socket>[BaseTopology::max_chunk_by_application];
 
 	total_sync_sockets = 0;
+
+	read_flow = true;
 
 
 
@@ -1275,7 +1279,7 @@ void ssUdpEchoClient::Send(void) {
 			NS_LOG_UNCOND("The num_of_packets_to_send "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
 
 			BaseTopology::total_packet_count += num_of_packets_to_send -1 ;
-			is_write = true;
+			is_write = read_flow;
 			BaseTopology::chunk_version_tracker[chunk_value]++;
 		}
 	}

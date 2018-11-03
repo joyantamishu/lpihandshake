@@ -272,7 +272,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			}
 
-			ManageOppurtunisticTransaction(packet);
+			//ManageOppurtunisticTransaction(packet);
 
 				//This is to keep chunk level read and write statistics------------------------
 		

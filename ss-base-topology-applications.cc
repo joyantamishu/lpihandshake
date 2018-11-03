@@ -261,7 +261,7 @@ void BaseTopology::InjectInitialFlowsMR(const int &requiredInitialFlowCount) {
 	InjectANewRandomFlow();
 }
 
-void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets)
+void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow)
 {
 	NS_LOG_UNCOND("Inside InjectANewRandomFlowCopyCreation "<<" src "<<src<<" dest "<<dest<<" number_of_packets "<<number_of_packets);
 
@@ -290,7 +290,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 	static_t_echoClient->SetAttribute("RemoteHost", UintegerValue(static_t_server->GetId()));
 	static_t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(BaseTopology::consistency_flow));
 	static_t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(100));
-	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets);
+	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow);
 
 	static_t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
 	static_t_allClientApps.Stop(static_t_appStopTimeRandom);

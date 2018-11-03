@@ -311,7 +311,7 @@ public:
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
 			const uint16_t &flowBW);
 
-	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets);
+	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true);
 
 	static FlowDataCollected *m_flowData;
 	static std::ofstream fpDeviceEnergy;
