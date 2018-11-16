@@ -265,13 +265,13 @@ int main(int argc, char *argv[]) {
 		//NS_LOG_UNCOND("Host No "<<i<<" Running Avg of utilization "<<BaseTopology::host_running_avg_bandwidth[i]/(double)BaseTopology::host_running_avg_counter);
 	}
 
-	for(uint32_t chunk_id=0;chunk_id<simulationRunProperties::total_chunk;chunk_id++)
-	{
-		if(BaseTopology::chunkTracker.at(chunk_id).number_of_copy >= 1)
-		{
-			fprintf(fp_chunks_by_packets,"%d,%d,%d,%d,%d\n",chunk_id, BaseTopology::total_packets_to_chunk[chunk_id], BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::total_packets_to_chunk[chunk_id]- BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::chunkTracker.at(chunk_id).number_of_copy);
-		}
-	}
+//	for(uint32_t chunk_id=0;chunk_id<simulationRunProperties::total_chunk;chunk_id++)
+//	{
+//		if(BaseTopology::chunkTracker.at(chunk_id).number_of_copy >= 1)
+//		{
+//			fprintf(fp_chunks_by_packets,"%d,%d,%d,%d,%d\n",chunk_id, BaseTopology::total_packets_to_chunk[chunk_id], BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::total_packets_to_chunk[chunk_id]- BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::chunkTracker.at(chunk_id).number_of_copy);
+//		}
+//	}
 
 
 	fclose(fp_host);

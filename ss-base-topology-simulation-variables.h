@@ -27,7 +27,7 @@
 
 #define COMPILE_CUSTOM_ROUTING_CODE				true
 
-#define OPTIMIZER								true
+#define OPTIMIZER								false
 
 namespace ns3 {
 

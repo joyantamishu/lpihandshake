@@ -114,7 +114,7 @@ uint32_t BaseTopology::total_events = 0;
 
 uint32_t BaseTopology::total_events_learnt = 0;
 
-uint32_t *BaseTopology::total_packets_to_chunk = new uint32_t[simulationRunProperties::total_chunk];
+//uint32_t *BaseTopology::total_packets_to_chunk = new uint32_t[simulationRunProperties::total_chunk];
 
 uint32_t *BaseTopology::total_packets_to_chunk_destination = new uint32_t[simulationRunProperties::total_chunk];
 
@@ -159,6 +159,8 @@ uint32_t** BaseTopology::transaction_rollback_write_tracker = new uint32_t *[tot
 uint32_t BaseTopology::rollback_packets = 0;
 
 double BaseTopology::tail_latency=0.0;
+
+double *BaseTopology::host_utilization_outgoing = new double[total_hosts_in_system+1];
 
 
 BaseTopology::~BaseTopology() {

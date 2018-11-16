@@ -86,29 +86,6 @@ uint32_t BaseTopology::getCustomizedRandomClientNode(uint32_t &application_id)
 	NS_ASSERT_MSG(i<total_hosts, " Source Not Found ");
 	return -1;
 
-//	uint32_t total_hosts = hosts.GetN();
-//
-//	uint32_t app_id = ns3::BaseTopology::application_selector -> GetInteger();
-//	application_id = app_id;
-//
-//	uint32_t i;
-//	NS_LOG_UNCOND("The app id "<<app_id);
-//	for (i =0;i<total_hosts;i++)
-//	{
-//		for(uint32_t index =1; index <=ns3::BaseTopology::application_assignment_to_node[i][0];index++)
-//		{
-//			if(i == 1) NS_LOG_UNCOND("App id 1 status "<<ns3::BaseTopology::application_assignment_to_node[i][index]);
-//
-//			if(application_id == ns3::BaseTopology::application_assignment_to_node[i][index])
-//			{
-//				NS_ASSERT_MSG(i%(SSD_PER_RACK+1) == 0, "Source should be multiple of "<<(SSD_PER_RACK+1)<<" Currently it is "<<i);
-//				NS_LOG_UNCOND("The node id "<<i<<" Host translation "<<BaseTopology::hostaddresslogicaltophysical[i]<<" the value of application "<<ns3::BaseTopology::application_assignment_to_node[i][index]);
-//				return i;
-//			}
-//		}
-//	}
-//	NS_ASSERT_MSG(i<total_hosts, " Source Not Found ");
-//	return -1;
 }
 
 /*************************************************************/

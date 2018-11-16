@@ -261,11 +261,11 @@ void BaseTopology::InjectInitialFlowsMR(const int &requiredInitialFlowCount) {
 	InjectANewRandomFlow();
 }
 
-void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow)
+void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow, uint32_t required_bandwidth, bool non_consistent_read_flow, double finish_time)
 {
-	NS_LOG_UNCOND("Inside InjectANewRandomFlowCopyCreation "<<" src "<<src<<" dest "<<dest<<" number_of_packets "<<number_of_packets);
+	NS_LOG_UNCOND("Inside InjectANewRandomFlowCopyCreation "<<" src "<<src<<" dest "<<dest<<" number_of_packets "<<number_of_packets<<" required_bandwidth "<<required_bandwidth);
 
-	Time static_t_appStopTimeRandom = Time::FromDouble(CONSISTENCY_FLOW_DUARTION_CONSTANT, Time::MS);
+	Time static_t_appStopTimeRandom = Time::FromDouble(finish_time, Time::MS);
 
 	ApplicationContainer static_t_allClientApps;
 	ssUdpEchoClientHelper *static_t_echoClient;
@@ -289,8 +289,9 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 	static_t_echoClient->SetAttribute("PacketSize", UintegerValue(simulationRunProperties::packetSize)); // run continuous till sim time ends
 	static_t_echoClient->SetAttribute("RemoteHost", UintegerValue(static_t_server->GetId()));
 	static_t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(BaseTopology::consistency_flow));
-	static_t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(100));
-	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow);
+	static_t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(required_bandwidth));
+	static_t_echoClient->SetAttribute("RequiredReadFlowBW", UintegerValue(required_bandwidth));
+	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow, non_consistent_read_flow);
 
 	static_t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
 	static_t_allClientApps.Stop(static_t_appStopTimeRandom);
@@ -311,7 +312,8 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	FILE *fp_flow_duration;
 	NS_LOG_FUNCTION(this);
 
-	t_appStopTimeRandom = Time::FromDouble(m_flowStopDurationTimer->GetValue(),
+	double finish_time = m_flowStopDurationTimer->GetValue();
+	t_appStopTimeRandom = Time::FromDouble(finish_time,
 			Time::MS);
 	fp_flow_duration = fopen ("flow_duration_madhurima.csv","a");
 	fprintf(fp_flow_duration,"%f\n",t_appStopTimeRandom.ToDouble(Time::MS) );
@@ -350,14 +352,13 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	NS_LOG_UNCOND("Be careful, there could be some issue here");
 	t_x = t_b+1;
 
-	//NS_LOG_UNCOND("Here's the issue1");
-//	if (t_x < 0) {
-//		// If returns NO suitable host found, abandon new flow...
-//		SS_APPLIC_LOG(
-//				"*************************** New flow NOT injected:: Failed to find dstNode[" << t_x << "]");
-//		return;
-//	}
-	// now with suitable src & dst , do sanity check...
+
+	uint32_t write_bandwidth = (uint32_t) t_reqBW * ( 1.0 -READ_WRITE_RATIO);
+
+	uint32_t read_bandwidth = (uint32_t) (t_reqBW - write_bandwidth);
+
+	//Create Write Flows
+
 	t_client = DynamicCast<ssNode>(hosts.Get(t_b));
 	t_server = DynamicCast<ssNode>(hosts.Get(t_x));
 	NS_ASSERT_MSG(t_client != NULL && t_server != NULL,
@@ -370,8 +371,10 @@ void BaseTopology::InjectANewRandomFlow(void) {
 			UintegerValue(simulationRunProperties::packetSize)); // run continuous till sim time ends
 	t_echoClient->SetAttribute("RemoteHost", UintegerValue(t_server->GetId()));
 	t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(m_flowCount));
-	t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(t_reqBW));
-	t_allClientApps = t_echoClient->Install(t_client,false, t_b, application_id);
+	t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(write_bandwidth));
+	t_echoClient->SetAttribute("RequiredReadFlowBW", UintegerValue(read_bandwidth));
+	t_echoClient->SetAttribute("FinishTime", DoubleValue(finish_time));
+	t_allClientApps = t_echoClient->Install(t_client,false, t_b, application_id,0);
 
 	t_clientApp = DynamicCast<ssUdpEchoClient>(t_allClientApps.Get(0));
 	t_clientApp->RegisterStartNewFlow_CallbackSS(
@@ -380,6 +383,8 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	// set app start & stop time for apps..flows..
 	t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
 	t_allClientApps.Stop(t_appStopTimeRandom);
+
+	//end Creating Write Flow, Read Flow would be created at the udp-echo client part
 
 	NS_LOG_UNCOND("The app id in injectRandom Flow "<<application_id);
 

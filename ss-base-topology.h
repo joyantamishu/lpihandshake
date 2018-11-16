@@ -311,7 +311,7 @@ public:
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
 			const uint16_t &flowBW);
 
-	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true);
+	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true, uint32_t required_bandwidth = 100, bool non_consistent_read_flow = false, double finish_time= 0.0);
 
 	static FlowDataCollected *m_flowData;
 	static std::ofstream fpDeviceEnergy;
@@ -419,7 +419,7 @@ public:
 
 	////remove this variable after all done
 
-	static uint32_t *total_packets_to_chunk;
+	//static uint32_t *total_packets_to_chunk;
 
 	static uint32_t *total_packets_to_chunk_destination;
 
@@ -451,6 +451,8 @@ public:
 	static uint32_t **transaction_rollback_write_tracker;
 
 	static uint32_t rollback_packets;
+
+	static double *host_utilization_outgoing;
 
 protected:
 	virtual void DoDispose(void);

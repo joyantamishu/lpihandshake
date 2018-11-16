@@ -108,7 +108,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 	}
 	else
 	{
-		uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+		//uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
 	//	NS_LOG_UNCOND("destination_node "<<packet->dstNodeId);
 		if (packet->sub_flow_dest_physical == n->GetId()) //packet has reached the destination

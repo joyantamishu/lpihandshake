@@ -95,7 +95,7 @@
 /******Chunk Specific Change *******************/
 #define DEFAULT_CHUNK_NUMBER						1500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
-#define READ_WRITE_RATIO							.9
+#define READ_WRITE_RATIO							.7
 
 #define DEFAULT_NUMBER_OF_APPLICATIONS				47
 

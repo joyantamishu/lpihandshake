@@ -104,7 +104,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		BaseTopology::virtual_to_absolute_mapper[index] = index;
 
-		BaseTopology::total_packets_to_chunk[index] = 0;
+		//BaseTopology::total_packets_to_chunk[index] = 0;
 
 		BaseTopology::total_packets_to_chunk_destination[index] = 0;
 
@@ -554,6 +554,7 @@ void FatTreeTopology::SetUpNodeUtilizationStatistics()
 		BaseTopology::host_running_avg_counter[i] = 0;
 		Ipv4GlobalRouting::host_utilization_smoothed[i]=0.0;
 		Ipv4GlobalRouting::host_congestion_flag[i]=0;
+		BaseTopology::host_utilization_outgoing[i] = 0.0;
 	}
 }
 

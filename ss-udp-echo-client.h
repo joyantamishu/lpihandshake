@@ -72,11 +72,11 @@ public:
 	ssUdpEchoClientHelper(Ipv4Address ip, uint16_t port);
 	virtual ~ssUdpEchoClientHelper();
 	void SetAttribute(std::string name, const AttributeValue &value);
-	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=true) const;
+	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false) const;
 	ApplicationContainer Install(NodeContainer c) const;
 
 protected:
-	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=true) const;
+	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false) const;
 	ObjectFactory m_factory; //!< Object factory.
 };
 
@@ -118,7 +118,10 @@ public:
 
 	virtual uint32_t getHostInfoMadeBypolicy(uint32_t dest_id);
 
+	virtual void CreateandRemoveIndependentReadFlows(uint32_t distinct_hosts, double finish_time, int create =1);
+
 	bool read_flow;
+
 	/*********************************************/
 
 protected:
@@ -182,9 +185,11 @@ protected:
 	// simplyfied sanjeev 2/25
 	uint64_t m_flowStartTimeNanoSec; // flow age since 1st packet...
 	uint32_t m_flowRequiredBW;
+	uint32_t m_readBandwidth;
 	PacketPriority m_priority;
 	Ipv4Address m_dstIpv4Address;		// destination IP address
-	Ipv4Address m_srcIpv4Address;		// source IP address
+	Ipv4Address m_srcIpv4Address;
+	double m_finish_time;// source IP address
 
 	// Callbacks for tracing the packet Tx events
 	TracedCallback<Ptr<const Packet> > m_txTrace;
