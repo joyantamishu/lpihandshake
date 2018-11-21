@@ -200,8 +200,6 @@ ssUdpEchoClient::ssUdpEchoClient() {
 
 	total_packets_to_send = 0;
 
-
-
 	// initialization only, will be overridden at StartApplication()
 	m_randomVariableInterPacketInterval = NULL;
 	m_startNewFlow_CallbackSS.Nullify();
@@ -256,6 +254,8 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	total_sync_sockets = 0;
 
 	read_flow = true;
+
+	no_packet_flow = false;
 
 
 
@@ -1163,6 +1163,12 @@ void ssUdpEchoClient::setFlowVariables(void) {
 	double t_packet_per_second = m_flowRequiredBW * MEGABITS_TO_BITS
 			/ (m_packetSize * 8);
 
+	if (floor(t_packet_per_second) <= 0.0)
+	{
+		no_packet_flow = true;
+		t_packet_per_second = 1.0;
+
+	}
 
 	double t_interpacketInterval = 1.0 / t_packet_per_second;
 	NS_LOG_FUNCTION(
@@ -1213,14 +1219,6 @@ void ssUdpEchoClient::setFlowVariables(void) {
 
 	/*******Chunk Specific Changes ****************/
 
-	//uint32_t application_id = ns3::BaseTopology::application_assignment_to_node[node_index][application_index];
-
-	//uint32_t number_of_chunks_assigned = ns3::BaseTopology::chunk_assignment_to_applications[application_id][0];
-
-	//ClientChunkAccessGenerator = CreateObject<ZipfRandomVariable>();
-	//ClientChunkAccessGenerator->SetAttribute ("N", IntegerValue (number_of_chunks_assigned));
-	//ClientChunkAccessGenerator->SetAttribute ("Alpha", DoubleValue (simulationRunProperties::ChunkzipfGeneratorAlpha));
-
 	ReadWriteCalculation = CreateObject<UniformRandomVariable> ();
 	ReadWriteCalculation->SetAttribute ("Min", DoubleValue (0.0));
 	ReadWriteCalculation->SetAttribute ("Max", DoubleValue (1.0));
@@ -1243,8 +1241,11 @@ void ssUdpEchoClient::Send(void) {
 	//NS_LOG_UNCOND("BaseTopology::chunkTracker.at(0).number_of_copy "<<BaseTopology::chunkTracker.at(0).number_of_copy);
 	NS_LOG_FUNCTION(this);
 
-	//if(consistency_flow) NS_LOG_UNCOND("Entered Here");
-	//NS_LOG_UNCOND("Entered Here");
+	if(no_packet_flow)
+	{
+		ScheduleTransmit(m_packetInterval);
+		return;
+	}
 	if (m_socket == NULL)
 			return;
 		else

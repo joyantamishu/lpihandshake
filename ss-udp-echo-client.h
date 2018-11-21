@@ -122,6 +122,8 @@ public:
 
 	bool read_flow;
 
+	bool no_packet_flow;
+
 	/*********************************************/
 
 protected:
