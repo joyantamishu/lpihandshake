@@ -419,11 +419,11 @@ void ssUdpEchoClient::CreateandRemoveIndependentReadFlows(uint32_t distinct_host
 			{
 				double chunk_bandwidth_distribution = (ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][chunk_no]/ sum_of_probability) * bandwidth_distribution;
 
-				NS_LOG_UNCOND(ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][chunk_no]);
+				//NS_LOG_UNCOND(ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][chunk_no]);
 
-				NS_LOG_UNCOND(sum_of_probability);
+				//NS_LOG_UNCOND(sum_of_probability);
 
-				NS_LOG_UNCOND("chunk_bandwidth_distribution "<<chunk_bandwidth_distribution);
+				//NS_LOG_UNCOND("chunk_bandwidth_distribution "<<chunk_bandwidth_distribution);
 
 //				/NS_LOG_UNCOND("bandwidth_distribution "<<chunk_bandwidth_distribution);
 
@@ -861,13 +861,13 @@ void ssUdpEchoClient::StopApplication(void) {
 
 		for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
 		{
-			NS_LOG_UNCOND("Here We go");
+			//NS_LOG_UNCOND("Here We go");
 
 			uint32_t chunk_value = destination_chunks[i-1];
 
 			uint32_t chunk_location = getChunkLocation(chunk_value, &version, &socket_index);
 
-			NS_LOG_UNCOND("The chunk Location is "<<chunk_location<<" "<<chunk_value);
+			//NS_LOG_UNCOND("The chunk Location is "<<chunk_location<<" "<<chunk_value);
 
 			double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
 
