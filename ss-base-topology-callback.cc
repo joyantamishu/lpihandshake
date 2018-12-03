@@ -199,25 +199,6 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			{
 				BaseTopology::chnkCopy[packet->sub_flow_id].writeCount++;
 
-//				bool update_required = true;
-//
-//				uint32_t result = 0;
-//
-//				for(uint32_t host_index=0; host_index<total_hosts_in_system;host_index++)
-//				{
-//					if(BaseTopology::chunk_copy_node_tracker[packet->sub_flow_id][host_index])
-//					{
-//						result += BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][host_index] ^ BaseTopology::chunk_version_tracker[packet->sub_flow_id];
-//
-//						if(result > 0)
-//						{
-//							update_required = false;
-//
-//							break;
-//						}
-//					}
-//				}
-
 				//if(update_required) BaseTopology::chunk_version_tracker[packet->sub_flow_id]++;
 				BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]++;
 				//BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization+=simulationRunProperties::packetSize;
@@ -225,7 +206,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			else
 			{
 				BaseTopology::chnkCopy[packet->sub_flow_id].readCount++;
-				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
+
 			}
 
 			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered==0)

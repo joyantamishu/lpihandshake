@@ -401,7 +401,7 @@ void ssUdpEchoClient::CreateandRemoveIndependentReadFlows(uint32_t distinct_host
 
 		double bandwidth_distribution = sum_of_probability * (double)m_readBandwidth * (double)create;
 
-		NS_LOG_UNCOND("bandwidth_distribution "<<bandwidth_distribution);
+		//NS_LOG_UNCOND("bandwidth_distribution "<<bandwidth_distribution);
 
 		//NS_LOG_UNCOND("bandwidth_distribution "<<bandwidth_distribution * (double) create);
 
@@ -462,11 +462,11 @@ void ssUdpEchoClient::StartApplication() {
 
     int socket_index;
 
-    NS_LOG_UNCOND("The bandwidth original "<<m_flowRequiredBW);
+    //NS_LOG_UNCOND("The bandwidth original "<<m_flowRequiredBW);
 
-    NS_LOG_UNCOND("The read bandwidth "<<m_readBandwidth);
+   // NS_LOG_UNCOND("The read bandwidth "<<m_readBandwidth);
 
-    NS_LOG_UNCOND("Finish Time "<<m_finish_time);
+   // NS_LOG_UNCOND("Finish Time "<<m_finish_time);
 
     if(this->consistency_flow)
     {
@@ -517,6 +517,8 @@ void ssUdpEchoClient::StartApplication() {
     }
 
 
+
+
     BaseTopology::total_appication++;
 
     BaseTopology::current_number_of_flows++;
@@ -530,6 +532,8 @@ void ssUdpEchoClient::StartApplication() {
         uint32_t virtual_chunk_number = ns3::BaseTopology::chunk_assignment_to_applications[application_index][chunk_no];
         destination_chunks[chunk_no-1] = ns3::BaseTopology::virtual_to_absolute_mapper[virtual_chunk_number];
     }
+
+
     //NS_LOG_UNCOND("here I am 2");
 
     for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
@@ -707,7 +711,7 @@ void ssUdpEchoClient::StartApplication() {
             uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
             NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
             //commenting off this following line will stop the copy creation
-            //if(num_of_packets_to_send > 0) BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, num_of_packets_to_send);
+           // if(num_of_packets_to_send > 0) BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, num_of_packets_to_send);
 
 //this part of the code places the chunk on the any server in a rack in a round robin fashion
            // BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]++;
@@ -1345,7 +1349,7 @@ void ssUdpEchoClient::Send(void) {
 
 			num_of_packets_to_send = BaseTopology::chunkTracker.at(chunk_value).number_of_copy + 1;
 
-			NS_LOG_UNCOND("The num_of_packets_to_send "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
+			//NS_LOG_UNCOND("The num_of_packets_to_send "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
 
 			BaseTopology::total_packet_count += num_of_packets_to_send -1 ;
 			//is_write = read_flow;
@@ -1365,6 +1369,7 @@ void ssUdpEchoClient::Send(void) {
 
 		else //this is read flow request
 		{
+
 
 			dest_value = single_destination;
 
@@ -1430,7 +1435,7 @@ void ssUdpEchoClient::Send(void) {
 		else //this is not consistency flow and number of packets to be sent is more than 1, and this is a write operation
 		{
 
-			NS_LOG_UNCOND("&&&&&&&&&&&& num_of_packets_to_send &&&&&&&&&&&&& "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
+			//NS_LOG_UNCOND("&&&&&&&&&&&& num_of_packets_to_send &&&&&&&&&&&&& "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
 
 			//uint32_t total_sync_packets = 0;
 			for(uint32_t host_index=0;host_index<total_hosts;host_index++)

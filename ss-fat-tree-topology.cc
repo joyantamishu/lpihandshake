@@ -110,8 +110,6 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		BaseTopology::chunk_version_tracker[index] = 0;
 
-		//for(uint32_t host_index=0; host_index<total_hosts/(SSD_PER_RACK+1); host_index++)
-		//{
 		BaseTopology::chunk_version_node_tracker[index] = new uint32_t[total_hosts];
 
 		BaseTopology::chunk_copy_node_tracker[index] = new bool [total_hosts];
@@ -204,14 +202,6 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					   //
 				       BaseTopology::p[pod].nodes[node].total_chunks++;
 
-					//uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
-
-					//BaseTopology::chunk_copy_node_tracker[value][host_number] = true;
-
-
-
-					//printf ("%d\n",value);
-
 				}
 				count++;
 				//NS_LOG_UNCOND("The count is "<<count);
@@ -293,7 +283,7 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 	NS_LOG_UNCOND("Start SetUpApplicationAssignment");
 
-	for(uint32_t i = 0;i<simulationRunProperties::total_applications;i++)
+	for(uint32_t i = 0;i<simulationRunProperties::total_applications+DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS;i++)
 	{
 		ns3::BaseTopology::chunk_assignment_to_applications[i] = new uint32_t[max_total_chunk_per_application + 1];
 		ns3::BaseTopology::chunk_assignment_to_applications[i][0] = 0;
@@ -311,6 +301,8 @@ void FatTreeTopology::SetUpApplicationAssignment()
 	char str[MAXCHAR];
 	const char* filename = "appfreq.txt";
 
+	const char* dummy_filename = "appfreq_dummy.txt";
+
 	fp = fopen(filename, "r");
 
 	if (fp == NULL){
@@ -320,10 +312,11 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 	double sum_probabilty = 0;
 
-
 	while (fgets(str, MAXCHAR, fp) != NULL)
 	{
 		uint32_t app_id;
+
+
 
 		double sum,probability;
 		if((int)strlen(str) > 1)
@@ -341,9 +334,38 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 	NS_LOG_UNCOND("&&&&&&&&&&&&&7 The probability sum is "<<sum_probabilty);
 
-	fclose(fp);
-	//exit(0);
 
+
+	fclose(fp);
+
+	///Dummy Application Set up
+	fp = fopen(dummy_filename, "r");
+
+	uint32_t app_start = simulationRunProperties::total_applications;
+	if (fp == NULL){
+			printf("Could not open file %s",filename);
+			return;
+	}
+
+	while (fgets(str, MAXCHAR, fp) != NULL)
+	{
+		uint32_t app_id;
+
+		double sum,probability;
+
+		if((int)strlen(str) > 1)
+		{
+			//printf("%s\n",str);
+			sscanf(str,"%d,%lf,%lf",&app_id,&sum, &probability);
+
+			NS_LOG_UNCOND("Dummy app_id "<<app_id<<" sum "<<sum<<" probability "<<probability);
+
+			BaseTopology::application_probability[app_id-1+app_start] = probability;
+		}
+	}
+
+	//exit(0);
+	fclose(fp);
 
 
 
@@ -372,13 +394,54 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
 		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
-
-		   //printf("The app %d, The chunk %d, The prob %lf\n",app, chunk, prob);
 		}
 
 	}
 
-	NS_LOG_UNCOND("************88Hello There Normalization*****************");
+
+
+
+	//Dummy final.txt
+
+
+	filename = "final_dummy.txt";
+
+	fp = fopen(filename, "r");
+	if (fp == NULL){
+		printf("Could not open file %s",filename);
+		return;
+	}
+
+	while (fgets(str, MAXCHAR, fp) != NULL)
+	{
+		uint32_t app, chunk;
+
+		double prob;
+
+		if((int)strlen(str) > 1)
+		{
+		   sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
+
+		   NS_LOG_UNCOND("app, chunk"<<app<<" "<<chunk);
+
+		   chunk = chunk -1;
+		   app = app-1 + simulationRunProperties::total_applications;
+
+		   ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
+
+		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
+		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
+
+		}
+
+	}
+	fclose(fp);
+
+	/*End processing dummy Application*/
+
+
+
+	NS_LOG_UNCOND("************Hello There Normalization*****************");
 	//normalization
 	for(uint32_t i=0;i<simulationRunProperties::total_applications;i++)
 	{
@@ -415,7 +478,7 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 void FatTreeTopology::SetUpInitialApplicationPosition()
 {
-	uint32_t total_applications = simulationRunProperties::total_applications;
+	uint32_t total_applications = simulationRunProperties::total_applications + DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS;
 
 //	application_assigner = CreateObject<UniformRandomVariable>();
 //	application_assigner->SetAttribute("Min", DoubleValue(0));
@@ -437,23 +500,11 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 
 	}
 
-//	for(uint32_t index= 0 ; index <total_applications; index++)
-//	{
-//		int host = (int)application_assigner->GetInteger();
-//		int array_index = ns3::BaseTopology::application_assignment_to_node[host][0] + 1;
-//		ns3::BaseTopology::application_assignment_to_node[host][0]++;
-//		ns3::BaseTopology::application_assignment_to_node[host][array_index] = index;
-////
-//		NS_LOG_UNCOND(" host "<<" "<<host);
-//	}
-//
-//	for(uint32_t index= 0 ; index <total_hosts; index++)
-//	{
-//		printf("host %d has %d applications\n",index, ns3::BaseTopology::application_assignment_to_node[index][0]);
-//	}
 	FILE *fp;
 	char str[MAXCHAR];
 	const char* filename = "app.txt";
+
+	const char* dummy_filename = "app_dummy.txt";
 
 	fp = fopen(filename, "r");
 	if (fp == NULL){
@@ -501,6 +552,62 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 		}
 
 	}
+	fclose(fp);
+
+	fp = fopen(dummy_filename, "r");
+	if (fp == NULL){
+		printf("Could not open file %s",filename);
+		return;
+	}
+
+	uint32_t app_start = DEFAULT_NUMBER_OF_APPLICATIONS;
+
+	while (fgets(str, MAXCHAR, fp) != NULL)
+	{
+		if((int)strlen(str) > 1)
+		{
+			uint32_t value = 0;
+			uint32_t count = 0;
+
+			uint32_t starting_point = 0;
+
+			uint32_t host;
+			printf("The string is %s\n", str);
+			pch = strtok (str," ,;");
+
+			while (pch != NULL)
+			{
+				sscanf(pch,"%d",&value);
+
+				if(count == 0)
+				{
+					host = (SSD_PER_RACK+1) * value;
+
+					printf("The application node id %d\n", host);
+
+					starting_point = ns3::BaseTopology::application_assignment_to_node[host][0];
+				}
+				else
+				{
+					value = value - 1;
+					value = value + app_start;
+					ns3::BaseTopology::application_assignment_to_node[host][0]++;
+					ns3::BaseTopology::application_assignment_to_node[host][starting_point+count] = value;
+					printf ("**%d\n",value);
+				}
+				count++;
+				pch = strtok (NULL, " ,.-\n");
+
+			}
+		}
+
+		else
+		{
+			printf("End of line \n");
+		}
+
+	}
+
 
 	fclose(fp);
 

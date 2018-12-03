@@ -303,7 +303,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 
 /*************************************************************/
 
-void BaseTopology::InjectANewRandomFlow(void) {
+void BaseTopology::InjectANewRandomFlow(bool dummy_application) {
 
 
 	/////We need to put here the application selection logic
@@ -330,7 +330,7 @@ void BaseTopology::InjectANewRandomFlow(void) {
 
 	///////////Chunk Specific Change/////////////
 	NS_LOG_UNCOND("=======The t_reqBW prev====== "<<t_reqBW);
-	t_reqBW = t_reqBW * BaseTopology::intensity_change_scale;
+	//t_reqBW = t_reqBW * BaseTopology::intensity_change_scale;
 	NS_LOG_UNCOND("======The t_reqBW after======="<<t_reqBW);
 
 	NS_LOG_UNCOND("BaseTopology::total_phrase_changed "<<BaseTopology::total_phrase_changed);
@@ -342,7 +342,9 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	// get random client & server nodes
 
 	uint32_t application_id;
-	t_b = getCustomizedRandomClientNode(application_id);
+	if (!dummy_application) t_b = getCustomizedRandomClientNode(application_id);
+	else t_b = getCustomizedRandomClientNodeDummy(application_id);
+
 	if (t_b < 0) {
 		// if returns NO suitable host found, abandon new flow...
 		SS_APPLIC_LOG(
@@ -356,6 +358,13 @@ void BaseTopology::InjectANewRandomFlow(void) {
 	uint32_t write_bandwidth = (uint32_t) t_reqBW * ( 1.0 -READ_WRITE_RATIO);
 
 	uint32_t read_bandwidth = (uint32_t) (t_reqBW - write_bandwidth);
+
+	if(dummy_application)
+	{
+		write_bandwidth = (uint32_t) t_reqBW * ( 1.0 - DUMMY_READ_WRITE_RATIO);
+
+		read_bandwidth = (uint32_t) (t_reqBW - write_bandwidth);
+	}
 
 	//Create Write Flows
 
@@ -502,6 +511,12 @@ void BaseTopology::InjectNewFlow_MarkovModel(void) {
 		if (m_MarkovModelVariable.tempETA1
 				<= simulationRunProperties::markovETA1)
 			InjectANewRandomFlow();
+	}
+
+	if(BaseTopology::intensity_change_scale> 1.0)
+	{
+		NS_LOG_UNCOND("%%%%%%%%%%%%%%%%%%%%%%%%%%%%Inject new random flow by dummy application%%%%%%%%%%%%%%%%%%%%%%%");
+		InjectANewRandomFlow(true);
 	}
 
 }

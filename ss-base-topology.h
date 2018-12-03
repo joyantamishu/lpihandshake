@@ -468,7 +468,7 @@ protected:
 	virtual void InjectNewFlow_MarkovModel(void);
 	virtual void InjectNewFlow_SawToothModel(void);
 	virtual void InjectNewFlow_TickBasedModel(void);
-	virtual void InjectANewRandomFlow(void);
+	virtual void InjectANewRandomFlow(bool dummy_application=false);
 	// for flow generation adjustment. sanjeev 5/9
 	virtual bool markFlowStartedMetric(const uint32_t &flowId,
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
@@ -579,6 +579,8 @@ protected:
 	//chunk specific change
 
 	virtual uint32_t getCustomizedRandomClientNode(uint32_t &application_id);
+
+	virtual uint32_t getCustomizedRandomClientNodeDummy(uint32_t &application_id);
 
 
 };

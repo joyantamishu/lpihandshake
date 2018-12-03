@@ -40,13 +40,13 @@ uint32_t BaseTopology::num_of_retried_packets = 0;
 
 uint32_t BaseTopology::num_of_retired_packets_specific_node = 0;
 
-uint32_t** BaseTopology::chunk_assignment_to_applications = new uint32_t*[simulationRunProperties::total_applications + 1]; //application and which chunks
+uint32_t** BaseTopology::chunk_assignment_to_applications = new uint32_t*[simulationRunProperties::total_applications + 1 + DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS]; //application and which chunks
 
 
 
 uint32_t** BaseTopology::application_assignment_to_node = new uint32_t*[total_hosts_in_system];
 
-double** BaseTopology::chunk_assignment_probability_to_applications = new double*[simulationRunProperties::total_applications + 1];
+double** BaseTopology::chunk_assignment_probability_to_applications = new double*[simulationRunProperties::total_applications + 1 +DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS];
 
 uint32_t *BaseTopology::virtual_to_absolute_mapper = new uint32_t[simulationRunProperties::total_chunk];
 
@@ -58,7 +58,7 @@ Ptr<RandomVariableStream> BaseTopology::Popularity_Change_Random_Variable = Crea
 
 Ptr<RandomVariableStream> BaseTopology::chunk_copy_selection = CreateObject<UniformRandomVariable>();
 
-ApplicationMetrics *BaseTopology::application_metrics = new ApplicationMetrics[simulationRunProperties::total_applications];
+ApplicationMetrics *BaseTopology::application_metrics = new ApplicationMetrics[simulationRunProperties::total_applications + DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS];
 
 uint32_t BaseTopology::phrase_change_counter = 0;
 
@@ -102,7 +102,8 @@ double *BaseTopology::host_running_avg_bandwidth = new double[total_hosts_in_sys
 
 uint32_t *BaseTopology::host_running_avg_counter = new uint32_t[total_hosts_in_system + 1];
 
-double *BaseTopology::application_probability = new double[simulationRunProperties::total_applications];
+double *BaseTopology::application_probability = new double[simulationRunProperties::total_applications + DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS];
+
 
 uint32_t BaseTopology::current_number_of_flows = 0;
 
