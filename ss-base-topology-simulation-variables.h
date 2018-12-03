@@ -27,6 +27,8 @@
 
 #define COMPILE_CUSTOM_ROUTING_CODE				true
 
+#define OPTIMIZER								true
+
 namespace ns3 {
 
 enum PacketPriority {
@@ -59,6 +61,7 @@ public:
 	static char* aggrDeviceDataRate;
 	static char* edgeDeviceDataRate;
 	static char* deviceDataRate1;
+	static char* newDevceRate; //Nov 28
 
 	// energy management parameters
 	static bool enableDefaultns3EnergyModel; // takes precedent...

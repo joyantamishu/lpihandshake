@@ -36,13 +36,35 @@ public:
 
 	uint32_t version;
 
-	local_chunk_info(uint32_t chunk_id, uint32_t node_id, uint32_t version_number)
+	uint32_t physical_node_number;
+
+	int socket_index;
+
+	local_chunk_info(uint32_t chunk_id, uint32_t node_id, uint32_t version_number, uint32_t physical_node_number)
 	{
 		this->chunk_id = chunk_id;
 		this->node_id = node_id;
 		this->version = version_number;
+
+		this->physical_node_number = physical_node_number;
+
+		this->socket_index = -1;
 	}
 };
+
+class MappingSocket{
+public:
+	uint32_t socket_id;
+	uint32_t location;
+	MappingSocket(uint32_t socket_id, uint32_t location)
+	{
+		this->socket_id = socket_id;
+		this->location = location;
+	}
+
+};
+
+
 // copied from UdpEchoClientHelper
 class ssUdpEchoClientHelper {
 public:
@@ -50,11 +72,11 @@ public:
 	ssUdpEchoClientHelper(Ipv4Address ip, uint16_t port);
 	virtual ~ssUdpEchoClientHelper();
 	void SetAttribute(std::string name, const AttributeValue &value);
-	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node) const;
+	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false) const;
 	ApplicationContainer Install(NodeContainer c) const;
 
 protected:
-	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node) const;
+	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false) const;
 	ObjectFactory m_factory; //!< Object factory.
 };
 
@@ -77,17 +99,31 @@ public:
 	static int flows_dropped;	// sanjeev, small change, moved variable here.
 
 	/******** Chunk Specific Change ***************/
-	uint32_t getChunkLocation(uint32_t chunk, uint32_t *version);
+	uint32_t getChunkLocation(uint32_t chunk, uint32_t *version, int *socket_index);
 	bool consistency_flow;
-	bool fixed_dest;
 	uint32_t single_destination;
-	uint32_t *possible_dest;
+	//uint32_t *possible_dest;
 
 	uint32_t node_index;
 	uint32_t application_index;
 	uint32_t *destination_chunks;
+	std::vector<MappingSocket> socket_mapping;
+
+	uint32_t total_packets_to_send;
+	uint32_t distinct_items;
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
+	virtual uint32_t FindChunkAssignedHost(uint32_t chunk_id, uint32_t rack_id);
+	//virtual void deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
+
+	virtual uint32_t getHostInfoMadeBypolicy(uint32_t dest_id);
+
+	virtual void CreateandRemoveIndependentReadFlows(uint32_t distinct_hosts, double finish_time, int create =1);
+
+	bool read_flow;
+
+	bool no_packet_flow;
+
 	/*********************************************/
 
 protected:
@@ -105,17 +141,21 @@ protected:
 
 	void Send(void);
 	void SendLastPacket(void);
+
 	virtual void ForceStopApplication(void);
 	virtual void ScheduleTransmit(Time dt);
 	// simplified, sanjeev 2/25
 	virtual Ptr<Packet> createPacket(void);
-	virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
+	virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version, bool sync_packet = false, bool copy_creation = false);
+	//virtual Ptr<Packet> createPacket(uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
 	virtual Ptr<Packet> createPacket(const uint32_t &flowId,
 			const uint32_t &packetId, const uint32_t &required,
 			const bool &last1, const appType &dummy2, const bool &isFirstPacket,
 			const uint64_t &FlowStartTimeNanoSec,
 			const PacketPriority &priority, const Ipv4Address &src,
-			const Ipv4Address &dst, uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
+			const Ipv4Address &dst, uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version,  bool sync_packet = false, bool copy_creation = false);
+			//const Ipv4Address &dst, uint32_t chunk_id, uint32_t chunk_location, bool is_write, uint32_t version);
+
 	virtual void setFlowVariables(void);
 	virtual double GetHostSpecificVariance(void);		// may 14
 
@@ -125,6 +165,7 @@ protected:
 	// all flow control & connection variables
 	// simplified. sanjeev 2/25
 	Ptr<Socket> *m_socket;       //!< Associated socket
+	Ptr<Socket> *sync_sockets;
 	Address m_peerAddress; //!< Remote peer address
 	uint16_t m_peerPort; //!< Remote peer port
 	uint16_t m_dstHost; //!< Remote destinationhost
@@ -146,9 +187,11 @@ protected:
 	// simplyfied sanjeev 2/25
 	uint64_t m_flowStartTimeNanoSec; // flow age since 1st packet...
 	uint32_t m_flowRequiredBW;
+	uint32_t m_readBandwidth;
 	PacketPriority m_priority;
 	Ipv4Address m_dstIpv4Address;		// destination IP address
-	Ipv4Address m_srcIpv4Address;		// source IP address
+	Ipv4Address m_srcIpv4Address;
+	double m_finish_time;// source IP address
 
 	// Callbacks for tracing the packet Tx events
 	TracedCallback<Ptr<const Packet> > m_txTrace;
@@ -160,6 +203,12 @@ protected:
 	Ptr<UniformRandomVariable> ReadWriteCalculation;
 	uint32_t total_hosts;
 	std::vector<local_chunk_info> local_chunkTracker;
+
+	int *sync_socket_tracker;
+
+	uint32_t total_sync_sockets;
+
+	//uint32_t used_sync_sockets;
 	/**********************************************/
 
 };

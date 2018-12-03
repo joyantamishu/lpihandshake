@@ -29,6 +29,7 @@ char* simulationRunProperties::coreDeviceDataRate = (char*) malloc(40);	// copy 
 char* simulationRunProperties::aggrDeviceDataRate = (char*) malloc(40);	// copy data later
 char* simulationRunProperties::edgeDeviceDataRate = (char*) malloc(40);	// copy data later
 char* simulationRunProperties::deviceDataRate1 = (char*) malloc(40);// copy data later
+char* simulationRunProperties::newDevceRate = (char*) malloc(40);// copy data later
 
 bool simulationRunProperties::enableDefaultns3EnergyModel =
 USE_DEFAULT_NS3_ENERGY_MODEL; // takes precedent...
@@ -126,6 +127,9 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 	AggrDeviceLinkDataRate);
 	std::strcpy(simulationRunProperties::edgeDeviceDataRate,
 	EdgeDeviceLinkDataRate);
+
+	std::strcpy(simulationRunProperties::newDevceRate,
+			myLinkRate);
 	simulationRunProperties::arg0 = argv[0];
 
 	//

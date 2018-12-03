@@ -162,7 +162,10 @@ protected:
 	// May 1
 
 	virtual bool NetDeviceReceiveCallBack(Ptr<const Packet> p);
+
 	virtual bool NetDeviceSendCallBack(Ptr<const Packet> p);
+
+	virtual void ManageOppurtunisticTransaction(Ptr<const Packet> p);
 
 	// added by JB, Mar 17
 	virtual uint32_t FindCorrespondingNodeId(Ipv4Address lsa_ip);

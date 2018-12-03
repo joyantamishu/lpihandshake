@@ -46,22 +46,34 @@ void BaseTopology::DisplayJBFlowStatistics(void) {
 	int flow_count = 0;
 	int thresehold_flow = 0;
 	double sum_avg_delay;
+
+	FILE * fp_flow;
+
+	fp_flow = fopen ("flow_info.csv","w");
 	for (std::map<uint32_t, flow_info>::const_iterator it = Ipv4GlobalRouting::flow_map.begin(); it != Ipv4GlobalRouting::flow_map.end(); ++it) {
 
 
 		if(it->second.total_packet_to_destination > 0)
 		{
 			flow_count++;
-			NS_LOG_UNCOND("it->second.delaysum "<<it->second.delaysum);
+			//NS_LOG_UNCOND("it->second.delaysum "<<it->second.delaysum);
+			fprintf(fp_flow,"%d,%d,%d\n",it->first,it->second.total_packet_to_destination, it->second.bandwidth);
 
 			sum_avg_delay+= (it->second.delaysum / (double)it->second.total_packet_to_destination);
 
-			NS_LOG_UNCOND("sum_avg_delay "<<sum_avg_delay<<" it->second.total_packet_to_destination "<<it->second.total_packet_to_destination);
+			//NS_LOG_UNCOND("sum_avg_delay "<<sum_avg_delay<<" it->second.total_packet_to_destination "<<it->second.total_packet_to_destination);
+		}
+
+		else
+		{
+			NS_LOG_UNCOND("The Flow id not having any packets "<<it->first);
 		}
 
 		if (it->second.has_faced_threshold)
 			thresehold_flow++;
 	}
+
+	fclose(fp_flow);
 	NS_LOG_UNCOND(
 			"\nStatistics: JB: The Total number of flow " << flow_count << " The number of dropped flow " << thresehold_flow);
 
@@ -91,6 +103,8 @@ void BaseTopology::DisplayJBFlowStatistics(void) {
 		}
 	}
 	fclose (fp);
+
+	NS_LOG_UNCOND("Ipv4GlobalRouting::total_number_of_packets_to_destination "<<Ipv4GlobalRouting::total_number_of_packets_to_destination);
 
 #endif
 }

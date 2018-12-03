@@ -43,7 +43,7 @@
 
 // Tick model parameter
 #define DefaultUseTickBasedModel			false
-#define DefaultTimeDurationMilliSec			0.6//4.5				// Apr 23, New Discussion
+#define DefaultTimeDurationMilliSec			.6//4.5				// Apr 23, New Discussion
 
 // Markov Model parameters
 #define DefaultUseMarkovModel				false
@@ -52,11 +52,12 @@
 #define DefaultMarkovETA1Value				0 //0.1 //Madhurima Changed on May 4***** Simple constant Model in default
 
 // network device parameters
-#define CoreDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define AggrDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define EdgeDeviceLinkDataRate 						"10000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
-#define Count										10000
+#define CoreDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define AggrDeviceLinkDataRate 						"1000Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define EdgeDeviceLinkDataRate 						"100Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
+#define Count										100
 #define MAX_QUEUE_DEPTH 							0			// port queue depth threshold before dropping packets (vary this to test diff results in packet drop), set non-zero value
+#define myLinkRate 						"1000Mbps"
 
 // should we enable energy management -monitor idle time, sleep state etc? true/false?
 #define USE_DEFAULT_NS3_ENERGY_MODEL			false			// takes precedence...Apr 24
@@ -95,18 +96,29 @@
 /******Chunk Specific Change *******************/
 #define DEFAULT_CHUNK_NUMBER						1500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
-#define READ_WRITE_RATIO							0.9
+#define READ_WRITE_RATIO						    0.6
+#define DUMMY_READ_WRITE_RATIO						1.0
 
-#define DEFAULT_NUMBER_OF_APPLICATIONS				150
+#define DEFAULT_NUMBER_OF_APPLICATIONS				47
+
+#define DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS		10
 
 #define DEFAULT_SHARED_CHUNKS						4
 
 #define DEFAULT_POPULARITY_CHANGE_START_TIME_MS		80.0
-#define DEFAULT_POPULARITY_CHANGE_INTERVAL_TIME_MS	60.0
-#define DEFAULT_FRACTION_CHUNK_CHANGES_POPULARITY	0.00 //turn it to zero to make the popularity change feature deactivated
+#define DEFAULT_POPULARITY_CHANGE_INTERVAL_TIME_MS	200.0
+#define DEFAULT_FRACTION_CHUNK_CHANGES_POPULARITY	0.05 //turn it to zero to make the popularity change feature deactivated
 
 #define DEFAULT_INTENSITY_CHANGE_START_TIME_MS		80.0
 
 #define DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE	4
+
+#define DEFAULT_LOCAL_ACCESS_LATENCY				0 //100 microsecond
+
+#define SSD_PER_RACK								8
+
+#define CONSISTENCY_FLOW_DUARTION_CONSTANT			50
+
+#define CONSISTENCY_FLOW_START_DUARTION_CONSTANT	0.0001
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

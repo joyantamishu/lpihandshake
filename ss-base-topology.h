@@ -29,7 +29,7 @@
 
 // Energy source/model values
 #define DefaultEnergyMeterUpdateIntervalSec		0.01			// sanjeev. mar 23. May 1st = moved here
-#define CLIENTSTOPTHRESHOLD						0.95
+#define CLIENTSTOPTHRESHOLD						.98
 
 #define NUMBER_OF_ACTIVE_FLOWS						(m_flowCount - m_totalStoppedFlowCounter)
 
@@ -148,17 +148,29 @@ struct HWLDataCollected {
 
 typedef struct datachunk{
 	uint32_t chunk_number;
-	double intensity_sum;
+	double intensity_sum; //in
+	double intensity_sum_out;
+	uint32_t chunk_count;
+	int processed;
+	int highCopyCount;
+	int emerCopyCount;
 	datachunk()
 	{
 		chunk_number = simulationRunProperties::total_chunk + 1;
 		intensity_sum = 0.0;
+		intensity_sum_out = 0.0;
+		highCopyCount=0;
+		emerCopyCount=0;
+		processed=0;
+		chunk_count=0;
 	}
 }Dchunk;
 
 typedef struct Fat_Node {
 	uint32_t node_number;
-	double utilization;
+	double utilization; //in
+	double utilization_out;
+	double max_capacity_left;
 	Dchunk *data;
 	uint32_t total_chunks;
 }Fat_tree_Node;
@@ -166,9 +178,59 @@ typedef struct Fat_Node {
 typedef struct Fat_pod{
 	uint32_t pod_number; //not necessary since you can use the array index of the following array
 	double Pod_utilization;
+	double Pod_utilization_out;
 	Fat_tree_Node *nodes;
 }Pod;
 
+
+
+typedef struct noden{
+int nodenumber;
+double U;
+int counter;
+}nodedata;
+
+
+typedef struct chunk{
+  uint32_t count; //this is also used to index the array called exists
+  uint32_t *exists;
+  int highCopyCount;
+  int emerCopyCount;
+  time_t last_created_timestamp_for_chunk;
+  time_t last_deleted_timestamp_for_chunk;
+  uint32_t readCount;
+  uint32_t writeCount;
+  uint32_t uniqueWrite;
+  uint32_t cumulative_write_sum;
+  double readUtilization;
+  double writeUtilization;
+  double first_time_entered;
+  chunk()
+	{
+		count = 0;
+		highCopyCount=0;
+		emerCopyCount=0;
+		last_created_timestamp_for_chunk=time(0);
+		last_deleted_timestamp_for_chunk=time(0);
+		readCount=0;
+		writeCount=0;
+		readUtilization=0.0;
+		writeUtilization=0.0;
+		first_time_entered=0.0;
+		uniqueWrite=0;
+		cumulative_write_sum=0;
+	}
+}chunkCopy;
+
+
+//Madhurima added on July 20th
+typedef struct result{
+	uint32_t src;
+	uint32_t dest;
+	uint32_t chunk_number;
+}Result;
+
+//Madhurima added on July 20th
 class chunk_info{
 public:
 	uint32_t chunk_no;
@@ -201,6 +263,8 @@ public:
 	}
 };
 
+
+
 class ApplicationMetrics
 {
 public:
@@ -213,11 +277,14 @@ public:
 		this->total_flows = 0;
 	}
 };
+
+
 /*
  *
  */
 class BaseTopology {
 public:
+
 	/**
 	 * \brief Constructor. (k = number of hosts per pod)
 	 */
@@ -248,12 +315,15 @@ public:
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
 			const uint16_t &flowBW);
 
+	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true, uint32_t required_bandwidth = 100, bool non_consistent_read_flow = false, double finish_time= 0.0);
+
 	static FlowDataCollected *m_flowData;
 	static std::ofstream fpDeviceEnergy;
 
 	/******Chunk Specific Change *******************/
 	static std::vector<chunk_info> chunkTracker;
 	static Ipv4Address* hostTranslation;
+	static uint32_t* hostaddresslogicaltophysical;
 	static std::vector<MultipleCopyOfChunkInfo> chunkCopyLocations;
 	static uint32_t getChunkLocation(uint32_t chunk_number);
 	static Ipv4Address getChunkLocationIP(uint32_t chunk_number);
@@ -262,7 +332,9 @@ public:
 	static uint32_t num_of_retried_packets;
 	static uint32_t num_of_retired_packets_specific_node;
 
+	static uint32_t total_number_of_packet_for_copy_creation;
 
+	static double getMinUtilizedServerInRack(uint32_t rack_id);
 
 	static uint32_t **application_assignment_to_node;
 	static uint32_t **chunk_assignment_to_applications;
@@ -274,10 +346,32 @@ public:
 	static Ptr<RandomVariableStream> application_selector;
 
 	static Pod *p;
+	static Pod *q;
+
+	static double tail_latency;
+
+	static uint32_t sleeping_nodes;
+
+	static Result *res;
+	static void calculateNewLocation(int incrDcr); //this function will set the variable Tuple t
+
+	static bool createflag;
+
+	static int counter_;
+	static int Incrcounter_;
+
+	static chunkCopy *chnkCopy;
+
+
+	static nodedata *nodeOldUtilization;;
+
+	static nodedata *nodeU;
 
 	static double popularity_change_simulation_interval;
 
 	static Ptr<RandomVariableStream> Popularity_Change_Random_Variable;
+
+	static Ptr<RandomVariableStream> chunk_copy_selection;
 
 	static ApplicationMetrics *application_metrics;
 
@@ -297,6 +391,73 @@ public:
 
 	static int total_appication;
 
+	static double sum_delay_ms;
+
+	static uint64_t total_packet_count;
+
+	static uint64_t total_packet_count_inc;
+
+	static uint32_t *host_assignment_round_robin_counter;
+
+	static double *host_running_avg_bandwidth;
+
+	static uint32_t *host_running_avg_counter;
+
+	static double *application_probability;
+
+	static uint32_t current_number_of_flows;
+
+	static uint32_t *total_packets_to_hosts_bits;
+
+	//static uint32_t *total_packets_to_hosts_bits_old;
+
+	static uint32_t total_events;
+
+	static uint32_t total_events_learnt;
+
+	static uint32_t *chunk_version_tracker;
+
+	static uint32_t **chunk_version_node_tracker;
+
+	static bool **chunk_copy_node_tracker;
+
+	////remove this variable after all done
+
+	//static uint32_t *total_packets_to_chunk;
+
+	static uint32_t *total_packets_to_chunk_destination;
+
+	static double last_point_of_entry;
+
+	static double total_sum_of_entry;
+
+	static double sum_of_number_time_packets;
+
+	static uint64_t sum_of_times;
+
+	static NodeContainer hosts_static;
+
+	static uint32_t consistency_flow;
+
+	static uint32_t total_consistency_packets;
+	static uint32_t total_non_consistency_packets;
+
+	static double sum_delay_ms_burst;
+	static uint32_t total_events_learnt_burst;
+
+	static double sum_delay_ms_no_burst;
+	static uint32_t total_events_learnt_no_burst;
+
+	static uint32_t max_chunk_by_application;
+
+	static uint32_t **transaction_rollback_packets;
+
+	static uint32_t **transaction_rollback_write_tracker;
+
+	static uint32_t rollback_packets;
+
+	static double *host_utilization_outgoing;
+
 protected:
 	virtual void DoDispose(void);
 	virtual void DisplayCommandLine(void);
@@ -311,7 +472,8 @@ protected:
 	virtual void InjectNewFlow_MarkovModel(void);
 	virtual void InjectNewFlow_SawToothModel(void);
 	virtual void InjectNewFlow_TickBasedModel(void);
-	virtual void InjectANewRandomFlow(void);
+	//virtual void InjectANewRandomFlow(void);
+	virtual void InjectANewRandomFlow(bool dummy_application=false);
 	// for flow generation adjustment. sanjeev 5/9
 	virtual bool markFlowStartedMetric(const uint32_t &flowId,
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
@@ -419,7 +581,11 @@ protected:
 	Ipv4Address t_addr;
 	int t_a, t_b, t_x, t_i, t_reqBW;
 
+	//chunk specific change
 
+	virtual uint32_t getCustomizedRandomClientNode(uint32_t &application_id);
+
+	virtual uint32_t getCustomizedRandomClientNodeDummy(uint32_t &application_id);
 };
 
 }  //namespace
