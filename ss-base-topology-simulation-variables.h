@@ -27,7 +27,17 @@
 
 #define COMPILE_CUSTOM_ROUTING_CODE				true
 
-#define OPTIMIZER								true
+#define LOCAL_COPY								false
+
+#define UNIFORM_BURSTS							false
+
+#define DUMMY_APP								true
+
+#define OPTIMIZER								false
+
+
+
+
 
 namespace ns3 {
 
@@ -52,6 +62,7 @@ public:
 	static int k;
 	// simplified. sanjeev 2/25
 	static int packetSize;
+	static int chunkSize;
 	static int deviceQDepth;
 	static int initialFlowCount;
 	static double simStop;

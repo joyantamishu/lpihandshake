@@ -330,7 +330,9 @@ void BaseTopology::InjectANewRandomFlow(bool dummy_application) {
 
 	///////////Chunk Specific Change/////////////
 	NS_LOG_UNCOND("=======The t_reqBW prev====== "<<t_reqBW);
-	//t_reqBW = t_reqBW * BaseTopology::intensity_change_scale;
+#if UNIFORM_BURSTS
+	t_reqBW = t_reqBW * BaseTopology::intensity_change_scale; //uncomment this part
+#endif
 	NS_LOG_UNCOND("======The t_reqBW after======="<<t_reqBW);
 
 	NS_LOG_UNCOND("BaseTopology::total_phrase_changed "<<BaseTopology::total_phrase_changed);
@@ -513,13 +515,13 @@ void BaseTopology::InjectNewFlow_MarkovModel(void) {
 				<= simulationRunProperties::markovETA1)
 			InjectANewRandomFlow();
 	}
-
-	if(BaseTopology::intensity_change_scale> 1.0)
+#if DUMMY_APP
+	if(BaseTopology::intensity_change_scale> 1.0) //comment this  part
 	{
 		NS_LOG_UNCOND("%%%%%%%%%%%%%%%%%%%%%%%%%%%%Inject new random flow by dummy application%%%%%%%%%%%%%%%%%%%%%%%");
 		InjectANewRandomFlow(true);
 	}
-
+#endif
 }
 
 /*************************************************************/

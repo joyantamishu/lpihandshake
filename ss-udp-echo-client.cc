@@ -8,7 +8,7 @@
 #include "ss-udp-echo-client.h"
 #include "ss-udp-echo-server.h"
 #include "ss-log-file-flags.h"
-
+#include <cmath>
 #include "ns3/log.h"
 #include "ns3/ipv4-address.h"
 #include "ns3/ipv6-address.h"
@@ -775,10 +775,17 @@ void ssUdpEchoClient::StartApplication() {
 
             if(num_of_packets_to_send > 0)
             {
-                //uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
+                uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
                 uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
               //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
                // BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+                BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, log(num_of_packets_to_send));
+
+//                if(num_of_packets_to_send>(simulationRunProperties::chunk_size/simulationRunProperties::packetSize))
+//                	 BaseTopology::InjectANewRandomFlowCopyCreation (source, destination,ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize));
+//                else
+//                	BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+
 
                 BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][destination] = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number];
                 NS_LOG_UNCOND("write count of chunk number "<<BaseTopology::res[i].chunk_number<<" is "<<BaseTopology::chnkCopy[BaseTopology::res[i].chunk_number].writeCount<<" read count "<<BaseTopology::chnkCopy[BaseTopology::res[i].chunk_number].readCount);

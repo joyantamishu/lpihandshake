@@ -45,7 +45,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 		}
 		BaseTopology::transaction_rollback_write_tracker[dest][source]--; //sync packet has reached the destination
 
-		NS_LOG_UNCOND("This is the case for sync packets");
+		//NS_LOG_UNCOND("This is the case for sync packets");
 		for(uint32_t index = 0; index < total_hosts_in_system; index++)
 		{
 			if(BaseTopology::transaction_rollback_packets[dest][index] > 0)
@@ -273,7 +273,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 //
 //			}
 
-			ManageOppurtunisticTransaction(packet);
+			//ManageOppurtunisticTransaction(packet);
 
 				//This is to keep chunk level read and write statistics------------------------
 		

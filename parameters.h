@@ -15,6 +15,7 @@
 // k-fat-tree and applications
 #define Default_K							4
 #define DefaultPacketSize					1400
+#define DefaultChunkSize 					4096
 #define DefaultProduct					    3650//2000
 #define DefaultParetoAlpha					3.5			// cannot be less than 2.0
 
@@ -57,7 +58,7 @@
 #define EdgeDeviceLinkDataRate 						"100Mbps" //Madhurima Changed on May 4*****Link speed should be in 1000 scale, not in scale of 1024
 #define Count										100
 #define MAX_QUEUE_DEPTH 							0			// port queue depth threshold before dropping packets (vary this to test diff results in packet drop), set non-zero value
-#define myLinkRate 						"1000Mbps"
+#define myLinkRate 						"5000Mbps"
 
 // should we enable energy management -monitor idle time, sleep state etc? true/false?
 #define USE_DEFAULT_NS3_ENERGY_MODEL			false			// takes precedence...Apr 24
@@ -96,12 +97,12 @@
 /******Chunk Specific Change *******************/
 #define DEFAULT_CHUNK_NUMBER						1500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
-#define READ_WRITE_RATIO						    0.6
+#define READ_WRITE_RATIO						    0.8
 #define DUMMY_READ_WRITE_RATIO						1.0
 
 #define DEFAULT_NUMBER_OF_APPLICATIONS				47
 
-#define DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS		10
+#define DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS		71
 
 #define DEFAULT_SHARED_CHUNKS						4
 

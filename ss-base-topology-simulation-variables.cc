@@ -20,6 +20,7 @@ using namespace ns3;
 char* simulationRunProperties::arg0 = NULL;
 int simulationRunProperties::k = Default_K;
 int simulationRunProperties::packetSize = DefaultPacketSize;
+int simulationRunProperties::chunkSize=DefaultChunkSize;
 // simplified. sanjeev 2/25
 int simulationRunProperties::deviceQDepth = MAX_QUEUE_DEPTH;
 int simulationRunProperties::initialFlowCount = DefaultInitialFlowCount;
