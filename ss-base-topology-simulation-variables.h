@@ -29,11 +29,11 @@
 
 #define LOCAL_COPY								false
 
-#define UNIFORM_BURSTS							false
+#define UNIFORM_BURSTS							true
 
-#define DUMMY_APP								true
+#define DUMMY_APP								false
 
-#define OPTIMIZER								false
+#define OPTIMIZER								true
 
 
 

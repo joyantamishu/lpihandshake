@@ -759,9 +759,10 @@ void ssUdpEchoClient::StartApplication() {
             uint32_t min_node;
             for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
 			{
-            	if(Ipv4GlobalRouting::host_utilization[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
+            	if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
             		{
-            			minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
+            			//minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
+            		    minimim_utilization=BaseTopology::host_utilization_outgoing[t];
             			min_node=t;
             		}
 
@@ -769,7 +770,7 @@ void ssUdpEchoClient::StartApplication() {
             NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
             BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
 
-
+            num_of_packets_to_send=log(num_of_packets_to_send);
 //this part is for the chunk creation traffic
             BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
 
@@ -779,7 +780,8 @@ void ssUdpEchoClient::StartApplication() {
                 uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
               //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
                // BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
-                BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, log(num_of_packets_to_send));
+
+                BaseTopology::InjectANewRandomFlowCopyCreation (source, destination,num_of_packets_to_send );
 
 //                if(num_of_packets_to_send>(simulationRunProperties::chunk_size/simulationRunProperties::packetSize))
 //                	 BaseTopology::InjectANewRandomFlowCopyCreation (source, destination,ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize));
@@ -1002,7 +1004,7 @@ void ssUdpEchoClient::StopApplication(void) {
 #if OPTIMIZER
 		//BaseTopology::counter_++;
 		/********Uncomment it when function ReturnSomething is ready */
-		if(BaseTopology::counter_==0)
+		if(BaseTopology::counter_==0 )
 		{
 
 			int incrDcr=0;

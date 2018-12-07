@@ -191,7 +191,12 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			//keeping track of the tail latency
 			if ((current_simulation_time - packet->creation_time)>BaseTopology::tail_latency)
-				BaseTopology::tail_latency=(current_simulation_time - packet->creation_time);
+				{
+				    BaseTopology::write_flow_tail=false;
+					BaseTopology::tail_latency=(current_simulation_time - packet->creation_time);
+					if(packet->is_write)  BaseTopology::write_flow_tail =true;
+					else BaseTopology::write_flow_tail =false;
+				}
 
 
 			//This is to keep chunk level read and write statistics------------------------

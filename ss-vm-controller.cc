@@ -108,7 +108,9 @@ uint32_t BaseTopology::getCustomizedRandomClientNodeDummy(uint32_t &application_
 
 		//NS_LOG_UNCOND(" BaseTopology::application_probability[application_index] "<<BaseTopology::application_probability[application_index]);
 
-		if(sum_application_probability >= app_id) break;
+		if(sum_application_probability >= app_id) {break;}
+		else if(application_index==(simulationRunProperties::total_applications+DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS-1))break;
+		//NS_LOG_UNCOND("probability sum"<<sum_application_probability<<" current application index "<<application_index);
 	}
 
 	application_id = application_index;
@@ -130,7 +132,8 @@ uint32_t BaseTopology::getCustomizedRandomClientNodeDummy(uint32_t &application_
 			}
 		}
 	}
-	NS_ASSERT_MSG(i<total_hosts, " Source Not Found ");
+
+	NS_ASSERT_MSG(i<total_hosts, " Source Not Found !!!!!!");
 	return -1;
 
 }

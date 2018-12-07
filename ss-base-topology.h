@@ -196,8 +196,8 @@ typedef struct chunk{
   uint32_t *exists;
   int highCopyCount;
   int emerCopyCount;
-  time_t last_created_timestamp_for_chunk;
-  time_t last_deleted_timestamp_for_chunk;
+  double last_created_timestamp_for_chunk;
+  double last_deleted_timestamp_for_chunk;
   uint32_t readCount;
   uint32_t writeCount;
   uint32_t uniqueWrite;
@@ -210,8 +210,8 @@ typedef struct chunk{
 		count = 0;
 		highCopyCount=0;
 		emerCopyCount=0;
-		last_created_timestamp_for_chunk=time(0);
-		last_deleted_timestamp_for_chunk=time(0);
+		last_created_timestamp_for_chunk=0;
+		last_deleted_timestamp_for_chunk=0;
 		readCount=0;
 		writeCount=0;
 		readUtilization=0.0;
@@ -349,6 +349,8 @@ public:
 	static Pod *q;
 
 	static double tail_latency;
+
+	static bool write_flow_tail;
 
 	static uint32_t sleeping_nodes;
 
