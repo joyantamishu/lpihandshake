@@ -72,11 +72,11 @@ public:
 	ssUdpEchoClientHelper(Ipv4Address ip, uint16_t port);
 	virtual ~ssUdpEchoClientHelper();
 	void SetAttribute(std::string name, const AttributeValue &value);
-	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false) const;
+	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false, uint32_t read_app_id =-1) const;
 	ApplicationContainer Install(NodeContainer c) const;
 
 protected:
-	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false) const;
+	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false, uint32_t read_app_id = -1) const;
 	ObjectFactory m_factory; //!< Object factory.
 };
 
@@ -123,6 +123,8 @@ public:
 	bool read_flow;
 
 	bool no_packet_flow;
+
+	uint32_t read_flow_application_index;
 
 	/*********************************************/
 
@@ -201,12 +203,19 @@ protected:
 	//Ptr<RandomVariableStream> ClientChunkAccessGenerator;
 	Ptr<UniformRandomVariable> ClientChunkAccessGenerator;
 	Ptr<UniformRandomVariable> ReadWriteCalculation;
+	Ptr<UniformRandomVariable> ReadFlowClientChunkAccessGenerator;
 	uint32_t total_hosts;
 	std::vector<local_chunk_info> local_chunkTracker;
 
 	int *sync_socket_tracker;
 
 	uint32_t total_sync_sockets;
+
+	double *chunk_assignment_probability_for_read_flow;
+
+	uint32_t *selected_chunk_for_read_flow;
+
+	uint32_t selected_total_chunk;
 
 	//uint32_t used_sync_sockets;
 	/**********************************************/

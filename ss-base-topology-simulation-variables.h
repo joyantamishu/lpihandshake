@@ -33,7 +33,7 @@
 
 #define DUMMY_APP								false
 
-#define OPTIMIZER								true
+#define OPTIMIZER								false
 
 
 

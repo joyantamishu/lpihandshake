@@ -185,6 +185,8 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				BaseTopology::total_events_learnt_no_burst++;
 			}
 
+
+
 			BaseTopology::total_packets_to_chunk_destination[packet->sub_flow_id]++;
 
 
@@ -228,11 +230,10 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				//BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization+=simulationRunProperties::packetSize;
 			}
 //			else
-//			{
-//				NS_LOG_UNCOND("fndmgfndfmngmdfngmndfmgndfmngmdfngdfmngnmnf"<<packet->sub_flow_id);
-//				BaseTopology::chnkCopy[packet->sub_flow_id].readCount++;
-//				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
-//			}
+			{
+				BaseTopology::chnkCopy[packet->sub_flow_id].readCount++;
+				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
+			}
 
 			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered==0)
 				BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
@@ -300,6 +301,8 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			}
 
 			Ipv4GlobalRouting::total_number_of_packets_to_destination++;
+
+			//NS_LOG_UNCOND("End Find Destination");
 			//
 		}
 
