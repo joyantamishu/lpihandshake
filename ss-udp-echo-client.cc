@@ -533,7 +533,7 @@ void ssUdpEchoClient::StartApplication() {
 				uint32_t chunk_location = getChunkLocation(BaseTopology::chunk_assignment_to_applications[read_flow_application_index][chunk_no], &version, &socket_index);
 
 
-				if(read_flow_application_index == 25) NS_LOG_UNCOND("chunk_location "<<chunk_location <<" ssd_host "<<ssd_host<<" BaseTopology::chunk_assignment_to_applications[read_flow_application_index][chunk] "<<BaseTopology::chunk_assignment_to_applications[read_flow_application_index][chunk_no]);
+
 				if(chunk_location == ssd_host)
 				{
 					count_host_chunk++;
