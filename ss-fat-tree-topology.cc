@@ -163,9 +163,9 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					node = ((logical_host_number - 1)/(SSD_PER_RACK + 1)) % Ipv4GlobalRouting::FatTree_k;
 					//printf("-------The chunk node id %d-------------------\n", logical_host_number);
 
-					NS_LOG_UNCOND("The pod is "<<pod<<" value is "<<value);
+					//NS_LOG_UNCOND("The pod is "<<pod<<" value is "<<value);
 
-					NS_LOG_UNCOND("The node is "<<node);
+					//NS_LOG_UNCOND("The node is "<<node);
 
 				}
 				else
@@ -173,7 +173,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					//flag=false;
 					//NS_LOG_UNCOND("Value is "<<value);
 					value = value -1;
-					//NS_LOG_UNCOND("chunk number########## "<<value<<" node "<<node<<"pod "<<pod);
+					NS_LOG_UNCOND("chunk number########## "<<value<<" logical_node_id "<<logical_host_number+round_robin_counter);
 					//round_robin_counter = (count -1) % (SSD_PER_RACK);
 					round_robin_counter = 0;
 
@@ -182,6 +182,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 					BaseTopology::chunkTracker.at(value).logical_node_id = logical_host_number+round_robin_counter;
 					BaseTopology::chunkTracker.at(value).node_id = hosts.Get(logical_host_number+round_robin_counter)->GetId();
+
+					//NS_LOG_UNCOND("BaseTopology::chunkTracker.at(value).node_id" << BaseTopology::chunkTracker.at(value).node_id);
 
 					BaseTopology::chunkTracker.at(value).number_of_copy ++;
 
@@ -226,6 +228,13 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 	//reduce the copy number by 1
 
+
+	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
+	{
+		NS_LOG_UNCOND("Chunk No "<<chunk_index<< " Position "<<BaseTopology::chunkTracker.at(chunk_index).logical_node_id);
+	}
+
+
 	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
 	{
 		BaseTopology::chunkTracker.at(chunk_index).number_of_copy --;
@@ -233,7 +242,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
 	{
-		NS_LOG_UNCOND("Chunk id "<<chunk_index<<" Total Copies "<<BaseTopology::chunkTracker.at(chunk_index).number_of_copy);
+		//NS_LOG_UNCOND("Chunk id "<<chunk_index<<" Total Copies "<<BaseTopology::chunkTracker.at(chunk_index).number_of_copy);
 
 		if(BaseTopology::chunkTracker.at(chunk_index).number_of_copy >=1)
 		{
@@ -366,7 +375,7 @@ void FatTreeTopology::SetUpApplicationAssignment()
 			//printf("%s\n",str);
 			sscanf(str,"%d,%lf,%lf",&app_id,&sum, &probability);
 
-			NS_LOG_UNCOND("Dummy app_id "<<app_id<<" sum "<<sum<<" probability "<<probability);
+			//NS_LOG_UNCOND("Dummy app_id "<<app_id<<" sum "<<sum<<" probability "<<probability);
 
 			BaseTopology::application_probability[app_id-1+app_start] = probability;
 		}
@@ -428,7 +437,7 @@ void FatTreeTopology::SetUpApplicationAssignment()
 		{
 		   sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
 
-		   NS_LOG_UNCOND("app, chunk"<<app<<" "<<chunk);
+		   //NS_LOG_UNCOND("app, chunk"<<app<<" "<<chunk);
 
 		   chunk = chunk -1;
 		   app = app-1 + simulationRunProperties::total_applications;

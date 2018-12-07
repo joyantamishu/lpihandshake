@@ -261,7 +261,7 @@ void BaseTopology::InjectInitialFlowsMR(const int &requiredInitialFlowCount) {
 	InjectANewRandomFlow();
 }
 
-void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow, uint32_t required_bandwidth, bool non_consistent_read_flow, double finish_time)
+void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow, uint32_t required_bandwidth, bool non_consistent_read_flow, double finish_time, uint32_t app_id)
 {
 	NS_LOG_UNCOND("Inside InjectANewRandomFlowCopyCreation "<<" src "<<src<<" dest "<<dest<<" number_of_packets "<<number_of_packets<<" required_bandwidth "<<required_bandwidth);
 
@@ -281,6 +281,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 	static_t_x = dest;
 
 	static_t_client = DynamicCast<ssNode>(BaseTopology::hosts_static.Get(static_t_b));
+
 	static_t_server = DynamicCast<ssNode>(BaseTopology::hosts_static.Get(static_t_x));
 
 	static_t_addr = static_t_server->GetNodeIpv4Address();
@@ -291,7 +292,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 	static_t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(BaseTopology::consistency_flow));
 	static_t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(required_bandwidth));
 	static_t_echoClient->SetAttribute("RequiredReadFlowBW", UintegerValue(required_bandwidth));
-	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow, non_consistent_read_flow);
+	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow, non_consistent_read_flow, app_id);
 
 	static_t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
 	static_t_allClientApps.Stop(static_t_appStopTimeRandom);
