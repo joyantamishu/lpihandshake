@@ -36,8 +36,10 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 	uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
 	uint32_t source = (uint32_t)(packet->srcNodeId -20);
+
 	if(packet->sync_packet)
 	{
+		NS_LOG_UNCOND("Sync traffic");
 		if(BaseTopology::transaction_rollback_write_tracker[dest][source] <=0)
 		{
 			NS_LOG_UNCOND(" dest "<<dest<<" source "<<source);
@@ -62,8 +64,12 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 	}
 	else
 	{
+		dest = (uint32_t)(packet->srcNodeId -20);
+		source = packet->sub_flow_dest;
+
 		if(!packet->copy_creation_packet && BaseTopology::transaction_rollback_write_tracker[dest][source] > 0)
 		{
+			//NS_LOG_UNCOND("------Entered Here----------");
 			if(BaseTopology::chunk_version_tracker[packet->sub_flow_id] != BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]) BaseTopology::transaction_rollback_packets[dest][source]++;
 		}
 	}
@@ -229,7 +235,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]++;
 				//BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization+=simulationRunProperties::packetSize;
 			}
-//			else
+			else
 			{
 				BaseTopology::chnkCopy[packet->sub_flow_id].readCount++;
 				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
@@ -279,7 +285,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 //
 //			}
 
-			//ManageOppurtunisticTransaction(packet);
+			ManageOppurtunisticTransaction(packet);
 
 				//This is to keep chunk level read and write statistics------------------------
 		
