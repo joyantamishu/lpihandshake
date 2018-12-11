@@ -475,7 +475,7 @@ void ssUdpEchoClient::StartApplication() {
     NS_LOG_FUNCTION(this);
 
     //NS_LOG_UNCOND("Here I am ");
-    uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+    //uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
     float alpha=.75;
 
     uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
@@ -756,34 +756,35 @@ void ssUdpEchoClient::StartApplication() {
 
 	fp_sleep_tracking = fopen ("server_level_sleep.csv","a");
 
-    for (uint32_t t=0;t<total_hosts_in_system;t++)
-    {
-    	if(t%(SSD_PER_RACK+1)!=0)
-    	{
-    	if(Ipv4GlobalRouting::host_utilization[t]==0)
-    		BaseTopology::sleeping_nodes++;
-    	}
-    }
-    NS_LOG_UNCOND("sleep count"<<BaseTopology::sleeping_nodes);
-    fprintf(fp_sleep_tracking,"%d,\n",BaseTopology::sleeping_nodes);
+//    for (uint32_t t=0;t<total_hosts_in_system;t++)
+//    {
+//    	if(t%(SSD_PER_RACK+1)!=0)
+//    	{
+//    	if(Ipv4GlobalRouting::host_utilization[t]==0)
+//    		BaseTopology::sleeping_nodes++;
+//    	}
+//    }
+   // NS_LOG_UNCOND("sleep count"<<BaseTopology::sleeping_nodes);
+    //fprintf(fp_sleep_tracking,"%d,\n",BaseTopology::sleeping_nodes);
     fclose(fp_sleep_tracking);
 
 	FILE *fp_host_utilization;
 
 	fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
-	for (uint32_t t=0;t<total_hosts_in_system;t++)
-	{
-		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
-		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
-		fprintf(fp_host_utilization,"%f,,",BaseTopology::host_utilization_outgoing[t]);
-
-
-	}
-	fprintf(fp_host_utilization,"\n");
+//	for (uint32_t t=0;t<total_hosts_in_system;t++)
+//	{
+//		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
+//		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
+//		fprintf(fp_host_utilization,"%f,,",BaseTopology::host_utilization_outgoing[t]);
+//
+//
+//	}
+//	fprintf(fp_host_utilization,"\n");
 	fclose(fp_host_utilization);
 
     /********Uncomment it when function ReturnSomething is ready */
-#if OPTIMIZER
+if( simulationRunProperties::enableOptimizer)
+{
     if(BaseTopology::Incrcounter_==0)
     {
         BaseTopology::Incrcounter_=0;
@@ -810,6 +811,7 @@ void ssUdpEchoClient::StartApplication() {
 
             uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
             BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
+            BaseTopology::copy_created++;
             char p='c';
             fprintf(fp_copy,"%c,%d,%d,%d,%d\n",p,BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send);
            // NS_LOG_UNCOND("BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number])"<<BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number]);
@@ -842,24 +844,20 @@ void ssUdpEchoClient::StartApplication() {
             NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
             BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
 
-            num_of_packets_to_send=log(num_of_packets_to_send);
-//this part is for the chunk creation traffic
-            BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
-
             if(num_of_packets_to_send > 0)
             {
                 uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
                 uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
               //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
-               // BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+#if CHUNKSIZE
+                if(num_of_packets_to_send>(simulationRunProperties::chunkSize/simulationRunProperties::packetSize))
+                	num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
+#else
+				num_of_packets_to_send=log(num_of_packets_to_send);
+#endif
 
-                BaseTopology::InjectANewRandomFlowCopyCreation (source, destination,num_of_packets_to_send );
-
-//                if(num_of_packets_to_send>(simulationRunProperties::chunk_size/simulationRunProperties::packetSize))
-//                	 BaseTopology::InjectANewRandomFlowCopyCreation (source, destination,ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize));
-//                else
-//                	BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
-
+				BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+				BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
 
                 BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][destination] = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number];
                 NS_LOG_UNCOND("write count of chunk number "<<BaseTopology::res[i].chunk_number<<" is "<<BaseTopology::chnkCopy[BaseTopology::res[i].chunk_number].writeCount<<" read count "<<BaseTopology::chnkCopy[BaseTopology::res[i].chunk_number].readCount);
@@ -930,7 +928,7 @@ void ssUdpEchoClient::StartApplication() {
         fclose(fp_copy);
     }
     //calling the optimizer
-#endif
+}
 
     /*
      * Set inter_flow interval & inter-packet interval to some random distribution...
@@ -1044,22 +1042,23 @@ void ssUdpEchoClient::StopApplication(void) {
 				BaseTopology::p[i].Pod_utilization=BaseTopology::p[i].Pod_utilization+BaseTopology::p[i].nodes[j].utilization;
 			}
 		}
-		uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+		//uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
 		FILE *fp_host_utilization;
 
 		fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
-		for (uint32_t t=0;t<total_hosts_in_system;t++)
-		{
-			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
-			fprintf(fp_host_utilization,"%f,,",BaseTopology::host_utilization_outgoing[t]);
-			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
-
-		}
-		fprintf(fp_host_utilization,"\n");
+//		for (uint32_t t=0;t<total_hosts_in_system;t++)
+//		{
+//			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
+//			fprintf(fp_host_utilization,"%f,,",BaseTopology::host_utilization_outgoing[t]);
+//			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
+//
+//		}
+//		fprintf(fp_host_utilization,"\n");
 		fclose(fp_host_utilization);
 
-#if OPTIMIZER
+if(simulationRunProperties::enableOptimizer)
+{
 		//BaseTopology::counter_++;
 		/********Uncomment it when function ReturnSomething is ready */
 		if(BaseTopology::counter_==0 )
@@ -1078,6 +1077,7 @@ void ssUdpEchoClient::StopApplication(void) {
 			{
 				printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 				 char p='d';
+				 BaseTopology::copy_deleted++;
 				 fprintf(fp_copy,"%c,%d,%d,%d,0\n",p,BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest);
 				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].src] = false;
 				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest] = true;
@@ -1137,7 +1137,7 @@ void ssUdpEchoClient::StopApplication(void) {
 			fclose(fp_copy);
 		}
 
-#endif
+}
 
 		//calling the optimizer
 
@@ -1736,7 +1736,7 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	t_p->is_phrase_changed = false;
 
 //	printf("%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
-	fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
+	//fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
 
 	if(t_p->sync_packet)
 	{

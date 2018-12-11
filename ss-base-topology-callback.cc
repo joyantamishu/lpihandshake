@@ -31,48 +31,74 @@ NS_LOG_COMPONENT_DEFINE("BaseTopologyC");
 
 void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet> packet)
 {
-	uint32_t dest = packet->sub_flow_dest;
 
-	uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
-
-	uint32_t source = (uint32_t)(packet->srcNodeId -20);
-
-	if(packet->sync_packet)
+	if(!packet->is_write && !packet->copy_creation_packet)
 	{
-		NS_LOG_UNCOND("Sync traffic");
-		if(BaseTopology::transaction_rollback_write_tracker[dest][source] <=0)
+		uint32_t dest =  (uint32_t)(packet->srcNodeId -20);
+
+		uint32_t src = packet->sub_flow_dest;
+
+		if(BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][dest] < BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id])
 		{
-			NS_LOG_UNCOND(" dest "<<dest<<" source "<<source);
-			exit(0);
-		}
-		BaseTopology::transaction_rollback_write_tracker[dest][source]--; //sync packet has reached the destination
-
-		//NS_LOG_UNCOND("This is the case for sync packets");
-		for(uint32_t index = 0; index < total_hosts_in_system; index++)
-		{
-			if(BaseTopology::transaction_rollback_packets[dest][index] > 0)
-			{
-
-				uint32_t num_of_packets = BaseTopology::transaction_rollback_packets[dest][index];
-
-				BaseTopology::rollback_packets +=  num_of_packets;
-				BaseTopology::transaction_rollback_packets[dest][index] = 0;
-				BaseTopology::InjectANewRandomFlowCopyCreation (index, dest, num_of_packets);
-
-			}
+			BaseTopology::transaction_rollback_packets[src][dest] ++;
 		}
 	}
-	else
+	else if(packet->is_write)
 	{
-		dest = (uint32_t)(packet->srcNodeId -20);
-		source = packet->sub_flow_dest;
+		uint32_t src = (uint32_t)(packet->srcNodeId -20);
 
-		if(!packet->copy_creation_packet && BaseTopology::transaction_rollback_write_tracker[dest][source] > 0)
-		{
-			//NS_LOG_UNCOND("------Entered Here----------");
-			if(BaseTopology::chunk_version_tracker[packet->sub_flow_id] != BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]) BaseTopology::transaction_rollback_packets[dest][source]++;
-		}
+		uint32_t dest = packet->sub_flow_dest;
+
+		uint32_t num_of_packets = BaseTopology::transaction_rollback_packets[src][dest];
+
+		BaseTopology::rollback_packets +=  num_of_packets;
+		BaseTopology::transaction_rollback_packets[src][dest] = 0;
+		if(num_of_packets >= 1) BaseTopology::InjectANewRandomFlowCopyCreation (dest, src, num_of_packets);
+
+
 	}
+//	uint32_t dest = packet->sub_flow_dest;
+//
+//	uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+//
+//	uint32_t source = (uint32_t)(packet->srcNodeId -20);
+//
+//	if(packet->sync_packet)
+//	{
+//		NS_LOG_UNCOND("Sync traffic");
+//		if(BaseTopology::transaction_rollback_write_tracker[dest][source] <=0)
+//		{
+//			NS_LOG_UNCOND(" dest "<<dest<<" source "<<source);
+//			exit(0);
+//		}
+//		BaseTopology::transaction_rollback_write_tracker[dest][source]--; //sync packet has reached the destination
+//
+//		//NS_LOG_UNCOND("This is the case for sync packets");
+//		for(uint32_t index = 0; index < total_hosts_in_system; index++)
+//		{
+//			if(BaseTopology::transaction_rollback_packets[dest][index] > 0)
+//			{
+//
+//				uint32_t num_of_packets = BaseTopology::transaction_rollback_packets[dest][index];
+//
+//				BaseTopology::rollback_packets +=  num_of_packets;
+//				BaseTopology::transaction_rollback_packets[dest][index] = 0;
+//				BaseTopology::InjectANewRandomFlowCopyCreation (index, dest, num_of_packets);
+//
+//			}
+//		}
+//	}
+//	else
+//	{
+//		dest = (uint32_t)(packet->srcNodeId -20);
+//		source = packet->sub_flow_dest;
+//
+//		if(!packet->copy_creation_packet && BaseTopology::transaction_rollback_write_tracker[dest][source] > 0)
+//		{
+//			//NS_LOG_UNCOND("------Entered Here----------");
+//			if(BaseTopology::chunk_version_tracker[packet->sub_flow_id] != BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]) BaseTopology::transaction_rollback_packets[dest][source]++;
+//		}
+//	}
 }
 
 
@@ -212,28 +238,12 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			{
 				BaseTopology::chnkCopy[packet->sub_flow_id].writeCount++;
 
-//				bool update_required = true;
-//
-//				uint32_t result = 0;
-//
-//				for(uint32_t host_index=0; host_index<total_hosts_in_system;host_index++)
-//				{
-//					if(BaseTopology::chunk_copy_node_tracker[packet->sub_flow_id][host_index])
-//					{
-//						result += BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][host_index] ^ BaseTopology::chunk_version_tracker[packet->sub_flow_id];
-//
-//						if(result > 0)
-//						{
-//							update_required = false;
-//
-//							break;
-//						}
-//					}
-//				}
-
-				//if(update_required) BaseTopology::chunk_version_tracker[packet->sub_flow_id]++;
+				if(BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id] < BaseTopology::chunk_version_tracker[packet->sub_flow_id])
+				{
+					BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id] ++;
+				}
 				BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][packet->sub_flow_dest]++;
-				//BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization+=simulationRunProperties::packetSize;
+
 			}
 			else
 			{

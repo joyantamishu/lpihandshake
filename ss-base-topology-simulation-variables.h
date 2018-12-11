@@ -29,11 +29,8 @@
 
 #define LOCAL_COPY								false
 
-#define UNIFORM_BURSTS							true
+#define CHUNKSIZE								true
 
-#define DUMMY_APP								false
-
-#define OPTIMIZER								false
 
 
 
@@ -62,7 +59,7 @@ public:
 	static int k;
 	// simplified. sanjeev 2/25
 	static int packetSize;
-	static int chunkSize;
+	static uint32_t chunkSize;
 	static int deviceQDepth;
 	static int initialFlowCount;
 	static double simStop;
@@ -145,6 +142,10 @@ public:
 	static uint32_t phrase_change_number;
 
 	static double intensity_change_start_ms;
+
+	static bool enableOptimizer;
+
+	static bool uniformBursts;
 
 	/**********************************************/
 

@@ -15,7 +15,7 @@
 // k-fat-tree and applications
 #define Default_K							4
 #define DefaultPacketSize					1400
-#define DefaultChunkSize 					4096
+#define DefaultChunkSize 					131072
 #define DefaultProduct					    3650//2000
 #define DefaultParetoAlpha					3.5			// cannot be less than 2.0
 
@@ -97,7 +97,7 @@
 /******Chunk Specific Change *******************/
 #define DEFAULT_CHUNK_NUMBER						1500
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
-#define READ_WRITE_RATIO						    .9
+#define READ_WRITE_RATIO						    .8
 #define DUMMY_READ_WRITE_RATIO						1.0
 
 #define DEFAULT_NUMBER_OF_APPLICATIONS				47
@@ -121,5 +121,9 @@
 #define CONSISTENCY_FLOW_DUARTION_CONSTANT			50
 
 #define CONSISTENCY_FLOW_START_DUARTION_CONSTANT	0.0001
+
+#define OPTIMIZER								false
+
+#define UNIFORM_BURSTS							true
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

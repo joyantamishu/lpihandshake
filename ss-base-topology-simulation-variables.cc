@@ -20,7 +20,7 @@ using namespace ns3;
 char* simulationRunProperties::arg0 = NULL;
 int simulationRunProperties::k = Default_K;
 int simulationRunProperties::packetSize = DefaultPacketSize;
-int simulationRunProperties::chunkSize=DefaultChunkSize;
+uint32_t simulationRunProperties::chunkSize=DefaultChunkSize;
 // simplified. sanjeev 2/25
 int simulationRunProperties::deviceQDepth = MAX_QUEUE_DEPTH;
 int simulationRunProperties::initialFlowCount = DefaultInitialFlowCount;
@@ -116,6 +116,9 @@ uint32_t simulationRunProperties::phrase_change_number = DEFAULT_NUMBER_OF_INTEN
 double simulationRunProperties::intensity_change_start_ms = DEFAULT_INTENSITY_CHANGE_START_TIME_MS;
 
 //int Ipv4GlobalRouting::totalchunk=simulationRunProperties::total_chunk;
+bool simulationRunProperties::enableOptimizer = OPTIMIZER;
+
+bool simulationRunProperties::uniformBursts = UNIFORM_BURSTS;
 
 /***********************************************/
 
@@ -250,6 +253,14 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 	cmd.AddValue("policyNumber",
 					"This is the policy under which you would like to run your code)",
 					simulationRunProperties::polID);
+
+	cmd.AddValue("enableOptimizer",
+			"Use incremental optimizer (true/false)",
+			simulationRunProperties::enableOptimizer);
+
+	cmd.AddValue("uniformBursts",
+			"Uniform increase in traffic bursts (true/false)",
+			simulationRunProperties::uniformBursts);
 
 	cmd.Parse(argc, argv);
 	if (simulationRunProperties::enableTickModel) { // takes precedent... Rearranged precedence, Apr26

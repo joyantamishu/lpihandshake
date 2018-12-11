@@ -132,6 +132,8 @@ double BaseTopology::sum_of_number_time_packets = 0.0;
 
 uint32_t *BaseTopology::chunk_version_tracker = new uint32_t[simulationRunProperties::total_chunk + 1];
 
+uint32_t *BaseTopology::chunk_reference_version_tracker = new uint32_t[simulationRunProperties::total_chunk + 1];
+
 uint32_t** BaseTopology::chunk_version_node_tracker = new uint32_t* [simulationRunProperties::total_chunk];
 
 bool** BaseTopology::chunk_copy_node_tracker = new bool* [simulationRunProperties::total_chunk];
@@ -169,6 +171,10 @@ double BaseTopology::tail_latency=0.0;
 double *BaseTopology::host_utilization_outgoing = new double[total_hosts_in_system+1];
 
 bool BaseTopology::write_flow_tail=false;
+
+int BaseTopology::copy_deleted=0;
+
+int BaseTopology::copy_created=0;
 
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
@@ -689,10 +695,10 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 
 
 
-		NS_LOG_UNCOND("The maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: max_node_no "<<max_node_no<<" ::: max_pod "<<max_pod<<" total chunk on node "<<BaseTopology::q[max_pod].nodes[max_node_no].total_chunks);
-		beyond_cutoff=max_node_u-(cuttoffnode_high+(cuttoffnode_high*.7)); //changed cuttoffnode_high to cuttoffnode_real --Madhu
+		NS_LOG_UNCOND("The( maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: max_node_no "<<max_node_no<<" ::: max_pod "<<max_pod<<" total chunk on node "<<BaseTopology::q[max_pod].nodes[max_node_no].total_chunks);
+		beyond_cutoff=max_node_u-(cuttoffnode_high-(cuttoffnode_high*.3)); //changed cuttoffnode_high to cuttoffnode_real --Madhu
 		target_utilization=0.0;
-
+		NS_LOG_UNCOND("beyond_cutoff"<<beyond_cutoff);
 
 //we are checking if a node is beyond the high range and below the emergency range
 	    if(cuttoffnode_high<max_node_u /* && cuttoffnode_emer>max_node_u*/ && beyond_cutoff>0.0 )
@@ -713,8 +719,11 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 		      	 		     && BaseTopology::chnkCopy[BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number].highCopyCount<Ipv4GlobalRouting::FatTree_k
 		      	 		     && BaseTopology::q[max_pod].nodes[max_node_no].data[i].processed!=1
 							 && max_chunk_u<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out //unmark
-							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out>int(Count)*theta)//unmark
+							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out>int(Count)*theta)
+							// && BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>10)//unmark
+	    		   	    	//&& BaseTopology::chnkCopy[l].writeCount/BaseTopology::chnkCopy[l].readCount<.3)
 		      	 		 {
+	    		   	    	 NS_LOG_UNCOND("BaseTopology::chnkCopy[l].read_count"<<BaseTopology::chnkCopy[l].readCount<<"BaseTopology::chnkCopy[l].write_count"<<BaseTopology::chnkCopy[l].writeCount);
 		      	 			 max_chunk_no=BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number;
 		      	 			 max_chunk_u = BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out;//unmark
 		      	 			 max_chunk_index=i;
@@ -761,7 +770,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 					 }
 
 
-					 if(BaseTopology::q[i].nodes[j].utilization_out+estimated_utlization</*cuttoffnode_high */cuttoffnode_real  && !flag /*&& BaseTopology::q[i].nodes[j].utilization>0*/) //unmark
+					 if(BaseTopology::q[i].nodes[j].utilization_out+estimated_utlization</*(cuttoffnode_high-(cuttoffnode_high*.1))*/ cuttoffnode_real  && !flag /*&& BaseTopology::q[i].nodes[j].utilization>0*/) //unmark
 					 {
 						 diff_from_node_cutoff=(int(Count)*int(SSD_PER_RACK))-BaseTopology::q[i].nodes[j].utilization_out;//+estimated_utlization); //unmark
 						 //diff_from_node_cutoff=/*cuttoffnode_high */cuttoffnode_real-(BaseTopology::q[i].nodes[j].utilization_out+estimated_utlization); //unmark

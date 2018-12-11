@@ -364,6 +364,9 @@ public:
 
 	static chunkCopy *chnkCopy;
 
+	static int copy_created;
+
+	static int copy_deleted;
 
 	static nodedata *nodeOldUtilization;;
 
@@ -418,6 +421,8 @@ public:
 	static uint32_t total_events_learnt;
 
 	static uint32_t *chunk_version_tracker;
+
+	static uint32_t *chunk_reference_version_tracker;
 
 	static uint32_t **chunk_version_node_tracker;
 

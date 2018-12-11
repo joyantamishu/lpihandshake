@@ -345,13 +345,18 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_UNCOND("These are the number of packets sent during any copy creation "<<BaseTopology::total_number_of_packet_for_copy_creation);
 
-	NS_LOG_UNCOND("tail latency"<<BaseTopology::tail_latency);
+	NS_LOG_UNCOND("tail latency "<<BaseTopology::tail_latency);
 	if(BaseTopology::write_flow_tail)
 		NS_LOG_UNCOND("tail latency faced in write traffic");
 	else
 		NS_LOG_UNCOND("tail latency faced in read traffic");
 
 	NS_LOG_UNCOND("Total Roll-back Packets "<<BaseTopology::rollback_packets);
+
+	NS_LOG_UNCOND("Number of copy created "<<BaseTopology::copy_created);
+
+	NS_LOG_UNCOND("Number of copy deleted "<<BaseTopology::copy_deleted);
+
 
 
 	return 0;
