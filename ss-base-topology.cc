@@ -427,8 +427,8 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 /*Result **/void BaseTopology::calculateNewLocation(int incrDcr)
 {
 //Parameters
-	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.6 ;//400;
-	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.3;// 240;
+	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.75 ;//400;
+	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.45;// 240;
 	double time_window_following_another_create=350.0;
 	double time_window_following_another_delete=700.0;
 	//uint32_t time_window=50;
