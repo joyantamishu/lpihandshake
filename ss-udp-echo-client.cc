@@ -846,8 +846,10 @@ if( simulationRunProperties::enableOptimizer)
 
             if(num_of_packets_to_send > 0)
             {
-                uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
-                uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
+              //  uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
+               // uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
+               	uint32_t source = BaseTopology::res[i].src;
+		 uint32_t destination = BaseTopology::res[i].dest;
               //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
 #if CHUNKSIZE
                 if(num_of_packets_to_send>(simulationRunProperties::chunkSize/simulationRunProperties::packetSize))
