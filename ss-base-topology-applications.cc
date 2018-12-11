@@ -284,7 +284,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 
 	static_t_server = DynamicCast<ssNode>(BaseTopology::hosts_static.Get(static_t_x));
 
-	static_t_addr = static_t_server->GetNodeIpv4Address();
+	static_t_addr = static_t_client->GetNodeIpv4Address();
 	static_t_echoClient = new ssUdpEchoClientHelper(static_t_addr, UDP_ECHO_SERVER_PORT);
 
 	static_t_echoClient->SetAttribute("PacketSize", UintegerValue(simulationRunProperties::packetSize)); // run continuous till sim time ends
@@ -372,17 +372,19 @@ if(simulationRunProperties::uniformBursts)
 
 	//Create Write Flows
 
+	//NS_LOG_UNCOND("t_b "<<t_b);
+
 	t_client = DynamicCast<ssNode>(hosts.Get(t_b));
 	t_server = DynamicCast<ssNode>(hosts.Get(t_x));
 	NS_ASSERT_MSG(t_client != NULL && t_server != NULL,
 			"Error in getting install client=" << t_b << " server=" << t_x);
 
-	t_addr = t_server->GetNodeIpv4Address();
+	t_addr = t_client->GetNodeIpv4Address();
 	t_echoClient = new ssUdpEchoClientHelper(t_addr,
 	UDP_ECHO_SERVER_PORT);
 	t_echoClient->SetAttribute("PacketSize",
 			UintegerValue(simulationRunProperties::packetSize)); // run continuous till sim time ends
-	t_echoClient->SetAttribute("RemoteHost", UintegerValue(t_server->GetId()));
+	t_echoClient->SetAttribute("RemoteHost", UintegerValue(t_client->GetId()));
 	t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(m_flowCount));
 	t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(write_bandwidth));
 	t_echoClient->SetAttribute("RequiredReadFlowBW", UintegerValue(read_bandwidth));
