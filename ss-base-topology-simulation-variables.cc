@@ -120,6 +120,8 @@ bool simulationRunProperties::enableOptimizer = OPTIMIZER;
 
 bool simulationRunProperties::uniformBursts = UNIFORM_BURSTS;
 
+double simulationRunProperties::RWratio=READ_WRITE_RATIO;
+
 /***********************************************/
 
 
@@ -261,6 +263,10 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 	cmd.AddValue("uniformBursts",
 			"Uniform increase in traffic bursts (true/false)",
 			simulationRunProperties::uniformBursts);
+
+	cmd.AddValue("RWratio",
+				"Read write ratio (float)",
+				simulationRunProperties::RWratio);
 
 	cmd.Parse(argc, argv);
 	if (simulationRunProperties::enableTickModel) { // takes precedent... Rearranged precedence, Apr26

@@ -7,6 +7,7 @@
 
 #include <string.h>
 #include <iostream>
+#include <fstream>
 #include <ctime>
 #include <cstdio>
 #include "parameters.h"
@@ -357,7 +358,19 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_UNCOND("Number of copy deleted "<<BaseTopology::copy_deleted);
 
-
+	FILE *fp_stat;
+	std::ifstream ifile("Statistics.csv");
+	if(ifile)
+	{
+		fp_stat = fopen ("Statistics.csv","a");
+	}
+	else
+	{	fp_stat = fopen ("Statistics.csv","w");
+		fprintf(fp_stat,"Total number of Flows Generated, Total Packets Destination,Currently No of pkts in system, Avg Delay(ms), Avg Delay(s), Average_delay_no_burst(sec),Avg Delay in bursts(sec),Tail Latency(microsec),Total Rollback Pkts,#Copy Created, #Copy Deleted, Consistency Pkts, Non-Consistency Pkts, \n");
+	}
+	//fprintf(fp_stat,"%d, %lu, %lu, %lf,%lf, %lf, %lf, %d,%lf, %f, %d, %lu,%lu\n",BaseTopology::total_appication,Ipv4GlobalRouting::total_number_of_packets_to_destination,BaseTopology::total_packet_count,average_delay,average_delay/(double)1000000,(average_delay_no_burst/(double)1000000),(average_delay_burst/(double)1000000),BaseTopology::tail_latency,BaseTopology::rollback_packets,BaseTopology::copy_created,BaseTopology::copy_deleted, BaseTopology::total_consistency_packets,BaseTopology::total_non_consistency_packets);
+	fprintf(fp_stat,"%d, %d, %lu, %f,%f,%f,%f,%f,%d,%d,%d,%d,%d\n",BaseTopology::total_appication,Ipv4GlobalRouting::total_number_of_packets_to_destination,BaseTopology::total_packet_count,average_delay,average_delay/(double)1000000,(average_delay_no_burst/(double)1000000),(average_delay_burst/(double)1000000),BaseTopology::tail_latency,BaseTopology::rollback_packets,BaseTopology::copy_created,BaseTopology::copy_deleted, BaseTopology::total_consistency_packets,BaseTopology::total_non_consistency_packets);
+	fclose(fp_stat);
 
 	return 0;
 }

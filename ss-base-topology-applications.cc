@@ -359,7 +359,7 @@ if(simulationRunProperties::uniformBursts)
 	t_x = t_b+1;
 
 
-	uint32_t write_bandwidth = (uint32_t) t_reqBW * ( 1.0 -READ_WRITE_RATIO);
+	uint32_t write_bandwidth = (uint32_t) t_reqBW * ( 1.0 - simulationRunProperties::RWratio);
 
 	uint32_t read_bandwidth = (uint32_t) (t_reqBW - write_bandwidth);
 

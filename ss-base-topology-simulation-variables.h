@@ -147,6 +147,8 @@ public:
 
 	static bool uniformBursts;
 
+	static double RWratio;
+
 	/**********************************************/
 
 private:
