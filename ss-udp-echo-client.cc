@@ -504,7 +504,8 @@ void ssUdpEchoClient::StartApplication() {
 
         if (Ipv4Address::IsMatchingType(m_peerAddress) == true) {
             m_socket[0]->Bind();
-            m_socket[0]->Connect(InetSocketAddress(Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
+            //m_socket[0]->Connect(InetSocketAddress(Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
+            m_socket[0]->Connect(InetSocketAddress(BaseTopology::hostTranslation[single_destination], m_peerPort));//JB change Dec 12
         }
 
         m_socket[0]->SetRecvCallback(MakeCallback(&ssUdpEchoClient::callback_HandleRead, this));
@@ -828,38 +829,90 @@ if( simulationRunProperties::enableOptimizer)
 
 //this part of the code places the chunk on the least utilized server in a rack
 
-            uint32_t start = (BaseTopology::res[i].dest * ( SSD_PER_RACK + 1)) + 1;
-            double minimim_utilization=99999;
-            uint32_t min_node;
-            for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
-			{
-            	if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
-            		{
-            			//minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
-            		    minimim_utilization=BaseTopology::host_utilization_outgoing[t];
-            			min_node=t;
-            		}
+//            uint32_t start = (BaseTopology::res[i].dest * ( SSD_PER_RACK + 1)) + 1;
+//            double minimim_utilization=99999;
+//            uint32_t min_node;
+//            for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
+//			{
+//            	if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
+//            		{
+//            			//minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
+//            		    minimim_utilization=BaseTopology::host_utilization_outgoing[t];
+//            			min_node=t;
+//            		}
+//
+//			}
+//            NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
+//            BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
+//
+//            if(num_of_packets_to_send > 0)
+//            {
+//                uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
+//                uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
+//              //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
+//#if CHUNKSIZE
+//                if(num_of_packets_to_send>(simulationRunProperties::chunkSize/simulationRunProperties::packetSize))
+//                	num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
+//#else
+//				num_of_packets_to_send=log(num_of_packets_to_send);
+//#endif
+//
+//				BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
+//				BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
 
-			}
-            NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
-            BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
 
-            if(num_of_packets_to_send > 0)
-            {
-              //  uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
-               // uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
-               	uint32_t source = BaseTopology::res[i].src;
-		 uint32_t destination = BaseTopology::res[i].dest;
-              //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
-#if CHUNKSIZE
-                if(num_of_packets_to_send>(simulationRunProperties::chunkSize/simulationRunProperties::packetSize))
-                	num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
-#else
-				num_of_packets_to_send=log(num_of_packets_to_send);
-#endif
+				uint32_t start = (BaseTopology::res[i].dest * ( SSD_PER_RACK + 1)) + 1;
+				double minimim_utilization=99999;
+				uint32_t min_node;
+				for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
+				{
+					if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
+						{
+							//minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
+							minimim_utilization=BaseTopology::host_utilization_outgoing[t];
+							min_node=t;
+						}
 
+				}
+				NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
+				BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
+
+				uint32_t destination = min_node;
+				min_node=9999999;
+				start = (BaseTopology::res[i].src * ( SSD_PER_RACK + 1)) + 1;
+
+				for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
+				{
+					if(BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
+					{		min_node=t;
+							break;
+					}
+				}
+
+				uint32_t source = min_node;
+
+
+
+
+				if(num_of_packets_to_send > 0)
+				{
+
+				//  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
+				if(CHUNKSIZE==true)
+				{
+					if(num_of_packets_to_send>ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize))
+						{
+							num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
+							NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
+						}
+				}
+				else
+					num_of_packets_to_send=log(num_of_packets_to_send);
+
+				NS_LOG_UNCOND("Destination "<<BaseTopology::res[i].dest<<" Server "<<destination<<" Source "<<BaseTopology::res[i].src<<"Server "<< source <<" num_of_packets_to_send "<<num_of_packets_to_send);
 				BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
 				BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
+
 
                 BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][destination] = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number];
                 NS_LOG_UNCOND("write count of chunk number "<<BaseTopology::res[i].chunk_number<<" is "<<BaseTopology::chnkCopy[BaseTopology::res[i].chunk_number].writeCount<<" read count "<<BaseTopology::chnkCopy[BaseTopology::res[i].chunk_number].readCount);
@@ -1202,8 +1255,11 @@ if(simulationRunProperties::enableOptimizer)
 
 	if(read_flow)
 	{
-		delete[] chunk_assignment_probability_for_read_flow;
-		delete[] selected_chunk_for_read_flow;
+		if(!this->consistency_flow)
+		{
+			delete[] chunk_assignment_probability_for_read_flow;
+			delete[] selected_chunk_for_read_flow;
+		}
 	}
 
 	socket_mapping.clear();

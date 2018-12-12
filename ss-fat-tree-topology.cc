@@ -653,7 +653,7 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_intensity_value[1] = 1.0;
 
-	BaseTopology::phrase_change_intensity_value[2] = 2.0;
+	BaseTopology::phrase_change_intensity_value[2] = 1.5;
 
 	BaseTopology::phrase_change_intensity_value[3] = 1.0;
 

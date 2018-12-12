@@ -162,7 +162,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			double current_simulation_time = Simulator::Now().ToDouble(Time::US);
 
-			fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
+			//fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
 
 			fclose(fp_packet);
 

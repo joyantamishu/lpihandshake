@@ -435,7 +435,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	double time_window_delete=3500.0;
 	//float delta=.1;
 	float alpha =1; //for smoothing
-	float theta =.4; //for picking up only significant chunks
+	float theta =.5; //for picking up only significant chunks
 	float theta2 =.01;
 	bool energy = true;
 //Parameters

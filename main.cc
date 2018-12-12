@@ -51,10 +51,10 @@ int main(int argc, char *argv[]) {
 	{
 		NS_LOG_UNCOND("error while deleting the file");
 	}
-	if(remove("flow_duration_madhurima.csv")!=0)
-	{
-		NS_LOG_UNCOND("error while deleting the file");
-	}
+//	if(remove("flow_duration_madhurima.csv")!=0)
+//	{
+//		NS_LOG_UNCOND("error while deleting the file");
+//	}
 	if(remove("server_level_sleep.csv")!=0)
 	{
 		NS_LOG_UNCOND("error while deleting the file");
