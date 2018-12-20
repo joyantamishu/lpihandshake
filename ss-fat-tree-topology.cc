@@ -106,6 +106,8 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 		//BaseTopology::total_packets_to_chunk[index] = 0;
 
+		BaseTopology::total_packets_sent_to_chunk[index] = 0;
+
 		BaseTopology::total_packets_to_chunk_destination[index] = 0;
 
 		BaseTopology::chunk_version_tracker[index] = 0;

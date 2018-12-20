@@ -286,6 +286,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 
 	//static_t_addr = static_t_server->GetNodeIpv4Address();
 	static_t_addr = static_t_client->GetNodeIpv4Address();
+
 	static_t_echoClient = new ssUdpEchoClientHelper(static_t_addr, UDP_ECHO_SERVER_PORT);
 
 	static_t_echoClient->SetAttribute("PacketSize", UintegerValue(simulationRunProperties::packetSize)); // run continuous till sim time ends

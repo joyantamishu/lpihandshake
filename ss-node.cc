@@ -80,7 +80,7 @@ void ssNode::DoDispose(void) {
 	SS_ENEGRY_LOG(
 			"ssNode: [" << GetId() << "] totalNodeTime(s) [" << m_NodeDataCollected.m_totalDeviceTimeNanoSec/NANOSEC_TO_SECS << "] totalReadyTime(ns) ["<< m_NodeDataCollected.m_totalReadyTimeNanoSec << "] totalSleepTime(ns) ["<< m_NodeDataCollected.m_totalSleepTimeNanoSec << "] countSleepState ["<< m_NodeDataCollected.m_countSleepState << "]");
 
-	Node::DoDispose();
+	//Node::DoDispose();
 }
 /*
  * rename function name sanjeev Jun 13

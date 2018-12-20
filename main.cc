@@ -170,7 +170,7 @@ int main(int argc, char *argv[]) {
 
 	fprintf(fp_host_by_packets,"Host, Total Packets, utilization_by_flow_calculation, utilization_by_packets\n");
 
-	fprintf(fp_chunks_by_packets,"Chunk, Total Packets, Total Packets Destination, Difference, Total Copies\n");
+	fprintf(fp_chunks_by_packets,"Chunk, Total Packets, Total Packets Destination, Difference, Total Copies,utilization,max_instant_utilization\n");
 
 
 	uint32_t frequency;
@@ -267,13 +267,13 @@ int main(int argc, char *argv[]) {
 		//NS_LOG_UNCOND("Host No "<<i<<" Running Avg of utilization "<<BaseTopology::host_running_avg_bandwidth[i]/(double)BaseTopology::host_running_avg_counter);
 	}
 
-//	for(uint32_t chunk_id=0;chunk_id<simulationRunProperties::total_chunk;chunk_id++)
-//	{
-//		if(BaseTopology::chunkTracker.at(chunk_id).number_of_copy >= 1)
-//		{
-//			fprintf(fp_chunks_by_packets,"%d,%d,%d,%d,%d\n",chunk_id, BaseTopology::total_packets_to_chunk[chunk_id], BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::total_packets_to_chunk[chunk_id]- BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::chunkTracker.at(chunk_id).number_of_copy);
-//		}
-//	}
+	for(uint32_t chunk_id=0;chunk_id<simulationRunProperties::total_chunk;chunk_id++)
+	{
+		//if(BaseTopology::chunkTracker.at(chunk_id).number_of_copy >= 1)
+		//{
+			fprintf(fp_chunks_by_packets,"%d,%d,%d,%d,%d,%f,%f\n",chunk_id, BaseTopology::total_packets_sent_to_chunk[chunk_id],BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::total_packets_sent_to_chunk[chunk_id]-BaseTopology::total_packets_to_chunk_destination[chunk_id], BaseTopology::chunkTracker.at(chunk_id).number_of_copy,  BaseTopology::chnkCopy[chunk_id].runningAvg/BaseTopology::chnkCopy[chunk_id].freq,BaseTopology::chnkCopy[chunk_id].max_instant_utilization);
+		//}
+	}
 
 
 	fclose(fp_host);
@@ -357,6 +357,8 @@ int main(int argc, char *argv[]) {
 	NS_LOG_UNCOND("Number of copy created "<<BaseTopology::copy_created);
 
 	NS_LOG_UNCOND("Number of copy deleted "<<BaseTopology::copy_deleted);
+
+	NS_LOG_UNCOND("Number of packets generated during phase1= "<<BaseTopology::pkt_sent_during_phase1<<" phase2 = "<<BaseTopology::pkt_sent_during_phase2<<" phase3 ="<<BaseTopology::pkt_sent_during_phase3);
 
 	FILE *fp_stat;
 	std::ifstream ifile("Statistics.csv");

@@ -205,7 +205,11 @@ typedef struct chunk{
   double readUtilization;
   double writeUtilization;
   double first_time_entered;
-  chunk()
+  double last_observed_utilization;
+  double runningAvg;
+  double max_instant_utilization;
+  uint32_t freq;
+  chunk() // @suppress("Class members should be properly initialized")
 	{
 		count = 0;
 		highCopyCount=0;
@@ -219,6 +223,10 @@ typedef struct chunk{
 		first_time_entered=0.0;
 		uniqueWrite=0;
 		cumulative_write_sum=0;
+		last_observed_utilization=0.0;
+		runningAvg=0.0;
+		freq=0;
+		max_instant_utilization=0.0;
 	}
 }chunkCopy;
 
@@ -315,7 +323,7 @@ public:
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
 			const uint16_t &flowBW);
 
-	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true, uint32_t required_bandwidth = 100, bool non_consistent_read_flow = false, double finish_time= 40.0, uint32_t app_id = -1);
+	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true, uint32_t required_bandwidth = 100, bool non_consistent_read_flow = false, double finish_time= 40.0, uint32_t app_id = -1);//JB change Dec 12
 
 	static FlowDataCollected *m_flowData;
 	static std::ofstream fpDeviceEnergy;
@@ -347,6 +355,12 @@ public:
 
 	static Pod *p;
 	static Pod *q;
+
+	static uint32_t pkt_sent_during_phase1;
+
+	static uint32_t pkt_sent_during_phase2;
+
+	static uint32_t pkt_sent_during_phase3;
 
 	static double tail_latency;
 
@@ -428,6 +442,8 @@ public:
 
 	static bool **chunk_copy_node_tracker;
 
+	static uint32_t *total_packets_sent_to_chunk;
+
 	////remove this variable after all done
 
 	//static uint32_t *total_packets_to_chunk;
@@ -464,6 +480,8 @@ public:
 	static uint32_t rollback_packets;
 
 	static double *host_utilization_outgoing;
+
+	static uint32_t totalWriteCount;
 
 protected:
 	virtual void DoDispose(void);

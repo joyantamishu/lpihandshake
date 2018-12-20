@@ -217,6 +217,7 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	{
 		uint32_t chunk_location = it->logical_node_id;
 
+		//comment this section if you want to foward 100% traffic to the new copy
 		if(it->number_of_copy >= 1)
 		{
 			int count = -1;
@@ -236,7 +237,7 @@ ssUdpEchoClient::ssUdpEchoClient() {
 				}
 			}
 		}
-
+		//comment this section if you want to foward 100% traffic to the new copy
 
 		local_chunkTracker.push_back(local_chunk_info(it->chunk_no, chunk_location, it->version_number, it->node_id));
 	}
@@ -401,11 +402,13 @@ void ssUdpEchoClient::CreateandRemoveIndependentReadFlows(uint32_t distinct_host
 			if(chunk_location == ssd_host) sum_of_probability += ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][chunk_no];
 		}
 
+
 		double bandwidth_distribution = sum_of_probability * (double)m_readBandwidth * (double)create;
 
 		BaseTopology::p[pod].nodes[node].utilization_out += bandwidth_distribution;
 
-	//	NS_LOG_UNCOND("bandwidth_distribution ---from within CreateandRemoveIndependentReadFlows-------------------------------"<<bandwidth_distribution);
+
+
 
 	//	NS_LOG_UNCOND("bandwidth_distribution "<<bandwidth_distribution * (double) create);
 
@@ -440,17 +443,43 @@ void ssUdpEchoClient::CreateandRemoveIndependentReadFlows(uint32_t distinct_host
 
 					if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == destination_chunks[chunk_no - 1])
 					{
-						if(create && floor(chunk_bandwidth_distribution) > 0)
-						{
-							uint32_t readcount=(chunk_bandwidth_distribution*1000*1000)/(simulationRunProperties::packetSize*8);
+						//double current_simulation_time = Simulator::Now().ToDouble(Time::US);
+						//if(create && floor(chunk_bandwidth_distribution) > 0)
+						//{
+							//uint32_t readcount=(chunk_bandwidth_distribution*1000*1000)/(simulationRunProperties::packetSize*8);
 							uint32_t chunk=BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number;
 							//NS_LOG_UNCOND("read count "<<readcount<<" chunk number "<<chunk);
-							BaseTopology::chnkCopy[chunk].readCount+=readcount;
-						}
+							//BaseTopology::chnkCopy[chunk].readCount+=readcount;
+						//}
+					//	NS_LOG_UNCOND("chunk_number "<<chunk<<" create or delete "<<create<<"chunk_bandwidth_distribution-before---"<<chunk_bandwidth_distribution<<"BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out "<<BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out);
 						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out += chunk_bandwidth_distribution;
+					//	NS_LOG_UNCOND("chunk_number "<<chunk<<" after BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out "<<BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out);
 						BaseTopology::p[pod].nodes[node].data[chunk_index].processed=0;
+
+//////////////////////////////////////////////////////////////chunk usage calculation/////////////////////////////////////////////////
+//						if(BaseTopology::chnkCopy[chunk].first_time_entered==0)
+//							{
+//								BaseTopology::chnkCopy[chunk].first_time_entered=current_simulation_time;
+//								BaseTopology::chnkCopy[chunk].last_observed_utilization=BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out;
+//							}
+
+						//double utilization=0.0,timelapse=0.0;
+//						if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out>BaseTopology::chnkCopy[chunk].last_observed_utilization)
+//						{
+						   //utilization=(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out-BaseTopology::chnkCopy[chunk].last_observed_utilization);
+						  // timelapse=current_simulation_time-BaseTopology::chnkCopy[chunk].first_time_entered;
+						  // utilization=float(utilization/timelapse);
+						   BaseTopology::chnkCopy[chunk].runningAvg+=BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out;
+						// BaseTopology::chnkCopy[chunk].first_time_entered=current_simulation_time;
+						 //BaseTopology::chnkCopy[chunk].last_observed_utilization=BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out;
+						   BaseTopology::chnkCopy[chunk].freq++;
+						   if(BaseTopology::chnkCopy[chunk].max_instant_utilization<BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out)
+							   BaseTopology::chnkCopy[chunk].max_instant_utilization=BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum_out;
+//						}
+/////////////////////////////////////////////////////////////chunk usage calculation/////////////////////////////////////////////////
 						break;
 					}
+
 				}
 			}
 		}
@@ -504,7 +533,6 @@ void ssUdpEchoClient::StartApplication() {
 
         if (Ipv4Address::IsMatchingType(m_peerAddress) == true) {
             m_socket[0]->Bind();
-            //m_socket[0]->Connect(InetSocketAddress(Ipv4Address::ConvertFrom(m_peerAddress), m_peerPort));
             m_socket[0]->Connect(InetSocketAddress(BaseTopology::hostTranslation[single_destination], m_peerPort));//JB change Dec 12
         }
 
@@ -814,7 +842,7 @@ if( simulationRunProperties::enableOptimizer)
             BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
             BaseTopology::copy_created++;
             char p='c';
-            fprintf(fp_copy,"%c,%d,%d,%d,%d\n",p,BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send);
+            fprintf(fp_copy,"%c,%f,%d,%d,%d,%d\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send);
            // NS_LOG_UNCOND("BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number])"<<BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number]);
            // NS_LOG_UNCOND("BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest]"<<BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest]);
             //NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
@@ -910,6 +938,7 @@ if( simulationRunProperties::enableOptimizer)
 					num_of_packets_to_send=log(num_of_packets_to_send);
 
 				NS_LOG_UNCOND("Destination "<<BaseTopology::res[i].dest<<" Server "<<destination<<" Source "<<BaseTopology::res[i].src<<"Server "<< source <<" num_of_packets_to_send "<<num_of_packets_to_send);
+
 				BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
 				BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
 
@@ -1133,7 +1162,7 @@ if(simulationRunProperties::enableOptimizer)
 				printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 				 char p='d';
 				 BaseTopology::copy_deleted++;
-				 fprintf(fp_copy,"%c,%d,%d,%d,0\n",p,BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest);
+				 fprintf(fp_copy,"%c,%f,%d,%d,%d,0\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest);
 				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].src] = false;
 				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest] = true;
 				NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
@@ -1255,7 +1284,7 @@ if(simulationRunProperties::enableOptimizer)
 
 	if(read_flow)
 	{
-		if(!this->consistency_flow)
+		if(!this->consistency_flow)  //JB change Dec 12
 		{
 			delete[] chunk_assignment_probability_for_read_flow;
 			delete[] selected_chunk_for_read_flow;
@@ -1764,6 +1793,7 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 
 	t_p->sub_flow_id = chunk_id;
 
+	BaseTopology::total_packets_sent_to_chunk[chunk_id]++;
 
 	FILE *fp_packet;
 	fp_packet= fopen("all_packets_send.csv","a");
@@ -1793,8 +1823,9 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	t_p->copy_creation_packet = copy_creation;
 	t_p->is_phrase_changed = false;
 
+
 //	printf("%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
-	//fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
+	fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f\n", flowId, requiredBW, chunk_location , t_p->sub_flow_dest_physical, application_index, isFirstPacket, packetId, m_dstHost,GetNode()->GetId(), is_write, t_p->creation_time);
 
 	if(t_p->sync_packet)
 	{
@@ -1804,6 +1835,14 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 	if(BaseTopology::total_phrase_changed == 3)
 	{
 		t_p->is_phrase_changed = true;
+		BaseTopology::pkt_sent_during_phase2++;
+	}
+	else if(BaseTopology::total_phrase_changed >= simulationRunProperties::phrase_change_number)
+	{
+		BaseTopology::pkt_sent_during_phase3++;
+	}
+	else{
+		BaseTopology::pkt_sent_during_phase1++;
 	}
 	//NS_LOG_UNCOND(t_p->srcNodeId);
 	if(t_p->sub_flow_dest_physical == t_p->srcNodeId)

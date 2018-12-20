@@ -15,6 +15,7 @@
 #include "ns3/log.h"
 #include "ss-tos-point-to-point-netdevice.h"
 #include "parameters.h"
+#include <cmath>
 
 namespace ns3 {
 
@@ -120,6 +121,9 @@ uint32_t BaseTopology::total_events = 0;
 
 uint32_t BaseTopology::total_events_learnt = 0;
 
+uint32_t *BaseTopology::total_packets_sent_to_chunk = new uint32_t[simulationRunProperties::total_chunk];
+
+
 //uint32_t *BaseTopology::total_packets_to_chunk = new uint32_t[simulationRunProperties::total_chunk];
 
 uint32_t *BaseTopology::total_packets_to_chunk_destination = new uint32_t[simulationRunProperties::total_chunk];
@@ -175,6 +179,14 @@ bool BaseTopology::write_flow_tail=false;
 int BaseTopology::copy_deleted=0;
 
 int BaseTopology::copy_created=0;
+
+uint32_t BaseTopology::totalWriteCount=0;
+
+uint32_t BaseTopology::pkt_sent_during_phase1=0;
+
+uint32_t BaseTopology::pkt_sent_during_phase2=0;
+
+uint32_t BaseTopology::pkt_sent_during_phase3=0;
 
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
@@ -429,13 +441,13 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 //Parameters
 	float cuttoffnode_high=(int(Count)*int(SSD_PER_RACK))*0.75 ;//400;
 	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.45;// 240;
-	double time_window_following_another_create=350.0;
-	double time_window_following_another_delete=700.0;
-	//uint32_t time_window=50;
-	double time_window_delete=3500.0;
+	double time_window_following_another_create=1000.0; //1000
+	double time_window_following_another_delete=1000.0; //1000
+	////uint32_t time_window=50;
+	double time_window_delete=3500.0; //1500
 	//float delta=.1;
 	float alpha =1; //for smoothing
-	float theta =.5; //for picking up only significant chunks
+	float theta =.6; //for picking up only significant chunks
 	float theta2 =.01;
 	bool energy = true;
 //Parameters
@@ -684,8 +696,8 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 //				nodeOldUtilization[nodeN].U=nodeU[i].U; // this node is being selected but not qualified so updating the utilizaton with the current and smoothed value
 //				continue;
 //			}
-			else
-				nodeOldUtilization[nodeN].U=nodeU[i].U;
+			//else
+				//nodeOldUtilization[nodeN].U=nodeU[i].U;
 
 
         uint32_t pod = (uint32_t) floor((double) nodeN/ (double) Ipv4GlobalRouting::FatTree_k);
@@ -711,19 +723,24 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	    	   NS_LOG_UNCOND("here we are and the pod number , node number a :"<<max_pod<<"::::"<<max_node_no);
 	    	   for(uint32_t i = 0; i<BaseTopology::q[max_pod].nodes[max_node_no].total_chunks; i++)
 		      	 	 {
+
 	    		   	   	 uint32_t l=BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number;
-	    		   	   	 NS_LOG_UNCOND("chunk number "<<l<<" utilization "<<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out);
+	    		   	   	 int deno=(BaseTopology::chnkCopy[l].readCount+BaseTopology::chnkCopy[l].writeCount);
+	    		   	     float write_ratio=float(BaseTopology::chnkCopy[l].writeCount)/deno;
+	    		   	     //write_ratio=std::ceil(write_ratio * 100) / 100;
+	    		   	   	 NS_LOG_UNCOND("chunk number "<<l<<" utilization "<<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out<<" write ratio "<<write_ratio);
 	    		   	    if( BaseTopology::q[max_pod].nodes[max_node_no].data[i].highCopyCount<Ipv4GlobalRouting::FatTree_k
 		      	 		     && (time_now-BaseTopology::chnkCopy[l].last_deleted_timestamp_for_chunk)>time_window_following_another_delete
 							 && (time_now-BaseTopology::chnkCopy[l].last_created_timestamp_for_chunk)>time_window_following_another_create //not sure
 		      	 		     && BaseTopology::chnkCopy[BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number].highCopyCount<Ipv4GlobalRouting::FatTree_k
 		      	 		     && BaseTopology::q[max_pod].nodes[max_node_no].data[i].processed!=1
 							 && max_chunk_u<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out //unmark
-							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out>int(Count)*theta)
-							// && BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>10)//unmark
+							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out>int(Count)*theta
+							 && write_ratio<.006)
+							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>15)//unmark
 	    		   	    	//&& BaseTopology::chnkCopy[l].writeCount/BaseTopology::chnkCopy[l].readCount<.3)
 		      	 		 {
-	    		   	    	 NS_LOG_UNCOND("BaseTopology::chnkCopy[l].read_count"<<BaseTopology::chnkCopy[l].readCount<<"BaseTopology::chnkCopy[l].write_count"<<BaseTopology::chnkCopy[l].writeCount);
+	    		   	    	 NS_LOG_UNCOND("BaseTopology::chnkCopy[l].read_count"<<BaseTopology::chnkCopy[l].readCount<<"BaseTopology::chnkCopy[l].write_count"<<BaseTopology::chnkCopy[l].writeCount<<" fraction "<<float(BaseTopology::chnkCopy[l].writeCount)/(BaseTopology::totalWriteCount)<< " Total copy in the system "<<BaseTopology::totalWriteCount);
 		      	 			 max_chunk_no=BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number;
 		      	 			 max_chunk_u = BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out;//unmark
 		      	 			 max_chunk_index=i;
@@ -740,7 +757,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 			if(energy){
 
 			   max_chunk_u=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].intensity_sum_out/BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].chunk_count; //unmark
-			   estimated_utlization=((max_chunk_u*BaseTopology::chnkCopy[max_chunk_no].count)/(BaseTopology::chnkCopy[max_chunk_no].count+1));
+			   estimated_utlization=max_chunk_u;//((max_chunk_u*BaseTopology::chnkCopy[max_chunk_no].count)/(BaseTopology::chnkCopy[max_chunk_no].count+1));
 			   BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].processed=1;
 
 			   diff_from_node_cutoff=0.0;
@@ -770,7 +787,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 					 }
 
 
-					 if(BaseTopology::q[i].nodes[j].utilization_out+estimated_utlization</*(cuttoffnode_high-(cuttoffnode_high*.1))*/ cuttoffnode_real  && !flag /*&& BaseTopology::q[i].nodes[j].utilization>0*/) //unmark
+					 if(BaseTopology::q[i].nodes[j].utilization_out+estimated_utlization</*(cuttoffnode_high-(cuttoffnode_high*.3))*/ cuttoffnode_real  && !flag /*&& BaseTopology::q[i].nodes[j].utilization>0*/) //unmark
 					 {
 						 diff_from_node_cutoff=(int(Count)*int(SSD_PER_RACK))-BaseTopology::q[i].nodes[j].utilization_out;//+estimated_utlization); //unmark
 						 //diff_from_node_cutoff=/*cuttoffnode_high */cuttoffnode_real-(BaseTopology::q[i].nodes[j].utilization_out+estimated_utlization); //unmark
@@ -1226,6 +1243,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
     				node_=node_%Ipv4GlobalRouting::FatTree_k;
     				BaseTopology::q[pod_node].nodes[node_].utilization_out=BaseTopology::q[pod_node].nodes[node_].utilization_out+utilizationOnEach-min_chunk_u; //crtitical //unmark
     			 }
+    		//	 BaseTopology::chnkCopy[min_chunk_no].highCopyCount--;
 
     		}
 

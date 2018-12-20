@@ -136,7 +136,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 		flow_entry.set_bandwidth(m_requiredBW);
 		flow_entry.destination_node = FindCorrespondingNodeId(m_dst);
 		Ipv4GlobalRouting::flow_map[m_flowId] = flow_entry;
-		NS_LOG_UNCOND(" flow id "<< m_flowId<<" flow source "<< m_src << " flow destination "<<m_dst<< " flow_entry.destination_node "<< flow_entry.destination_node);
+		//NS_LOG_UNCOND(" flow id "<< m_flowId<<" flow source "<< m_src << " flow destination "<<m_dst<< " flow_entry.destination_node "<< flow_entry.destination_node);
 	}
 	else
 	{
@@ -162,7 +162,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 			double current_simulation_time = Simulator::Now().ToDouble(Time::US);
 
-			//fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
+			fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
 
 			fclose(fp_packet);
 
@@ -220,7 +220,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 
 			BaseTopology::total_packets_to_chunk_destination[packet->sub_flow_id]++;
-
+			//NS_LOG_UNCOND("ffndjsfnsdjfsjfnjsfn   "<<packet->sub_flow_id<<" count of packets "<<BaseTopology::total_packets_to_chunk_destination[packet->sub_flow_id]);
 
 
 			//keeping track of the tail latency
@@ -236,6 +236,7 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			//This is to keep chunk level read and write statistics------------------------
 			if(packet->is_write)
 			{
+				BaseTopology::totalWriteCount++;
 				BaseTopology::chnkCopy[packet->sub_flow_id].writeCount++;
 
 				if(BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id] < BaseTopology::chunk_version_tracker[packet->sub_flow_id])
@@ -251,9 +252,9 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
 			}
 
-			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered==0)
+			/*if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered==0)
 				BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
-
+*/
 
 
 //			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered!=0 && (current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered)>100000)//calculate after 100 millisec
@@ -321,7 +322,6 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			//NS_LOG_UNCOND("End Find Destination");
 			//
 		}
-
 
 	}
 
