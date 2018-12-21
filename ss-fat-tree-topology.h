@@ -47,6 +47,8 @@ protected:
 
 	virtual void SetUpIntensityPhraseChangeVariables();
 
+	virtual void SetUpRealTracesVariables();
+
 	/***********************************************/
 
 	int hosts_per_pod;	// number of hosts switch in a pod

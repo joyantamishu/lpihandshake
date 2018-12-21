@@ -125,5 +125,14 @@
 #define OPTIMIZER								false
 
 #define UNIFORM_BURSTS							true
+
+#define CHUNK_SIZE			1000000000 //Chunk size in Byte, Currently it is 1GB
+
+#define MegabyteToByte		1000000
+
+#define DRIVE_CAPACITY								 10000
+#define DEFAULT_UTILIZATION	0.1
+
+#define ENTRIES_PER_FLOW 	100
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

@@ -149,6 +149,8 @@ public:
 
 	static double RWratio;
 
+	static double utilization_value;
+
 	/**********************************************/
 
 private:

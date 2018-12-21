@@ -122,6 +122,8 @@ bool simulationRunProperties::uniformBursts = UNIFORM_BURSTS;
 
 double simulationRunProperties::RWratio=READ_WRITE_RATIO;
 
+double simulationRunProperties::utilization_value = DEFAULT_UTILIZATION;
+
 /***********************************************/
 
 

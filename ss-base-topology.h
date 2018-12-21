@@ -286,6 +286,23 @@ public:
 	}
 };
 
+class HostBandwidthRequirement
+{
+public:
+	double *hosts;
+
+	HostBandwidthRequirement()
+	{
+		uint32_t total_hosts = (simulationRunProperties::k * simulationRunProperties::k * simulationRunProperties::k)/4;
+		hosts = new double[total_hosts];
+		for(uint32_t i=0;i<total_hosts;i++)
+		{
+			hosts[i] = 0.0;
+		}
+	}
+};
+
+
 
 /*
  *
@@ -482,6 +499,15 @@ public:
 	static double *host_utilization_outgoing;
 
 	static uint32_t totalWriteCount;
+
+	static uint64_t min_offset;
+
+	static HostBandwidthRequirement **application_statistics;
+
+
+	static std::list<uint32_t> finished_application_list;
+
+	static uint32_t *latest_flow;
 
 protected:
 	virtual void DoDispose(void);

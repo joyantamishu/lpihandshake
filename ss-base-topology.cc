@@ -188,6 +188,14 @@ uint32_t BaseTopology::pkt_sent_during_phase2=0;
 
 uint32_t BaseTopology::pkt_sent_during_phase3=0;
 
+uint64_t BaseTopology::min_offset = 0;
+
+HostBandwidthRequirement** BaseTopology::application_statistics = new HostBandwidthRequirement*[simulationRunProperties::total_applications+1];
+
+uint32_t *BaseTopology::latest_flow = new uint32_t[simulationRunProperties::total_applications+1];
+
+std::list<uint32_t> BaseTopology::finished_application_list;
+
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
 	DoDispose();
