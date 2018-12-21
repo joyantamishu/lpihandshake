@@ -64,6 +64,19 @@ public:
 
 };
 
+class singledatasetentry
+{
+public:
+	double timestamp;
+	bool read;
+	uint32_t chunk_id;
+	uint32_t bandwidth;
+	singledatasetentry(double timetamp, bool read, uint32_t chunk_id, uint32_t bandwidth)
+	{
+		this->timestamp = timestamp;
+	}
+};
+
 
 // copied from UdpEchoClientHelper
 class ssUdpEchoClientHelper {
@@ -186,6 +199,10 @@ protected:
 	uint32_t t_sentPacketCount; //!< Maximum number of packets the application will send
 	uint32_t m_currentFlowCount;  	// current count of the flow execution.
 	Time m_packetInterval; 			//!< inter-packet time
+	uint32_t m_workingapp;
+	uint32_t trace_id;
+	uint32_t working_app;
+
 	// simplyfied sanjeev 2/25
 	uint64_t m_flowStartTimeNanoSec; // flow age since 1st packet...
 	uint32_t m_flowRequiredBW;

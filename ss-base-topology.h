@@ -634,9 +634,9 @@ protected:
 
 	//chunk specific change
 
-	virtual uint32_t getCustomizedRandomClientNode(uint32_t &application_id);
+	virtual int getCustomizedRandomClientNode(uint32_t &application_id);
 
-	virtual uint32_t getCustomizedRandomClientNodeDummy(uint32_t &application_id);
+	virtual int getCustomizedRandomClientNodeDummy(uint32_t &application_id);
 };
 
 }  //namespace

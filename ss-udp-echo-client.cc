@@ -153,11 +153,21 @@ TypeId ssUdpEchoClient::GetTypeId(void) {
 					UintegerValue(512),
 					MakeUintegerAccessor(&ssUdpEchoClient::m_packetSize),
 					MakeUintegerChecker<uint32_t>()).AddAttribute(
-					"CurrentFlowNumber",
-					"The current flow number (used by packetTag)",
+					"traceid",
+					"trace file id",
 					UintegerValue(0),
-					MakeUintegerAccessor(&ssUdpEchoClient::m_currentFlowCount),
+					MakeUintegerAccessor(&ssUdpEchoClient::trace_id),
 					MakeUintegerChecker<uint32_t>()).AddAttribute(
+							"app_id",
+							"The current app number",
+							UintegerValue(0),
+							MakeUintegerAccessor(&ssUdpEchoClient::working_app),
+							MakeUintegerChecker<uint32_t>()).AddAttribute(
+									"CurrentFlowNumber",
+									"The current flow number (used by packetTag)",
+									UintegerValue(0),
+									MakeUintegerAccessor(&ssUdpEchoClient::m_currentFlowCount),
+									MakeUintegerChecker<uint32_t>()).AddAttribute(
 					"RequiredFlowBW",
 					"Required Flow Bandwidth, set from external object",
 					IntegerValue(80),
@@ -483,7 +493,7 @@ void ssUdpEchoClient::CreateandRemoveIndependentReadFlows(uint32_t distinct_host
 				}
 			}
 		}
-		if (floor(bandwidth_distribution) > 0 && create == 1 && count_chunk>=1) BaseTopology::InjectANewRandomFlowCopyCreation(ssd_host, destination, 0, true, bandwidth_distribution, true, finish_time, application_index);
+		if (floor(bandwidth_distribution) > 0 && create == 1 && count_chunk>=1) BaseTopology::InjectANewRandomFlowCopyCreation(ssd_host, destination, 0, true, bandwidth_distribution, true, finish_time, working_app);
 	}
 
    //calculating aggregate metric at the pod level
@@ -1141,87 +1151,91 @@ void ssUdpEchoClient::StopApplication(void) {
 //		fprintf(fp_host_utilization,"\n");
 		fclose(fp_host_utilization);
 
-if(simulationRunProperties::enableOptimizer)
-{
-		//BaseTopology::counter_++;
-		/********Uncomment it when function ReturnSomething is ready */
-		if(BaseTopology::counter_==0 )
+		if(simulationRunProperties::enableOptimizer)
 		{
-
-			int incrDcr=0;
-
-			BaseTopology::calculateNewLocation(incrDcr);
-
-			int i=0;
-
-		    FILE *fp_copy;
-
-		    fp_copy = fopen ("copy_create_delete.csv","a");
-			while(BaseTopology::res[i].src != 99999 && BaseTopology::res!=NULL)
-			{
-				printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
-				 char p='d';
-				 BaseTopology::copy_deleted++;
-				 fprintf(fp_copy,"%c,%f,%d,%d,%d,0\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest);
-				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].src] = false;
-				//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest] = true;
-				NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
-				NS_ASSERT_MSG(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0, " SomeThing Wrong in deletion of the copy ");
-				if(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
+				//BaseTopology::counter_++;
+				/********Uncomment it when function ReturnSomething is ready */
+				if(BaseTopology::counter_==0 )
 				{
-					uint32_t chunk_location = FindChunkAssignedHost(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src);
-						//uint32_t round_robin_counter = BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest] % SSD_PER_RACK;
-					BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy --;
-					BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
 
-					BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][chunk_location] = false;
+					int incrDcr=0;
 
-					uint32_t node_name=BaseTopology::res[i].src%Ipv4GlobalRouting::FatTree_k;
-					uint32_t pod_name=BaseTopology::res[i].src/Ipv4GlobalRouting::FatTree_k;
-					uint32_t deletion_location;
-					uint32_t first_location=9999999;
-					for(uint32_t j = 0; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks; j++)
-					{
-						 if(BaseTopology::p[pod_name].nodes[node_name].data[j].chunk_number==BaseTopology::res[i].chunk_number)
-						 {
-						   deletion_location=j;
-						   if(first_location==9999999)//get hold of the first index of the item in the list in the list
-							   first_location=deletion_location;
-						  // break;
-						 }
-					}
-					if(first_location!=deletion_location)
-					{
-						BaseTopology::p[pod_name].nodes[node_name].data[first_location].chunk_count--;
-					}
-					if(deletion_location==BaseTopology::p[pod_name].nodes[node_name].total_chunks-1)
-					{
-						BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
-					}
-					else
-					{
-						 for(uint32_t j = deletion_location; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks-1; j++)
-						 {
-							 BaseTopology::p[pod_name].nodes[node_name].data[j]=BaseTopology::p[pod_name].nodes[node_name].data[j+1]; //copying structure
-						 }
-						 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
-					}
-					}
+					BaseTopology::calculateNewLocation(incrDcr);
 
-				else
-				{
-					NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+					int i=0;
 
+					FILE *fp_copy;
+
+					fp_copy = fopen ("copy_create_delete.csv","a");
+					while(BaseTopology::res[i].src != 99999 && BaseTopology::res!=NULL)
+					{
+						printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+						 char p='d';
+						 BaseTopology::copy_deleted++;
+						 fprintf(fp_copy,"%c,%f,%d,%d,%d,0\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest);
+						//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].src] = false;
+						//BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest] = true;
+						NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
+						NS_ASSERT_MSG(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0, " SomeThing Wrong in deletion of the copy ");
+						if(BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
+						{
+							uint32_t chunk_location = FindChunkAssignedHost(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src);
+								//uint32_t round_robin_counter = BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest] % SSD_PER_RACK;
+							BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy --;
+							BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
+
+							BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][chunk_location] = false;
+
+							uint32_t node_name=BaseTopology::res[i].src%Ipv4GlobalRouting::FatTree_k;
+							uint32_t pod_name=BaseTopology::res[i].src/Ipv4GlobalRouting::FatTree_k;
+							uint32_t deletion_location;
+							uint32_t first_location=9999999;
+							for(uint32_t j = 0; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks; j++)
+							{
+								 if(BaseTopology::p[pod_name].nodes[node_name].data[j].chunk_number==BaseTopology::res[i].chunk_number)
+								 {
+								   deletion_location=j;
+								   if(first_location==9999999)//get hold of the first index of the item in the list in the list
+									   first_location=deletion_location;
+								  // break;
+								 }
+							}
+							if(first_location!=deletion_location)
+							{
+								BaseTopology::p[pod_name].nodes[node_name].data[first_location].chunk_count--;
+							}
+							if(deletion_location==BaseTopology::p[pod_name].nodes[node_name].total_chunks-1)
+							{
+								BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+							}
+							else
+							{
+								 for(uint32_t j = deletion_location; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks-1; j++)
+								 {
+									 BaseTopology::p[pod_name].nodes[node_name].data[j]=BaseTopology::p[pod_name].nodes[node_name].data[j+1]; //copying structure
+								 }
+								 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+							}
+							}
+
+						else
+						{
+							NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+
+						}
+
+						i++;
+
+					}
+					BaseTopology::counter_=0;
+					fclose(fp_copy);
 				}
 
-				i++;
-
-			}
-			BaseTopology::counter_=0;
-			fclose(fp_copy);
 		}
 
-}
+		BaseTopology::finished_application_list.push_back(ssUdpEchoClient::working_app);
+
+		BaseTopology::latest_flow[ssUdpEchoClient::working_app] = BaseTopology::latest_flow[ssUdpEchoClient::working_app] + 1;
 
 		//calling the optimizer
 

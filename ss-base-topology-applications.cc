@@ -349,7 +349,7 @@ if(simulationRunProperties::uniformBursts)
 	uint32_t application_id;
 	//t_b = getCustomizedRandomClientNode(application_id);
 	if (!dummy_application) t_b = getCustomizedRandomClientNode(application_id);
-	else t_b = getCustomizedRandomClientNodeDummy(application_id);
+	else t_b = -1;
 
 	if (t_b < 0) {
 		// if returns NO suitable host found, abandon new flow...
@@ -391,6 +391,8 @@ if(simulationRunProperties::uniformBursts)
 	t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(write_bandwidth));
 	t_echoClient->SetAttribute("RequiredReadFlowBW", UintegerValue(read_bandwidth));
 	t_echoClient->SetAttribute("FinishTime", DoubleValue(finish_time));
+	t_echoClient->SetAttribute("app_id", UintegerValue(application_id));
+	t_echoClient->SetAttribute("traceid", UintegerValue(BaseTopology::latest_flow[application_id]));
 	t_allClientApps = t_echoClient->Install(t_client,false, t_b, application_id,0);
 
 	t_clientApp = DynamicCast<ssUdpEchoClient>(t_allClientApps.Get(0));

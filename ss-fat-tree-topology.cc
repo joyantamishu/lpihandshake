@@ -1064,13 +1064,13 @@ void FatTreeTopology::SetUpRealTracesVariables()
 	uint64_t total_bandwidth_in_bytes = 0;
 
 
-//	for (uint32_t application_id=0; application_id<(uint32_t)simulationRunProperties::initialFlowCount;application_id++)
-//	{
-//		BaseTopology::finished_application_list.push_back(application_id);
-//
-//		BaseTopology::latest_flow[application_id] = 0;
-//
-//	}
+	for (uint32_t application_id=0; application_id<(uint32_t)simulationRunProperties::initialFlowCount;application_id++)
+	{
+		BaseTopology::finished_application_list.push_back(application_id);
+
+		BaseTopology::latest_flow[application_id] = 0;
+
+	}
 
 
 
