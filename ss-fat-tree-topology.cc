@@ -179,7 +179,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					//flag=false;
 					//NS_LOG_UNCOND("Value is "<<value);
 					value = value -1;
-					NS_LOG_UNCOND("chunk number########## "<<value<<" logical_node_id "<<logical_host_number+round_robin_counter);
+					//NS_LOG_UNCOND("chunk number########## "<<value<<" logical_node_id "<<logical_host_number+round_robin_counter);
 					//round_robin_counter = (count -1) % (SSD_PER_RACK);
 					round_robin_counter = 0;
 
@@ -235,10 +235,6 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 	//reduce the copy number by 1
 
 
-	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
-	{
-		NS_LOG_UNCOND("Chunk No "<<chunk_index<< " Position "<<BaseTopology::chunkTracker.at(chunk_index).logical_node_id);
-	}
 
 
 	for(uint32_t chunk_index =0;chunk_index<chunk_number;chunk_index++)
@@ -256,7 +252,7 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 			{
 				if(BaseTopology::chunk_copy_node_tracker[chunk_index][host_id])
 				{
-					NS_LOG_UNCOND("Node "<<host_id);
+					//NS_LOG_UNCOND("Node "<<host_id);
 				}
 			}
 		}
@@ -965,7 +961,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 				//NS_LOG_UNCOND(percentage_count);
 				y = (hosts_per_edge * b1) + c;
 
-				NS_LOG_UNCOND("The value of Y "<<y<<" id "<<hosts.Get(y)->GetId());
+				//NS_LOG_UNCOND("The value of Y "<<y<<" id "<<hosts.Get(y)->GetId());
 
 				if(y% (SSD_PER_RACK+1) == 0) ndc3 = p2p.Install(edgeRouters.Get(x), hosts.Get(y));
 				else ndc3 = p2pSSD.Install(edgeRouters.Get(x), hosts.Get(y));
@@ -1127,6 +1123,8 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 	BaseTopology::min_offset = min_offset;
 
+	uint32_t chunk_size = (max_offset - min_offset)/simulationRunProperties::total_chunk;
+
 
 	uint32_t trace_entries_per_application = total_entries/simulationRunProperties::total_applications;
 
@@ -1217,12 +1215,16 @@ void FatTreeTopology::SetUpRealTracesVariables()
 
 			trace_ending_time = timestamp;
 
-			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%lu,%d\n",(timestamp-relative_time_of_traces) / interarrival_time_scale,response_time, io_type,LUN,offset,size );
+			chunk_id = (offset - min_offset) / chunk_size;
+
+			//uint32_t num_packets = (uint32_t)((double)size / (double) simulationRunProperties::packetSize);
+
+			fprintf(fp_subtraces,"%lf,%lf,%c,%d,%u,%d\n",(timestamp-relative_time_of_traces) / interarrival_time_scale,response_time, io_type,LUN,chunk_id,size );
 
 			relative_time_of_traces = timestamp;
 			count++;
 
-			chunk_id = (offset - min_offset) / CHUNK_SIZE;
+			//chunk_id = (offset - min_offset) / CHUNK_SIZE;
 
 			chunk_location = chunk_id % total_hosts_machines;
 

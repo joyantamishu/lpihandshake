@@ -122,7 +122,7 @@
 
 #define CONSISTENCY_FLOW_START_DUARTION_CONSTANT	0.0001
 
-#define OPTIMIZER								false
+#define OPTIMIZER								true
 
 #define UNIFORM_BURSTS							true
 
@@ -130,7 +130,7 @@
 
 #define MegabyteToByte		1000000
 
-#define DRIVE_CAPACITY								 10000
+#define DRIVE_CAPACITY								 100
 #define DEFAULT_UTILIZATION	0.1
 
 #define ENTRIES_PER_FLOW 	100

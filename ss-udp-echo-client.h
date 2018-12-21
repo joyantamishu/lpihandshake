@@ -25,6 +25,8 @@
 
 #include "parameters.h"
 
+#include "float.h"
+
 namespace ns3 {
 
 class local_chunk_info
@@ -68,13 +70,18 @@ class singledatasetentry
 {
 public:
 	double timestamp;
-	bool read;
+	bool is_read;
 	uint32_t chunk_id;
 	uint32_t bandwidth;
-	singledatasetentry(double timetamp, bool read, uint32_t chunk_id, uint32_t bandwidth)
+	singledatasetentry(double timetamp, bool is_read, uint32_t chunk_id, uint32_t bandwidth)
 	{
 		this->timestamp = timestamp;
+		this->is_read = is_read;
+		this->chunk_id = chunk_id;
+		this->bandwidth = bandwidth;
+
 	}
+	singledatasetentry(){}
 };
 
 
@@ -85,11 +92,11 @@ public:
 	ssUdpEchoClientHelper(Ipv4Address ip, uint16_t port);
 	virtual ~ssUdpEchoClientHelper();
 	void SetAttribute(std::string name, const AttributeValue &value);
-	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false, uint32_t read_app_id =-1) const;
+	ApplicationContainer Install(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false, uint32_t read_app_id =-1, uint32_t trace_id = -1) const;
 	ApplicationContainer Install(NodeContainer c) const;
 
 protected:
-	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false, uint32_t read_app_id = -1) const;
+	Ptr<Application> InstallPriv(Ptr<Node> node, bool single_destination_flow, uint32_t source_node, uint32_t app_id, uint32_t dest_node = -1, uint32_t no_of_packets = 0, bool read_flow=false, bool non_consistent_read_flow = false, uint32_t read_app_id = -1, uint32_t trace_id =- 1) const;
 	ObjectFactory m_factory; //!< Object factory.
 };
 
@@ -124,6 +131,8 @@ public:
 
 	uint32_t total_packets_to_send;
 	uint32_t distinct_items;
+
+
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
 	virtual uint32_t FindChunkAssignedHost(uint32_t chunk_id, uint32_t rack_id);
@@ -131,13 +140,29 @@ public:
 
 	virtual uint32_t getHostInfoMadeBypolicy(uint32_t dest_id);
 
-	virtual void CreateandRemoveIndependentReadFlows(uint32_t distinct_hosts, double finish_time, int create =1);
+	virtual void CreateandRemoveIndependentReadFlows(uint32_t distinct_hosts, double finish_time, double cumulative_sum, uint32_t no_of_entries, int create =1);
 
 	bool read_flow;
 
 	bool no_packet_flow;
 
 	uint32_t read_flow_application_index;
+
+	uint32_t trace_index;
+
+	singledatasetentry *entries;
+
+	singledatasetentry *flowentries;
+
+	uint32_t write_opt;
+
+	uint32_t entry_count;
+
+	double timestamp_duration;
+
+	int active_entries;
+
+	int local_count;
 
 	/*********************************************/
 

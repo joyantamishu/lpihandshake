@@ -340,7 +340,7 @@ public:
 			const uint16_t &srcNodeId, const uint16_t &dstNodeId,
 			const uint16_t &flowBW);
 
-	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true, uint32_t required_bandwidth = 100, bool non_consistent_read_flow = false, double finish_time= 40.0, uint32_t app_id = -1);//JB change Dec 12
+	static void InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow = true, uint32_t required_bandwidth = 100, bool non_consistent_read_flow = false, double finish_time= 40.0, uint32_t app_id = -1, uint32_t trace_id=-1);//JB change Dec 12
 
 	static FlowDataCollected *m_flowData;
 	static std::ofstream fpDeviceEnergy;
@@ -508,6 +508,8 @@ public:
 	static std::list<uint32_t> finished_application_list;
 
 	static uint32_t *latest_flow;
+
+	static singledatasetentry **applicationflows;
 
 protected:
 	virtual void DoDispose(void);

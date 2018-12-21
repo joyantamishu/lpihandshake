@@ -261,7 +261,7 @@ void BaseTopology::InjectInitialFlowsMR(const int &requiredInitialFlowCount) {
 	InjectANewRandomFlow();
 }
 
-void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow, uint32_t required_bandwidth, bool non_consistent_read_flow, double finish_time, uint32_t app_id)
+void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest, uint32_t number_of_packets, bool read_flow, uint32_t required_bandwidth, bool non_consistent_read_flow, double finish_time, uint32_t app_id, uint32_t trace_id)
 {
 	NS_LOG_UNCOND("Inside InjectANewRandomFlowCopyCreation "<<" src "<<src<<" dest "<<dest<<" number_of_packets "<<number_of_packets<<" required_bandwidth "<<required_bandwidth);
 
@@ -294,7 +294,7 @@ void BaseTopology::InjectANewRandomFlowCopyCreation(uint32_t src, uint32_t dest,
 	static_t_echoClient->SetAttribute("CurrentFlowNumber", UintegerValue(BaseTopology::consistency_flow));
 	static_t_echoClient->SetAttribute("RequiredFlowBW", UintegerValue(required_bandwidth));
 	static_t_echoClient->SetAttribute("RequiredReadFlowBW", UintegerValue(required_bandwidth));
-	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow, non_consistent_read_flow, app_id);
+	static_t_allClientApps = static_t_echoClient->Install(static_t_client,true, static_t_b, simulationRunProperties::total_applications + 1,dest, number_of_packets, read_flow, non_consistent_read_flow, app_id, trace_id);
 
 	static_t_allClientApps.Start(MilliSeconds(NEWFLOW_START_DELAY_MILLISEC));
 	static_t_allClientApps.Stop(static_t_appStopTimeRandom);
@@ -359,6 +359,49 @@ if(simulationRunProperties::uniformBursts)
 	}
 	NS_LOG_UNCOND("Be careful, there could be some issue here");
 	t_x = t_b+1;
+
+
+
+
+
+
+	char str[1000];
+	double timestamp;
+	double response_time;
+	char io_type;
+	int LUN;
+	uint32_t chunk_no;
+	uint32_t size;
+	char assigned_sub_trace_file[40];
+
+	sprintf(assigned_sub_trace_file, "%s_%d_%s_%d.csv", "application",application_id,"flow",BaseTopology::latest_flow[application_id]);
+
+	std::FILE *fp;
+
+	fp = fopen(assigned_sub_trace_file, "r");
+
+	if (fp == NULL){
+		printf("Could not open file %s",assigned_sub_trace_file);
+		return;
+	}
+
+
+
+	double sum = 0.0;
+
+	while (fgets(str, 1000, fp) != NULL)
+	{
+
+		sscanf(str,"%lf,%lf,%c,%d,%u,%d",&timestamp,&response_time, &io_type,&LUN,&chunk_no,&size);
+		sum += timestamp;
+
+	}
+
+	fclose(fp);
+
+	NS_LOG_UNCOND("^^^^^^^^^^"<<sum);
+
+	t_appStopTimeRandom = Time::FromDouble(timestamp, Time::S);
 
 
 	uint32_t write_bandwidth = (uint32_t) t_reqBW * ( 1.0 - simulationRunProperties::RWratio);
