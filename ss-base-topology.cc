@@ -173,6 +173,7 @@ uint32_t BaseTopology::rollback_packets = 0;
 double BaseTopology::tail_latency=0.0;
 
 double *BaseTopology::host_utilization_outgoing = new double[total_hosts_in_system+1];
+uint32_t *BaseTopology::host_copy = new uint32_t [total_hosts_in_system+1];
 
 bool BaseTopology::write_flow_tail=false;
 
@@ -187,6 +188,12 @@ uint32_t BaseTopology::pkt_sent_during_phase1=0;
 uint32_t BaseTopology::pkt_sent_during_phase2=0;
 
 uint32_t BaseTopology::pkt_sent_during_phase3=0;
+
+uint32_t BaseTopology::pkt_rcv_during_phase1=0;
+
+uint32_t BaseTopology::pkt_rcv_during_phase2=0;
+
+uint32_t BaseTopology::pkt_rcv_during_phase3=0;
 
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);
@@ -443,10 +450,9 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	float cuttoffnode_real=(int(Count)*int(SSD_PER_RACK))*0.45;// 240;
 	double time_window_following_another_create=1000.0; //1000
 	double time_window_following_another_delete=1000.0; //1000
-	////uint32_t time_window=50;
-	double time_window_delete=3500.0; //1500
-	//float delta=.1;
-	float alpha =1; //for smoothing
+	double time_window_delete=3000.0; //1500
+//	float delta=.075;
+	float alpha =.85; //for smoothing
 	float theta =.6; //for picking up only significant chunks
 	float theta2 =.01;
 	bool energy = true;
@@ -462,7 +468,6 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	uint32_t min_pod=0;
 	uint32_t r=0;
 	uint32_t res_index=0;
-	//time_t now = time(0);
 	double time_now=Simulator::Now().ToDouble(Time::MS);
 	NS_LOG_UNCOND("enetering"<<time_now);
 
@@ -707,7 +712,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 
 
 
-		NS_LOG_UNCOND("The( maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: max_node_no "<<max_node_no<<" ::: max_pod "<<max_pod<<" total chunk on node "<<BaseTopology::q[max_pod].nodes[max_node_no].total_chunks);
+		NS_LOG_UNCOND("The maximally used node is------------------&&&&&&&&&&------------------------------------------------------------------------- :"<<max_node_u<<" ::: max_node_no "<<max_node_no<<" ::: max_pod "<<max_pod<<" total chunk on node "<<BaseTopology::q[max_pod].nodes[max_node_no].total_chunks);
 		beyond_cutoff=max_node_u-(cuttoffnode_high-(cuttoffnode_high*.3)); //changed cuttoffnode_high to cuttoffnode_real --Madhu
 		target_utilization=0.0;
 		NS_LOG_UNCOND("beyond_cutoff"<<beyond_cutoff);
@@ -728,7 +733,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 	    		   	   	 int deno=(BaseTopology::chnkCopy[l].readCount+BaseTopology::chnkCopy[l].writeCount);
 	    		   	     float write_ratio=float(BaseTopology::chnkCopy[l].writeCount)/deno;
 	    		   	     //write_ratio=std::ceil(write_ratio * 100) / 100;
-	    		   	   	 NS_LOG_UNCOND("chunk number "<<l<<" utilization "<<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out<<" write ratio "<<write_ratio);
+	    		   	   	 NS_LOG_UNCOND("chunk number "<<l<<" utilization "<<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out<<" write ratio "<<write_ratio<<" write count compared to whole system "<<float(BaseTopology::chnkCopy[l].writeCount)/(BaseTopology::totalWriteCount));
 	    		   	    if( BaseTopology::q[max_pod].nodes[max_node_no].data[i].highCopyCount<Ipv4GlobalRouting::FatTree_k
 		      	 		     && (time_now-BaseTopology::chnkCopy[l].last_deleted_timestamp_for_chunk)>time_window_following_another_delete
 							 && (time_now-BaseTopology::chnkCopy[l].last_created_timestamp_for_chunk)>time_window_following_another_create //not sure
@@ -736,8 +741,10 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 		      	 		     && BaseTopology::q[max_pod].nodes[max_node_no].data[i].processed!=1
 							 && max_chunk_u<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out //unmark
 							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out>int(Count)*theta
-							 && write_ratio<.006)
-							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>15)//unmark
+							 && float(BaseTopology::chnkCopy[l].writeCount)/(BaseTopology::totalWriteCount)<0.008)
+							 //&& write_ratio<0.1)
+							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>10
+							 //&&  BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number<20) //unmark
 	    		   	    	//&& BaseTopology::chnkCopy[l].writeCount/BaseTopology::chnkCopy[l].readCount<.3)
 		      	 		 {
 	    		   	    	 NS_LOG_UNCOND("BaseTopology::chnkCopy[l].read_count"<<BaseTopology::chnkCopy[l].readCount<<"BaseTopology::chnkCopy[l].write_count"<<BaseTopology::chnkCopy[l].writeCount<<" fraction "<<float(BaseTopology::chnkCopy[l].writeCount)/(BaseTopology::totalWriteCount)<< " Total copy in the system "<<BaseTopology::totalWriteCount);
@@ -918,7 +925,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 
 
     //Decrease starts here-----------------------------------------------------------------------------------------------------------------
-        else
+        else //if(time_now>4000.00)
         {
     		uint32_t target_pod=999;
     		uint32_t target_node=999;
@@ -934,7 +941,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
     		float min_node_u;
     		uint32_t last_created_location;
     		uint32_t last_created_at_node;
-    			uint32_t last_created_at_pod;
+    		uint32_t last_created_at_pod;
 
     //here the major for loop starts
         for(uint32_t i = 0; i<number_of_hosts; i++)
@@ -1265,6 +1272,12 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
         BaseTopology::res[res_index].chunk_number=99999;
 
       }//end of else
+//        else
+//        {
+//            BaseTopology::res[res_index].src=99999;
+//            BaseTopology::res[res_index].dest=99999;
+//            BaseTopology::res[res_index].chunk_number=99999;
+//        }
 
 
  return;// BaseTopology::res;

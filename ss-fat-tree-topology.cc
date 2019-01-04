@@ -662,9 +662,9 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 
 
-	BaseTopology::phrase_change_interval[0] = 100; //in ms
+	BaseTopology::phrase_change_interval[0] = 1000; //in ms
 
-	BaseTopology::phrase_change_interval[1] = 100;
+	BaseTopology::phrase_change_interval[1] = 1000;
 
 	BaseTopology::phrase_change_interval[2] = 2000;
 
@@ -695,6 +695,7 @@ void FatTreeTopology::SetUpNodeUtilizationStatistics()
 		Ipv4GlobalRouting::host_utilization_smoothed[i]=0.0;
 		Ipv4GlobalRouting::host_congestion_flag[i]=0;
 		BaseTopology::host_utilization_outgoing[i] = 0.0;
+		BaseTopology::host_copy[i] = 0;
 	}
 }
 

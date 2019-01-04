@@ -161,8 +161,14 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination = Ipv4GlobalRouting::flow_map.at(m_flowId).total_packet_to_destination +1;
 
 			double current_simulation_time = Simulator::Now().ToDouble(Time::US);
-
-			fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
+			double time_now=Simulator::Now().ToDouble(Time::MS);
+			if(time_now<2000.0)
+				BaseTopology::pkt_rcv_during_phase1++;
+			else if(time_now>=2000.00 && time_now<4000.00)
+				BaseTopology::pkt_rcv_during_phase2++;
+			else
+				BaseTopology::pkt_rcv_during_phase3++;
+			//fprintf(fp_packet,"%d, %d, %d , %d, %d, %d, %d, %d,%d, %d, %f, %f,%f\n", packet->flow_id, packet->required_bandwidth, packet->sub_flow_dest ,packet->sub_flow_dest_physical, packet->application_id, packet->is_First, packet->packet_id, packet->dstNodeId , packet->srcNodeId, packet->is_write, packet->creation_time, current_simulation_time, (current_simulation_time - packet->creation_time));
 
 			fclose(fp_packet);
 

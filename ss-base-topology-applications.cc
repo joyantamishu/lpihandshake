@@ -319,8 +319,8 @@ void BaseTopology::InjectANewRandomFlow(bool dummy_application) {
 	t_appStopTimeRandom = Time::FromDouble(finish_time,
 			Time::MS);
 	fp_flow_duration = fopen ("flow_duration_madhurima.csv","a");
-	fprintf(fp_flow_duration,"%f\n",t_appStopTimeRandom.ToDouble(Time::MS) );
-	fclose(fp_flow_duration);
+	//fprintf(fp_flow_duration,"%f\n",t_appStopTimeRandom.ToDouble(Time::MS) );
+	//fclose(fp_flow_duration);
 
 
 	if (m_internalClientStopTime < Simulator::Now() + t_appStopTimeRandom) {
@@ -331,10 +331,14 @@ void BaseTopology::InjectANewRandomFlow(bool dummy_application) {
 	// removed MR while loop... (take from previous backup code if needed),,,sanjeev May 10
 	t_reqBW = m_randomBWVariable->GetInteger();
 
+	fprintf(fp_flow_duration,"%f,%d\n",t_appStopTimeRandom.ToDouble(Time::MS),t_reqBW);
+	fclose(fp_flow_duration);
 	///////////Chunk Specific Change/////////////
 	NS_LOG_UNCOND("=======The t_reqBW prev====== "<<t_reqBW);
 if(simulationRunProperties::uniformBursts)
 	t_reqBW = t_reqBW * BaseTopology::intensity_change_scale; //uncomment this part
+
+
 
 	NS_LOG_UNCOND("======The t_reqBW after======="<<t_reqBW);
 

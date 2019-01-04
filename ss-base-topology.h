@@ -362,6 +362,12 @@ public:
 
 	static uint32_t pkt_sent_during_phase3;
 
+	static uint32_t pkt_rcv_during_phase1;
+
+	static uint32_t pkt_rcv_during_phase2;
+
+	static uint32_t pkt_rcv_during_phase3;
+
 	static double tail_latency;
 
 	static bool write_flow_tail;
@@ -480,6 +486,7 @@ public:
 	static uint32_t rollback_packets;
 
 	static double *host_utilization_outgoing;
+	static uint32_t *host_copy;
 
 	static uint32_t totalWriteCount;
 
