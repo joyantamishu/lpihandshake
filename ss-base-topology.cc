@@ -23,6 +23,9 @@ NS_LOG_COMPONENT_DEFINE("BaseTopology");
 /*
  *
  */
+
+
+
 int BaseTopology::total_appication = 0;
 FlowDataCollected *BaseTopology::m_flowData = NULL;
 std::ofstream BaseTopology::fpDeviceEnergy;
@@ -194,6 +197,13 @@ uint32_t BaseTopology::pkt_rcv_during_phase1=0;
 uint32_t BaseTopology::pkt_rcv_during_phase2=0;
 
 uint32_t BaseTopology::pkt_rcv_during_phase3=0;
+
+uint32_t** BaseTopology::distance_matrix = new uint32_t* [total_hosts_in_system];
+
+uint32_t** BaseTopology::distance_node = new uint32_t* [total_hosts_in_system];
+
+std::map<std::string, TimeStampTracker> BaseTopology::concurrency_tracker;
+
 
 BaseTopology::~BaseTopology() {
 	NS_LOG_FUNCTION(this);

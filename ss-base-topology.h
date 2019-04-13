@@ -8,7 +8,7 @@
 #ifndef SS_BASE_TOPOLOGY_H_
 #define SS_BASE_TOPOLOGY_H_
 
-#include <string.h>
+#include <string>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4.h"
@@ -50,6 +50,28 @@ public:
 		this->location = location;
 		this->version = version;
 	}
+};
+
+class TimeStampTracker
+{
+public:
+	double first_arrival_time;
+	double commit_time;
+	uint32_t first_node;
+	TimeStampTracker(double first_arrival_time, double commit_time, uint32_t first_node)
+	{
+		this->first_arrival_time = first_arrival_time;
+		this->commit_time = commit_time;
+		this->first_node = first_node;
+	}
+
+	TimeStampTracker()
+	{
+		this->first_arrival_time = 0.0;
+		this->commit_time = 0.0;
+		this->first_node = -1;
+	}
+
 };
 
 
@@ -450,10 +472,6 @@ public:
 
 	static uint32_t *total_packets_sent_to_chunk;
 
-	////remove this variable after all done
-
-	//static uint32_t *total_packets_to_chunk;
-
 	static uint32_t *total_packets_to_chunk_destination;
 
 	static double last_point_of_entry;
@@ -489,6 +507,12 @@ public:
 	static uint32_t *host_copy;
 
 	static uint32_t totalWriteCount;
+
+	static std::map<std::string, TimeStampTracker> concurrency_tracker;
+
+	static uint32_t **distance_matrix;
+
+	static uint32_t **distance_node;
 
 protected:
 	virtual void DoDispose(void);

@@ -1680,6 +1680,10 @@ void ssUdpEchoClient::Send(void) {
 			//NS_LOG_UNCOND("&&&&&&&&&&&& num_of_packets_to_send &&&&&&&&&&&&& "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
 
 			//uint32_t total_sync_packets = 0;
+			uint32_t current_version = BaseTopology::chunkTracker.at(chunk_value).version_number;
+
+			BaseTopology::chunkTracker.at(chunk_value).version_number++;
+
 			for(uint32_t host_index=0;host_index<total_hosts;host_index++)
 			{
 				bool sync_traffic = true;
@@ -1716,7 +1720,7 @@ void ssUdpEchoClient::Send(void) {
 					}
 					//t_p = createPacket(chunk_value, host_index, is_write, 0);
 
-					t_p = createPacket(chunk_value, host_index, is_write, 0, sync_packet);
+					t_p = createPacket(chunk_value, host_index, is_write, current_version, sync_packet);
 
 					m_txTrace(t_p);
 

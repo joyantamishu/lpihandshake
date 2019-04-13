@@ -10,6 +10,14 @@
 
 #define MAXCHAR 100000
 
+#define INTERPOD_DISTANCE 7
+
+#define INTRAPOD_INTERAGGREGATE 5
+
+#define INTRAPOD_INTRAAGGREGATE_INTERRACK 3
+
+#define INTRAPOD_INTRAAGGREGATE_INTRARACK 1
+
 #include "ss-base-topology.h"
 
 namespace ns3 {
@@ -46,6 +54,12 @@ protected:
 	virtual void SetUpInitialOpmizationVariables();
 
 	virtual void SetUpIntensityPhraseChangeVariables();
+
+	virtual void SetUpDistanceMatrices();
+
+	virtual void sort_distance(uint32_t host_id);
+
+	virtual void swap(uint32_t *xp, uint32_t *yp);
 
 	/***********************************************/
 
