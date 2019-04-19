@@ -176,8 +176,24 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 
 				printf("********************The timestamp is %lf %lf %lf %lf\n",ns3::BaseTopology::concurrency_tracker[key].first_arrival_time, current_simulation_time, base_commit_time, sync_packet_transmission_time);
 
+				if(current_simulation_time <= base_commit_time)
+				{
+					if(sync_packet_transmission_time >= current_simulation_time)
+					{
+						NS_LOG_UNCOND("Sync packet Arrives later");
+					}
+					else
+					{
+						NS_LOG_UNCOND("Sync packet Arrives earlier");
+					}
+					BaseTopology::sum_delay_ms += base_commit_time - current_simulation_time;
 
-				//I have to implement the if else condition here
+				}
+				else
+				{
+					//Do Nothing, Roll-back
+				}
+
 			}
 			else
 			{
