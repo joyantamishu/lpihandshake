@@ -15,7 +15,7 @@
 // k-fat-tree and applications
 #define Default_K							4
 #define DefaultPacketSize					1400
-#define DefaultChunkSize 					131072//8192//16384//4096//32768//65536//131072
+#define DefaultChunkSize 					65536//131072//8192//16384//4096//32768//65536//131072
 #define DefaultProduct					    3650//2000
 #define DefaultParetoAlpha					3.5			// cannot be less than 2.0
 
@@ -125,5 +125,9 @@
 #define OPTIMIZER								false
 
 #define UNIFORM_BURSTS							true
+
+#define DEFAULT_STORAGE_READ_TIME				25.0
+
+#define DEFAULT_STORAGE_WRITE_TIME				100.0
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

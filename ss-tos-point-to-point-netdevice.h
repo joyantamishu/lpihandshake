@@ -16,6 +16,8 @@
 // we collect device transition statistics...
 #define DefaultDataCollectionBufferSize					20					// rotating buffer size to collect stats
 
+#define DELTA_COMMIT_MICROSECOND 10.0
+
 
 //************************************************************************************************************************************
 #define DefaultDeviceRunwayIntervalMicroSec_TOS					5.0
@@ -133,6 +135,8 @@ public:
 			const uint32_t &nodeId, const uint32_t &currentQlength,
 			const char*nType, const char*nName, const uint32_t &bandwidth);
 
+	virtual double GetSyncPacketTransmissionTime(uint32_t src_node, uint32_t first_received_node, Ptr<const Packet> packet);
+
 protected:
 	virtual bool IsDestinationUp_Unused();				// unused...
 	Ptr<ssPointToPointChannel> m_channelSS;
@@ -166,6 +170,8 @@ protected:
 	virtual bool NetDeviceSendCallBack(Ptr<const Packet> p);
 
 	virtual void ManageOppurtunisticTransaction(Ptr<const Packet> p);
+
+	virtual void ManageOppurtunisticTransactionv2(Ptr<const Packet> p);
 
 	// added by JB, Mar 17
 	virtual uint32_t FindCorrespondingNodeId(Ipv4Address lsa_ip);
@@ -206,6 +212,8 @@ protected:
 	uint64_t t_durationArrayIndex;
 
 	DeviceLevelQueuingMetrics m_deviceQMetrics;	// jun 26
+
+	char concurrency_hash_entry [50];
 };
 
 } //namespace

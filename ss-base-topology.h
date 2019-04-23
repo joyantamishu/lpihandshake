@@ -8,7 +8,7 @@
 #ifndef SS_BASE_TOPOLOGY_H_
 #define SS_BASE_TOPOLOGY_H_
 
-#include <string.h>
+#include <string>
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/ipv4.h"
@@ -50,6 +50,28 @@ public:
 		this->location = location;
 		this->version = version;
 	}
+};
+
+class TimeStampTracker
+{
+public:
+	double first_arrival_time;
+	double commit_time;
+	uint32_t first_node;
+	TimeStampTracker(double first_arrival_time, double commit_time, uint32_t first_node)
+	{
+		this->first_arrival_time = first_arrival_time;
+		this->commit_time = commit_time;
+		this->first_node = first_node;
+	}
+
+	TimeStampTracker()
+	{
+		this->first_arrival_time = 0.0;
+		this->commit_time = 0.0;
+		this->first_node = -1;
+	}
+
 };
 
 
@@ -248,6 +270,7 @@ public:
 	uint32_t logical_node_id;
 	uint32_t version_number;
 	uint32_t number_of_copy;
+	uint32_t copy_vs_move; //1 for copy and 0 for move //Added by Madhurima on Apr 17
 	chunk_info()
 	{
 		chunk_no = 0;
@@ -257,6 +280,7 @@ public:
 		logical_node_id = -1;
 		version_number = 0;
 		number_of_copy = 0;
+		copy_vs_move=0; //Added by Madhurima on Apr 17
 	}
 
 	chunk_info(uint32_t chunk_no, Ipv4Address address, uint32_t node_id, uint32_t logical_node_id, bool is_latest=false)
@@ -268,6 +292,10 @@ public:
 		this->logical_node_id = logical_node_id;
 		this->version_number = 0;
 		this->number_of_copy = 0;
+		/*if(this->chunk_no%2==0)
+		this->copy_vs_move=0; //Added by Madhurima on Apr 17
+		else*/
+		this->copy_vs_move=0;
 	}
 };
 
@@ -388,6 +416,8 @@ public:
 
 	static int copy_deleted;
 
+	static int copy_moved;
+
 	static nodedata *nodeOldUtilization;;
 
 	static nodedata *nodeU;
@@ -417,6 +447,8 @@ public:
 	static int total_appication;
 
 	static double sum_delay_ms;
+
+	static double sum_storage_delay;
 
 	static uint64_t total_packet_count;
 
@@ -449,10 +481,6 @@ public:
 	static bool **chunk_copy_node_tracker;
 
 	static uint32_t *total_packets_sent_to_chunk;
-
-	////remove this variable after all done
-
-	//static uint32_t *total_packets_to_chunk;
 
 	static uint32_t *total_packets_to_chunk_destination;
 
@@ -489,6 +517,12 @@ public:
 	static uint32_t *host_copy;
 
 	static uint32_t totalWriteCount;
+
+	static std::map<std::string, TimeStampTracker> concurrency_tracker;
+
+	static uint32_t **distance_matrix;
+
+	static uint32_t **distance_node;
 
 protected:
 	virtual void DoDispose(void);

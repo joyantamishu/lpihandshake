@@ -44,6 +44,7 @@ NetDeviceContainer ssPointToPointHelper::Install(Ptr<Node> a, Ptr<Node> b) {
 		devA = m_deviceFactory.Create<ssTOSPointToPointNetDevice>();
 		devB = m_deviceFactory.Create<ssTOSPointToPointNetDevice>();
 	}
+
 	NS_ASSERT(devA != NULL);
 	devA->SetAddress(Mac48Address::Allocate());
 	a->AddDevice(devA);

@@ -101,6 +101,120 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 //	}
 }
 
+double ssTOSPointToPointNetDevice::GetSyncPacketTransmissionTime(uint32_t src_node, uint32_t first_received_node, Ptr<const Packet> packet)
+{
+	uint32_t total_host = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+
+	uint32_t source_node, source_node1, source_node2;
+
+
+
+	source_node1 = packet->srcNodeId - 20;
+
+	source_node2 = first_received_node;
+
+	uint32_t total_distance = ns3::BaseTopology::distance_matrix[source_node1][source_node2];
+
+
+	for(uint32_t distance = 0; distance < total_host; distance++)
+	{
+		source_node = ns3::BaseTopology::distance_node[first_received_node][distance];
+		if(ns3::BaseTopology::chunk_copy_node_tracker[packet->sub_flow_id][source_node])
+		{
+			source_node1 = source_node2;
+
+			source_node2 = source_node;
+
+			total_distance += ns3::BaseTopology::distance_matrix[source_node1][source_node2];
+
+			if(source_node == src_node) return total_distance;
+		}
+
+	}
+	NS_LOG_UNCOND("If you ever found this message, that means something is obviously wrong, most probable is that, the chunk has been deleted already by the GA");
+
+	exit(0); //I will remove it later
+
+	return -1.0;
+}
+
+void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Packet> packet)
+{
+
+	uint32_t flow_id = packet->flow_id;
+	double current_simulation_time;
+	double commit_time;
+	double base_commit_time;
+	double sync_packet_transmission_time;
+	if(!packet->is_write && !packet->copy_creation_packet)
+	{
+		uint32_t dest =  (uint32_t)(packet->srcNodeId -20);
+
+		uint32_t src = packet->sub_flow_dest;
+
+		if(BaseTopology::chunk_version_node_tracker[packet->sub_flow_id][dest] < BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id])
+		{
+			BaseTopology::transaction_rollback_packets[src][dest] ++;
+		}
+	}
+	else if(packet->is_write)
+	{
+
+		if(BaseTopology::chunkTracker.at(packet->sub_flow_id).number_of_copy >= 1)
+		{
+			sprintf (concurrency_hash_entry, "%u %u %u", (uint32_t)(packet->srcNodeId -20),packet->sub_flow_id, packet->version);
+
+			printf("^^^^^%s\n",concurrency_hash_entry);
+
+			std::string key = concurrency_hash_entry;
+			if(ns3::BaseTopology::concurrency_tracker.count(key) > 0)
+			{
+				current_simulation_time = Simulator::Now().ToDouble(Time::US);
+				base_commit_time = ns3::BaseTopology::concurrency_tracker[key].commit_time;
+
+				sync_packet_transmission_time = GetSyncPacketTransmissionTime(GetNode()->GetId() - 20, ns3::BaseTopology::concurrency_tracker[key].first_node, packet);
+
+				printf("**********@@@@@@@@@@@@@@@@@@@**********The timestamp is %lf %lf %lf %lf\n",ns3::BaseTopology::concurrency_tracker[key].first_arrival_time, current_simulation_time, base_commit_time, sync_packet_transmission_time);
+
+
+				//I have to implement the if else condition here
+				if(current_simulation_time <= base_commit_time && base_commit_time>0)
+				{
+					if(sync_packet_transmission_time >= current_simulation_time)
+					{
+						NS_LOG_UNCOND("Sync packet Arrives later");
+					}
+					else
+					{
+						NS_LOG_UNCOND("Sync packet Arrives earlier");
+					}
+					BaseTopology::sum_delay_ms +=(base_commit_time - current_simulation_time);
+
+				}
+				else
+				{
+					NS_LOG_UNCOND("time delayed by"<<(current_simulation_time - base_commit_time));
+					//Do Nothing, Roll-back
+				}
+			}
+			else
+			{
+				current_simulation_time = Simulator::Now().ToDouble(Time::US);
+				commit_time = current_simulation_time + DELTA_COMMIT_MICROSECOND;
+				BaseTopology::sum_delay_ms +=DELTA_COMMIT_MICROSECOND;
+				TimeStampTracker tsmp = TimeStampTracker(current_simulation_time, commit_time, packet->srcNodeId -20);
+				ns3::BaseTopology::concurrency_tracker[key] = tsmp;
+				Ipv4GlobalRouting::flow_map.at(flow_id).delaysum += DELTA_COMMIT_MICROSECOND;
+
+			}
+		}
+
+
+
+	}
+}
+
+
 
 bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 		Ptr<const Packet> packet) {
@@ -202,6 +316,12 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 
 				BaseTopology::sum_delay_ms += (current_simulation_time - packet->creation_time);
 
+
+				if(packet->is_write)
+					BaseTopology::sum_storage_delay+=DEFAULT_STORAGE_WRITE_TIME+100; //3 total access ; 1 random 2 sequential and then 100 microsec transfer time
+				else
+					BaseTopology::sum_storage_delay+=DEFAULT_STORAGE_READ_TIME+100; //3 total access ; 1 random 2 sequential and then 100 microsec transfer time
+
 				BaseTopology::total_events_learnt++;
 
 				BaseTopology::total_packet_count_inc += BaseTopology::total_packet_count;
@@ -258,51 +378,8 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
 			}
 
-			/*if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered==0)
-				BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
-*/
-
-
-//			if(BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered!=0 && (current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered)>100000)//calculate after 100 millisec
-//			{
-//				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization=(BaseTopology::chnkCopy[packet->sub_flow_id].readCount*8*simulationRunProperties::packetSize)/Count*(current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered);
-//				FILE * fp_chunk_utilization;
-//				fp_chunk_utilization = fopen("chunk_readwrite_utilization.csv","a");
-//
-//				double numerator_r=(BaseTopology::chnkCopy[packet->sub_flow_id].readCount*8*simulationRunProperties::packetSize);
-//				double denominator_r=Count*(current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered);
-//				BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization=((numerator_r/denominator_r)*100)*alpha+(1-alpha)*BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization;
-//
-//				double numerator_w=(BaseTopology::chnkCopy[packet->sub_flow_id].writeCount*8*simulationRunProperties::packetSize);
-//				double denominator_w=Count*(current_simulation_time-BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered);
-//				BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization=((numerator_w/denominator_w)*100)*alpha+(1-alpha)*BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization;
-//
-//
-//				NS_LOG_UNCOND("chunk id "<<packet->sub_flow_id<<" BaseTopology::chnkCopy[packet->sub_flow_id].readCount  "<<BaseTopology::chnkCopy[packet->sub_flow_id].readCount<<"numereator read " <<numerator_r <<" denominator read "<< denominator_r<<"numereator write " <<numerator_w <<" denominator write "<< denominator_w<<" BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization  "<<BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization<<" BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization  "<<BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization);
-//				BaseTopology::chnkCopy[packet->sub_flow_id].cumulative_write_sum+=BaseTopology::chnkCopy[packet->sub_flow_id].writeCount;
-//
-//				//calculate utilization and reset the counters ; need smoothing as well
-//				if (packet->is_write)
-//				{
-//					fprintf(fp_chunk_utilization,"%d,write,%d,%d,%f,%d,%d,%d,%f\n",packet->sub_flow_id,BaseTopology::chnkCopy[packet->sub_flow_id].count,BaseTopology::chnkCopy[packet->sub_flow_id].readCount,BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization,BaseTopology::chnkCopy[packet->sub_flow_id].uniqueWrite,BaseTopology::chnkCopy[packet->sub_flow_id].cumulative_write_sum,BaseTopology::chnkCopy[packet->sub_flow_id].writeCount,BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization);
-//					BaseTopology::chnkCopy[packet->sub_flow_id].readCount=0;
-//					BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
-//					BaseTopology::chnkCopy[packet->sub_flow_id].writeCount=1;
-//
-//				}
-//				else
-//				{
-//					fprintf(fp_chunk_utilization,"%d,read,%d,%d,%f,%d,%d,%d,%f\n",packet->sub_flow_id,BaseTopology::chnkCopy[packet->sub_flow_id].count,BaseTopology::chnkCopy[packet->sub_flow_id].readCount,BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization,BaseTopology::chnkCopy[packet->sub_flow_id].uniqueWrite,BaseTopology::chnkCopy[packet->sub_flow_id].cumulative_write_sum,BaseTopology::chnkCopy[packet->sub_flow_id].writeCount,BaseTopology::chnkCopy[packet->sub_flow_id].writeUtilization);
-//					BaseTopology::chnkCopy[packet->sub_flow_id].readCount=1;
-//					BaseTopology::chnkCopy[packet->sub_flow_id].first_time_entered=current_simulation_time;
-//					BaseTopology::chnkCopy[packet->sub_flow_id].writeCount=0;
-//				}
-//				//BaseTopology::chnkCopy[packet->sub_flow_id].uniqueWrite=0;
-//				fclose(fp_chunk_utilization);
-//
-//			}
-
-			ManageOppurtunisticTransaction(packet);
+//			/ManageOppurtunisticTransaction(packet);
+			ManageOppurtunisticTransactionv2(packet);
 
 				//This is to keep chunk level read and write statistics------------------------
 		

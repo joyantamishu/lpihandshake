@@ -25,7 +25,7 @@ FatTreeTopology::~FatTreeTopology() {
 
 /*************************************************************/
 FatTreeTopology::FatTreeTopology(void) :
-	BaseTopology() {
+			BaseTopology() {
 	NS_LOG_FUNCTION(this);
 	BuildInitialTopology();
 	SetUpInitialOpmizationVariables();
@@ -39,6 +39,8 @@ FatTreeTopology::FatTreeTopology(void) :
 	SetUpApplicationAssignment();
 
 	SetUpIntensityPhraseChangeVariables();
+
+	SetUpDistanceMatrices();
 
 	//SetUpInitialOpmizationVariables();
 }
@@ -194,21 +196,21 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 					BaseTopology::chunk_copy_node_tracker[value][logical_host_number+round_robin_counter] = true;
 
 					//BaseTopology::p[pod].nodes[node].data[count-1].chunk_number = value; //bug fix on Oct 8
-				    for(uint32_t t=0;t<BaseTopology::p[pod].nodes[node].total_chunks;t++)
-				    {
-				      if(value==BaseTopology::p[pod].nodes[node].data[t].chunk_number)
-				      {
-				    	// flag=true;
-				    	 BaseTopology::p[pod].nodes[node].data[t].chunk_count++;
-				         break;
-				      }
-				    }
-				     //  if(!flag)
-					   BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_count = 1;
+					for(uint32_t t=0;t<BaseTopology::p[pod].nodes[node].total_chunks;t++)
+					{
+						if(value==BaseTopology::p[pod].nodes[node].data[t].chunk_number)
+						{
+							// flag=true;
+							BaseTopology::p[pod].nodes[node].data[t].chunk_count++;
+							break;
+						}
+					}
+					//  if(!flag)
+					BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_count = 1;
 
-				       BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
-					   //
-				       BaseTopology::p[pod].nodes[node].total_chunks++;
+					BaseTopology::p[pod].nodes[node].data[BaseTopology::p[pod].nodes[node].total_chunks].chunk_number = value;
+					//
+					BaseTopology::p[pod].nodes[node].total_chunks++;
 
 					//uint32_t host_number =  (logical_host_number - 1)/(SSD_PER_RACK + 1);
 
@@ -274,11 +276,11 @@ void FatTreeTopology::SetUpInitialChunkPosition()
 
 	///Customized Multiple Copy, should remove later
 
-//	BaseTopology::chunkTracker.at(0).number_of_copy = 2;
-//
-//	BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(0, 0 , 0));
-//	BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(0, 8, 0));
-//	BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(0, 13, 0));
+	//	BaseTopology::chunkTracker.at(0).number_of_copy = 2;
+	//
+	//	BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(0, 0 , 0));
+	//	BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(0, 8, 0));
+	//	BaseTopology::chunkCopyLocations.push_back(MultipleCopyOfChunkInfo(0, 13, 0));
 
 
 
@@ -324,14 +326,14 @@ void FatTreeTopology::SetUpApplicationAssignment()
 	FILE *fp;
 	char str[MAXCHAR];
 	const char* filename = "appfreq.txt";
-	
+
 	const char* dummy_filename = "appfreq_dummy.txt";
 
 	fp = fopen(filename, "r");
 
 	if (fp == NULL){
-			printf("Could not open file %s",filename);
-			return;
+		printf("Could not open file %s",filename);
+		return;
 	}
 
 	double sum_probabilty = 0;
@@ -364,8 +366,8 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 	uint32_t app_start = simulationRunProperties::total_applications;
 	if (fp == NULL){
-			printf("Could not open file %s",filename);
-			return;
+		printf("Could not open file %s",filename);
+		return;
 	}
 
 	while (fgets(str, MAXCHAR, fp) != NULL)
@@ -406,21 +408,21 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 		if((int)strlen(str) > 1)
 		{
-		   sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
+			sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
 
-		   chunk = chunk -1;
-		   app = app-1;
+			chunk = chunk -1;
+			app = app-1;
 
-		   ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
+			ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
 
-		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
-		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
+			ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
+			ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
 		}
 
 	}
 
 
-//Dummy final.txt
+	//Dummy final.txt
 
 
 	filename = "final_dummy.txt";
@@ -439,17 +441,17 @@ void FatTreeTopology::SetUpApplicationAssignment()
 
 		if((int)strlen(str) > 1)
 		{
-		   sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
+			sscanf(str,"%d,%d,%lf",&app,&chunk, &prob);
 
-		   //NS_LOG_UNCOND("app, chunk"<<app<<" "<<chunk);
+			//NS_LOG_UNCOND("app, chunk"<<app<<" "<<chunk);
 
-		   chunk = chunk -1;
-		   app = app-1 + simulationRunProperties::total_applications;
+			chunk = chunk -1;
+			app = app-1 + simulationRunProperties::total_applications;
 
-		   ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
+			ns3::BaseTopology::chunk_assignment_to_applications[app][0]++;
 
-		   ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
-		   ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
+			ns3::BaseTopology::chunk_assignment_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = chunk;
+			ns3::BaseTopology::chunk_assignment_probability_to_applications[app][ns3::BaseTopology::chunk_assignment_to_applications[app][0]] = prob;
 
 		}
 
@@ -498,40 +500,40 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 	//uint32_t total_applications = simulationRunProperties::total_applications;
 	uint32_t total_applications = simulationRunProperties::total_applications + DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS;
 
-//	application_assigner = CreateObject<UniformRandomVariable>();
-//	application_assigner->SetAttribute("Min", DoubleValue(0));
-//	application_assigner->SetAttribute("Max", DoubleValue(hosts.GetN() - 1));
-//
+	//	application_assigner = CreateObject<UniformRandomVariable>();
+	//	application_assigner->SetAttribute("Min", DoubleValue(0));
+	//	application_assigner->SetAttribute("Max", DoubleValue(hosts.GetN() - 1));
+	//
 	ns3::BaseTopology::application_selector->SetAttribute("Min", DoubleValue(0));
 	ns3::BaseTopology::application_selector->SetAttribute("Max", DoubleValue(1));
 
-//
-//	printf("The total number of hosts %d\n", total_hosts);
-//
-//
+	//
+	//	printf("The total number of hosts %d\n", total_hosts);
+	//
+	//
 	for(int i = 0;i<total_hosts;i++)
 	{
 		ns3::BaseTopology::application_assignment_to_node[i] = new uint32_t[total_applications+1];
 		ns3::BaseTopology::application_assignment_to_node[i][0] = 0;
 		BaseTopology::total_packets_to_hosts_bits[i] = 0;
-	//	BaseTopology::total_packets_to_hosts_bits_old[i] = 0;
+		//	BaseTopology::total_packets_to_hosts_bits_old[i] = 0;
 
 	}
 
-//	for(uint32_t index= 0 ; index <total_applications; index++)
-//	{
-//		int host = (int)application_assigner->GetInteger();
-//		int array_index = ns3::BaseTopology::application_assignment_to_node[host][0] + 1;
-//		ns3::BaseTopology::application_assignment_to_node[host][0]++;
-//		ns3::BaseTopology::application_assignment_to_node[host][array_index] = index;
-////
-//		NS_LOG_UNCOND(" host "<<" "<<host);
-//	}
-//
-//	for(uint32_t index= 0 ; index <total_hosts; index++)
-//	{
-//		printf("host %d has %d applications\n",index, ns3::BaseTopology::application_assignment_to_node[index][0]);
-//	}
+	//	for(uint32_t index= 0 ; index <total_applications; index++)
+	//	{
+	//		int host = (int)application_assigner->GetInteger();
+	//		int array_index = ns3::BaseTopology::application_assignment_to_node[host][0] + 1;
+	//		ns3::BaseTopology::application_assignment_to_node[host][0]++;
+	//		ns3::BaseTopology::application_assignment_to_node[host][array_index] = index;
+	////
+	//		NS_LOG_UNCOND(" host "<<" "<<host);
+	//	}
+	//
+	//	for(uint32_t index= 0 ; index <total_hosts; index++)
+	//	{
+	//		printf("host %d has %d applications\n",index, ns3::BaseTopology::application_assignment_to_node[index][0]);
+	//	}
 	FILE *fp;
 	char str[MAXCHAR];
 	const char* filename = "app.txt";
@@ -587,7 +589,7 @@ void FatTreeTopology::SetUpInitialApplicationPosition()
 
 	fclose(fp);
 
-fp = fopen(dummy_filename, "r");
+	fp = fopen(dummy_filename, "r");
 	if (fp == NULL){
 		printf("Could not open file %s",filename);
 		return;
@@ -703,73 +705,73 @@ void FatTreeTopology::SetUpNodeUtilizationStatistics()
 void FatTreeTopology::SetUpInitialOpmizationVariables()
 {
 
-		BaseTopology::p= new Pod[Ipv4GlobalRouting::FatTree_k];
-		BaseTopology::q= new Pod[Ipv4GlobalRouting::FatTree_k];
-		uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
-		uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
-		BaseTopology::chnkCopy=new chunkCopy[simulationRunProperties::total_chunk];
+	BaseTopology::p= new Pod[Ipv4GlobalRouting::FatTree_k];
+	BaseTopology::q= new Pod[Ipv4GlobalRouting::FatTree_k];
+	uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
+	uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
+	BaseTopology::chnkCopy=new chunkCopy[simulationRunProperties::total_chunk];
 
-		for(uint32_t i=0;i<(uint32_t)Ipv4GlobalRouting::FatTree_k;i++)
-		{
+	for(uint32_t i=0;i<(uint32_t)Ipv4GlobalRouting::FatTree_k;i++)
+	{
 
-			BaseTopology::p[i].nodes = new Fat_tree_Node[nodes_in_pod];
-			BaseTopology::p[i].pod_number = (int) i;
-			BaseTopology::p[i].Pod_utilization=0.0;
-			BaseTopology::p[i].Pod_utilization_out=0.0;
+		BaseTopology::p[i].nodes = new Fat_tree_Node[nodes_in_pod];
+		BaseTopology::p[i].pod_number = (int) i;
+		BaseTopology::p[i].Pod_utilization=0.0;
+		BaseTopology::p[i].Pod_utilization_out=0.0;
 
-			BaseTopology::q[i].nodes = new Fat_tree_Node[nodes_in_pod];
-			BaseTopology::q[i].pod_number = (int) i;
-			BaseTopology::q[i].Pod_utilization=0.0;
-			BaseTopology::q[i].Pod_utilization_out=0.0;
-		}
-		for(uint32_t i = 0; i<number_of_hosts; i++)
-		{
-			uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
-			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
-			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
-			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization_out=0.0;
-			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
-			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
-			BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
+		BaseTopology::q[i].nodes = new Fat_tree_Node[nodes_in_pod];
+		BaseTopology::q[i].pod_number = (int) i;
+		BaseTopology::q[i].Pod_utilization=0.0;
+		BaseTopology::q[i].Pod_utilization_out=0.0;
+	}
+	for(uint32_t i = 0; i<number_of_hosts; i++)
+	{
+		uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
+		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
+		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
+		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization_out=0.0;
+		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
+		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
 
-			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
-			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
-			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization_out=0.0;
-			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
-			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
-			BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
-
-
-		}
-		for(uint32_t i = 0; i<simulationRunProperties::total_chunk; i++)
-		{
-			//Madhurima added on July 20th
-			BaseTopology::chnkCopy[i].count=0;  //this line added
-			//Madhurima added on July 20th
-		   BaseTopology::chnkCopy[i].exists=new uint32_t[number_of_hosts];
-		   for(uint32_t j = 0; j<number_of_hosts; j++)
-			   BaseTopology::chnkCopy[i].exists[j]=0;
-		}
-		BaseTopology::nodeU=new nodedata[number_of_hosts];
-
-		BaseTopology::nodeOldUtilization=new nodedata[number_of_hosts];
-
-		BaseTopology::res = new Result[simulationRunProperties::total_chunk+1];
-
-		for(uint32_t i=0; i<number_of_hosts;i++)
-		{
-			BaseTopology::host_assignment_round_robin_counter[i] = 0;
-		}
+		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
+		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
+		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization_out=0.0;
+		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
+		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
+		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
 
 
+	}
+	for(uint32_t i = 0; i<simulationRunProperties::total_chunk; i++)
+	{
+		//Madhurima added on July 20th
+		BaseTopology::chnkCopy[i].count=0;  //this line added
+		//Madhurima added on July 20th
+		BaseTopology::chnkCopy[i].exists=new uint32_t[number_of_hosts];
+		for(uint32_t j = 0; j<number_of_hosts; j++)
+			BaseTopology::chnkCopy[i].exists[j]=0;
+	}
+	BaseTopology::nodeU=new nodedata[number_of_hosts];
 
-//	for(uint32_t i = 0; i<number_of_hosts; i++)
-//	{
-//
-//		//uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
-//
-//		//for(uint32_t host_count = 0; host_count < )
-//	}
+	BaseTopology::nodeOldUtilization=new nodedata[number_of_hosts];
+
+	BaseTopology::res = new Result[simulationRunProperties::total_chunk+1];
+
+	for(uint32_t i=0; i<number_of_hosts;i++)
+	{
+		BaseTopology::host_assignment_round_robin_counter[i] = 0;
+	}
+
+
+
+	//	for(uint32_t i = 0; i<number_of_hosts; i++)
+	//	{
+	//
+	//		//uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
+	//
+	//		//for(uint32_t host_count = 0; host_count < )
+	//	}
 }
 
 /***************************************************/
@@ -811,8 +813,8 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	int x, y, a, b, b1, c;
 	//=========== Define parameters based on value of k ===========//
 	int n_pods = k;
-// these are PER POD nodes
-		// number of hosts switch in a pod
+	// these are PER POD nodes
+	// number of hosts switch in a pod
 	n_edge_routers = k / 2;	// number of bridge in a pod
 
 	hosts_per_edge = (SSD_PER_RACK + 1) * (k/2); // number of hosts per edge router
@@ -827,13 +829,13 @@ void FatTreeTopology::BuildInitialTopology(void) {
 
 
 	n_core_routers = (k/2) * (k/2);	// no of core switches
-// these are TOTAL nodes....
+	// these are TOTAL nodes....
 	total_hosts = hosts_per_pod * k;	// number of hosts in the entire network
 	total_aggregate_routers = k * n_aggregate_routers;
 	total_edge_routers = k * n_edge_routers;
 	total_core_routers = n_core_routers;
 
-// Note: node creation order is important because we use allNodes NodeCollector later, top down construction...
+	// Note: node creation order is important because we use allNodes NodeCollector later, top down construction...
 	Ptr<ssNode> pNode;
 	uint32_t count = 10000;
 	//uint32_t count = 1000 ;
@@ -867,22 +869,23 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	allNodes.Add(hosts);
 	Config::SetDefault("ns3::Ipv4GlobalRouting::RandomEcmpRouting",
 			BooleanValue(true)); // enable multi-path route
-// install i n/w stack
+	// install i n/w stack
 	InternetStackHelper iStack;
 	iStack.Install(allNodes);
 
 	ssPointToPointHelper p2p;
 	ssPointToPointHelper p2pSSD;
+	//p2p.SetDeviceAttribute("Mtu", UintegerValue(5000));
 	//p2p.SetQueue("ns3::DropTailQueue");
 	//p2pSSD.SetQueue("ns3::DropTailQueue");
 
-//	p2p.SetQueue ("ns3::DropTailQueue",
-//	                                 "Mode", StringValue ("QUEUE_MODE_PACKETS"),
-//	                                 "MaxPackets", UintegerValue (100));
-//
-//	p2pSSD.SetQueue ("ns3::DropTailQueue",
-//	                                 "Mode", StringValue ("QUEUE_MODE_PACKETS"),
-//	                                 "MaxPackets", UintegerValue (100));
+	//	p2p.SetQueue ("ns3::DropTailQueue",
+	//	                                 "Mode", StringValue ("QUEUE_MODE_PACKETS"),
+	//	                                 "MaxPackets", UintegerValue (100));
+	//
+	//	p2pSSD.SetQueue ("ns3::DropTailQueue",
+	//	                                 "Mode", StringValue ("QUEUE_MODE_PACKETS"),
+	//	                                 "MaxPackets", UintegerValue (100));
 
 	char *add;
 	const char *ipv4Mask = "255.255.255.0";
@@ -951,11 +954,15 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	//
 	//count = count / 2;
 	p2p.SetDeviceAttribute("DataRate",StringValue(simulationRunProperties::newDevceRate));
+
 	percentage_of_overall_bandwidth = (double)count * Ipv4GlobalRouting::threshold_percentage_for_dropping;
 	percentage_count = (uint32_t) percentage_of_overall_bandwidth ;
-//	p2p.SetDeviceAttribute("DataRate",
-//			StringValue(simulationRunProperties::edgeDeviceDataRate));
+	//	p2p.SetDeviceAttribute("DataRate",
+	//			StringValue(simulationRunProperties::edgeDeviceDataRate));
 	p2pSSD.SetDeviceAttribute("DataRate", StringValue(simulationRunProperties::edgeDeviceDataRate));
+	p2pSSD.SetChannelAttribute ("Delay", StringValue ("25us")); //added by madhurima on Apr 21
+	//p2pSSD.SetDeviceAttribute("Mtu", UintegerValue(5000));
+
 
 	for (a = 0, b1 = 0; a < n_pods; a++) {
 		for (b = 0; b < n_edge_routers; b++, b1++) {
@@ -1002,7 +1009,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	}
 
 	for (uint32_t a1= 0; a1 < allNodes.GetN(); a1++) {
-			DynamicCast<ssNode>(allNodes.Get(a1))->InitializeNode();
+		DynamicCast<ssNode>(allNodes.Get(a1))->InitializeNode();
 	}
 
 	Ipv4GlobalRouting::system_constant[0] = 0.0;
@@ -1026,8 +1033,118 @@ void FatTreeTopology::BuildInitialTopology(void) {
 	}
 
 	NS_LOG_UNCOND("total_hosts "<<total_hosts);
-//
+	//
 	//exit(0);
+
+}
+
+
+
+void FatTreeTopology::swap(uint32_t *xp, uint32_t *yp)
+{
+	uint32_t temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+
+void FatTreeTopology::sort_distance(uint32_t host_id) //
+{
+	uint32_t i, j;
+	uint32_t n = total_hosts;
+	for (i = 0; i < n-1; i++)
+		for (j = 0; j < n-i-1; j++)
+			if (ns3::BaseTopology::distance_matrix[host_id][j] < ns3::BaseTopology::distance_matrix[host_id][j+1])
+			{
+				swap(&ns3::BaseTopology::distance_matrix[host_id][j], &ns3::BaseTopology::distance_matrix[host_id][j+1]);
+				swap(&ns3::BaseTopology::distance_node[host_id][j], &ns3::BaseTopology::distance_node[host_id][j+1]);
+			}
+}
+
+void FatTreeTopology::SetUpDistanceMatrices()
+{
+	for(uint32_t i = 0;i<(uint32_t)total_hosts;i++)
+	{
+		ns3::BaseTopology::distance_matrix[i] = new uint32_t[total_hosts];
+		ns3::BaseTopology::distance_node[i] = new uint32_t[total_hosts];
+	}
+
+
+	uint32_t pod,aggr,edge;
+
+	uint32_t host_pod,host_aggr,host_edge;
+
+	uint32_t nodes_in_pod = (uint32_t)total_hosts / Ipv4GlobalRouting::FatTree_k;
+
+	uint32_t nodes_in_aggregate = (uint32_t) (nodes_in_pod / (Ipv4GlobalRouting::FatTree_k/2));
+
+	uint32_t nodes_in_edge = (uint32_t) (nodes_in_aggregate / (Ipv4GlobalRouting::FatTree_k/2));
+
+	uint32_t nodes_in_rack = (uint32_t) (nodes_in_edge / (Ipv4GlobalRouting::FatTree_k/2));
+
+	printf("%d %d %d %d\n", nodes_in_pod, nodes_in_aggregate, nodes_in_edge, nodes_in_rack);
+
+	for(uint32_t host_id=0; host_id<(uint32_t)total_hosts; host_id++)
+	{
+		host_pod = (uint32_t) (host_id / nodes_in_pod);
+
+		for(uint32_t i=0;i<(uint32_t)total_hosts;i++)
+		{
+
+			pod = (uint32_t) (i / nodes_in_pod);
+
+			if(host_pod == pod) // intrapod
+			{
+				host_aggr = (uint32_t) (host_id / nodes_in_aggregate);
+
+				aggr =  (uint32_t) (i / nodes_in_aggregate);
+
+				if(host_aggr != aggr) // inter aggregate
+				{
+					ns3::BaseTopology::distance_matrix[host_id][i] = INTRAPOD_INTERAGGREGATE;
+				}
+				else
+				{
+					host_edge = (uint32_t) (host_id / nodes_in_edge);
+					edge =  (uint32_t) (i / nodes_in_edge);
+
+					if(host_edge != edge) //intra aggregate inter edge
+					{
+						ns3::BaseTopology::distance_matrix[host_id][i] = INTRAPOD_INTRAAGGREGATE_INTERRACK;
+					}
+					else
+					{
+						ns3::BaseTopology::distance_matrix[host_id][i] = INTRAPOD_INTRAAGGREGATE_INTRARACK;
+					}
+				}
+
+			}
+			else //interpod
+			{
+				ns3::BaseTopology::distance_matrix[host_id][i] = INTERPOD_DISTANCE;
+			}
+		}
+	}
+
+
+	for(uint32_t index = 0;index<(uint32_t)total_hosts;index++)
+	{
+		for(uint32_t j=0;j<(uint32_t)total_hosts;j++)
+		{
+			ns3::BaseTopology::distance_node[index][j] = j;
+		}
+	}
+
+	for(uint32_t host_id = 0; host_id<(uint32_t)total_hosts;host_id++) sort_distance(host_id);
+
+//	for(uint32_t i=0;i<(uint32_t)total_hosts;i++)
+//	{
+//		printf("%d-%d\n", distance_node[10][i],distance_matrix[10][i]);
+//	}
+//
+//	exit(0);
+
+
+
 
 }
 
@@ -1035,8 +1152,8 @@ void FatTreeTopology::BuildInitialTopology(void) {
 void FatTreeTopology::SetNodeAnimPosition() {
 	NS_LOG_FUNCTION(this);
 	int i;
-//AnimationInterface::userBoundary
-// now start labeling for Animation FAT tree from topmost core routers...
+	//AnimationInterface::userBoundary
+	// now start labeling for Animation FAT tree from topmost core routers...
 	for (i = 0; i < total_core_routers; i++) {
 		// connect the topmost level core_routers with next level aggregators_routers...
 		AnimationInterface::SetConstantPosition(coreRouters.Get(i),

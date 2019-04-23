@@ -842,54 +842,17 @@ if( simulationRunProperties::enableOptimizer)
 
 
             uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
-            BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
-            BaseTopology::copy_created++;
-            char p='c';
-             // NS_LOG_UNCOND("BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number])"<<BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number]);
-           // NS_LOG_UNCOND("BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest]"<<BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest]);
-            //NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
-            //commenting off this following line will stop the copy creation
-            //if(num_of_packets_to_send > 0) BaseTopology::InjectANewRandomFlowCopyCreation (BaseTopology::res[i].src, BaseTopology::res[i].dest, num_of_packets_to_send);
-
-//this part of the code places the chunk on the any server in a rack in a round robin fashion
-           // BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]++;
-
-//            BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =(SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1 + (BaseTopology::host_assignment_round_robin_counter[BaseTopology::res[i].dest]%SSD_PER_RACK);
-
-
-//this part of the code places the chunk on the least utilized server in a rack
-
-//            uint32_t start = (BaseTopology::res[i].dest * ( SSD_PER_RACK + 1)) + 1;
-//            double minimim_utilization=99999;
-//            uint32_t min_node;
-//            for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
-//			{
-//            	if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t]) //make sure no duplicate assignment while assigning
-//            		{
-//            			//minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
-//            		    minimim_utilization=BaseTopology::host_utilization_outgoing[t];
-//            			min_node=t;
-//            		}
-//
-//			}
-//            NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
-//            BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
-//
-//            if(num_of_packets_to_send > 0)
-//            {
-//                uint32_t source = BaseTopology::res[i].src * (SSD_PER_RACK + 1);
-//                uint32_t destination = BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id;
-//              //  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
-//#if CHUNKSIZE
-//                if(num_of_packets_to_send>(simulationRunProperties::chunkSize/simulationRunProperties::packetSize))
-//                	num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
-//#else
-//				num_of_packets_to_send=log(num_of_packets_to_send);
-//#endif
-//
-//				BaseTopology::InjectANewRandomFlowCopyCreation (source, destination, num_of_packets_to_send);
-//				BaseTopology::total_number_of_packet_for_copy_creation+=num_of_packets_to_send;
-
+            char p;
+            //if we need to create a copy of the chunk then only increase the chunk number and else not
+            if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==1) //which means copy //Added by Madhurima on Apr 17
+            {      BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
+            	   BaseTopology::copy_created++;
+            	   p='c';
+            }
+            else {
+            	 BaseTopology::copy_moved++;
+				 p='m';
+            }
 
 				uint32_t start = (BaseTopology::res[i].dest * ( SSD_PER_RACK + 1)) + 1;
 				double minimim_utilization=99999;
@@ -953,16 +916,20 @@ if( simulationRunProperties::enableOptimizer)
                // NS_LOG_UNCOND("BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number"<<BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number]);
 
             }
-
-
+			if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==0) //Added by Madhurima on Apr 17
+			{
+				uint32_t chunk_location = FindChunkAssignedHost(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src);
+				BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
+				BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][chunk_location] = false;
+			}//Added by Madhurima on Apr 17
 
             BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id] = true;
 
             //BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = getHostInfoMadeBypolicy(BaseTopology::res[i].dest);
 
-            NS_LOG_UNCOND(" BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id "<<BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id);
+            //NS_LOG_UNCOND(" BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id "<<BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id);
 
-            NS_LOG_UNCOND("The chunk address is "<<BaseTopology::hostaddresslogicaltophysical[BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id]<<" BaseTopology::res[i].dest "<<BaseTopology::res[i].dest);
+            //NS_LOG_UNCOND("The chunk address is "<<BaseTopology::hostaddresslogicaltophysical[BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id]<<" BaseTopology::res[i].dest "<<BaseTopology::res[i].dest);
 
 
             uint32_t pod = (uint32_t) floor((double) BaseTopology::res[i].dest/ (double) Ipv4GlobalRouting::FatTree_k);
@@ -973,7 +940,7 @@ if( simulationRunProperties::enableOptimizer)
 
             bool entry_already_exists = false;
             uint32_t location;
-
+            //checking whether the chunk already exists and then getting the chunk location
             for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[pod].nodes[node].total_chunks;chunk_index++)
             {
                 if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == BaseTopology::res[i].chunk_number)
@@ -1007,6 +974,50 @@ if( simulationRunProperties::enableOptimizer)
 				NS_LOG_UNCOND("herevxcvksdlflsdfjsd123456");
 
             }
+            //now if this is a move then we have to remove the copy from the last location
+
+            if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==0 && BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
+            {
+
+				uint32_t node_name=BaseTopology::res[i].src%Ipv4GlobalRouting::FatTree_k;
+				uint32_t pod_name=BaseTopology::res[i].src/Ipv4GlobalRouting::FatTree_k;
+				uint32_t deletion_location;
+				uint32_t first_location=9999999;
+				for(uint32_t j = 0; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks; j++)
+				{
+					 if(BaseTopology::p[pod_name].nodes[node_name].data[j].chunk_number==BaseTopology::res[i].chunk_number)
+					 {
+					   deletion_location=j;
+					   if(first_location==9999999)//get hold of the first index of the item in the list in the list
+						   first_location=deletion_location;
+					 }
+				}
+
+
+				if(first_location!=deletion_location)
+				{
+					BaseTopology::p[pod_name].nodes[node_name].data[first_location].chunk_count--;
+				}
+				if(deletion_location==BaseTopology::p[pod_name].nodes[node_name].total_chunks-1)
+				{
+					BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+				}
+				else
+				{
+					 for(uint32_t j = deletion_location; j<BaseTopology::p[pod_name].nodes[node_name].total_chunks-1; j++)
+					 {
+						 BaseTopology::p[pod_name].nodes[node_name].data[j]=BaseTopology::p[pod_name].nodes[node_name].data[j+1]; //copying structure
+					 }
+					 BaseTopology::p[pod_name].nodes[node_name].total_chunks--;
+				}
+			}
+
+				else
+				{
+					NS_LOG_UNCOND("----------Something is wrong with deletion of copy-------------");
+
+				}
+
 
             NS_LOG_UNCOND("src "<<BaseTopology::res[i].src<<" dest "<<BaseTopology::res[i].dest<<" chunk_no "<<BaseTopology::res[i].chunk_number);
 
@@ -1680,6 +1691,10 @@ void ssUdpEchoClient::Send(void) {
 			//NS_LOG_UNCOND("&&&&&&&&&&&& num_of_packets_to_send &&&&&&&&&&&&& "<<num_of_packets_to_send<<" Chunk value "<<chunk_value);
 
 			//uint32_t total_sync_packets = 0;
+			uint32_t current_version = BaseTopology::chunkTracker.at(chunk_value).version_number;
+
+			BaseTopology::chunkTracker.at(chunk_value).version_number++;
+
 			for(uint32_t host_index=0;host_index<total_hosts;host_index++)
 			{
 				bool sync_traffic = true;
@@ -1716,7 +1731,7 @@ void ssUdpEchoClient::Send(void) {
 					}
 					//t_p = createPacket(chunk_value, host_index, is_write, 0);
 
-					t_p = createPacket(chunk_value, host_index, is_write, 0, sync_packet);
+					t_p = createPacket(chunk_value, host_index, is_write, current_version, sync_packet);
 
 					m_txTrace(t_p);
 
