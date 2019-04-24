@@ -58,11 +58,13 @@ public:
 	double first_arrival_time;
 	double commit_time;
 	uint32_t first_node;
+	uint32_t node_count;
 	TimeStampTracker(double first_arrival_time, double commit_time, uint32_t first_node)
 	{
 		this->first_arrival_time = first_arrival_time;
 		this->commit_time = commit_time;
 		this->first_node = first_node;
+		this->node_count = 0;
 	}
 
 	TimeStampTracker()
@@ -70,6 +72,7 @@ public:
 		this->first_arrival_time = 0.0;
 		this->commit_time = 0.0;
 		this->first_node = -1;
+		this->node_count = 0;
 	}
 
 };

@@ -144,8 +144,8 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 	uint32_t flow_id = packet->flow_id;
 	double current_simulation_time;
 	double commit_time;
-	double base_commit_time;
-	double sync_packet_transmission_time;
+	//double base_commit_time;
+	//double sync_packet_transmission_time;
 	if(!packet->is_write && !packet->copy_creation_packet)
 	{
 		uint32_t dest =  (uint32_t)(packet->srcNodeId -20);
@@ -159,8 +159,9 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 	}
 	else if(packet->is_write)
 	{
+		uint32_t number_of_copies = BaseTopology::chunkTracker.at(packet->sub_flow_id).number_of_copy;
 
-		if(BaseTopology::chunkTracker.at(packet->sub_flow_id).number_of_copy >= 1)
+		if(number_of_copies >= 1)
 		{
 			sprintf (concurrency_hash_entry, "%u %u %u", (uint32_t)(packet->srcNodeId -20),packet->sub_flow_id, packet->version);
 
@@ -169,38 +170,60 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 			std::string key = concurrency_hash_entry;
 			if(ns3::BaseTopology::concurrency_tracker.count(key) > 0)
 			{
+				uint32_t updated_node_until_now = ns3::BaseTopology::concurrency_tracker[key].node_count + 1;
+				ns3::BaseTopology::concurrency_tracker[key].node_count++;
 				current_simulation_time = Simulator::Now().ToDouble(Time::US);
-				base_commit_time = ns3::BaseTopology::concurrency_tracker[key].commit_time;
 
-				sync_packet_transmission_time = GetSyncPacketTransmissionTime(GetNode()->GetId() - 20, ns3::BaseTopology::concurrency_tracker[key].first_node, packet);
-
-				printf("**********@@@@@@@@@@@@@@@@@@@**********The timestamp is %lf %lf %lf %lf\n",ns3::BaseTopology::concurrency_tracker[key].first_arrival_time, current_simulation_time, base_commit_time, sync_packet_transmission_time);
-
-
-				//I have to implement the if else condition here
-				if(current_simulation_time <= base_commit_time && base_commit_time>0)
+				if (updated_node_until_now >= number_of_copies) //all the packets has reached the destination
 				{
-					if(sync_packet_transmission_time >= current_simulation_time)
-					{
-						NS_LOG_UNCOND("Sync packet Arrives later");
-					}
-					else
-					{
-						NS_LOG_UNCOND("Sync packet Arrives earlier");
-					}
-					BaseTopology::sum_delay_ms +=(base_commit_time - current_simulation_time);
+					NS_LOG_UNCOND(" updated_node_until_now "<<updated_node_until_now);
+					NS_LOG_UNCOND("  ns3::BaseTopology::concurrency_tracker[key].commit_time "<< ns3::BaseTopology::concurrency_tracker[key].commit_time);
+					NS_LOG_UNCOND("  number_of_copies * (current_simulation_time + WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND) "<< (double)number_of_copies * (current_simulation_time + WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND));
+					NS_LOG_UNCOND("%%%%%%%%%%%%%%%%%%%%%%There is No Way to Escapee%%%%%%%%%%%%%%%%%%%%%%%%%%");
+					double total_delay_added = ((double)number_of_copies * (current_simulation_time + (double)WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND)) - ns3::BaseTopology::concurrency_tracker[key].commit_time;
+					BaseTopology::sum_delay_ms += total_delay_added;
+					NS_LOG_UNCOND(total_delay_added);
+					NS_LOG_UNCOND("The version number is "<<packet->version);
+					ns3::BaseTopology::concurrency_tracker.erase(key);
 
 				}
 				else
 				{
-					NS_LOG_UNCOND("time delayed by"<<(current_simulation_time - base_commit_time));
-					//Do Nothing, Roll-back
+					ns3::BaseTopology::concurrency_tracker[key].commit_time += current_simulation_time;
 				}
+
+//				current_simulation_time = Simulator::Now().ToDouble(Time::US);
+//				base_commit_time = ns3::BaseTopology::concurrency_tracker[key].commit_time;
+//
+//				sync_packet_transmission_time = GetSyncPacketTransmissionTime(GetNode()->GetId() - 20, ns3::BaseTopology::concurrency_tracker[key].first_node, packet);
+//
+//				printf("**********@@@@@@@@@@@@@@@@@@@**********The timestamp is %lf %lf %lf %lf\n",ns3::BaseTopology::concurrency_tracker[key].first_arrival_time, current_simulation_time, base_commit_time, sync_packet_transmission_time);
+
+
+				//I have to implement the if else condition here
+//				if(current_simulation_time <= base_commit_time && base_commit_time>0)
+//				{
+//					if(sync_packet_transmission_time >= current_simulation_time)
+//					{
+//						NS_LOG_UNCOND("Sync packet Arrives later");
+//					}
+//					else
+//					{
+//						NS_LOG_UNCOND("Sync packet Arrives earlier");
+//					}
+//					BaseTopology::sum_delay_ms +=(base_commit_time - current_simulation_time);
+//
+//				}
+//				else
+//				{
+//					NS_LOG_UNCOND("time delayed by"<<(current_simulation_time - base_commit_time));
+//					//Do Nothing, Roll-back
+//				}
 			}
 			else
 			{
 				current_simulation_time = Simulator::Now().ToDouble(Time::US);
-				commit_time = current_simulation_time + DELTA_COMMIT_MICROSECOND;
+				commit_time = current_simulation_time + (double)DELTA_COMMIT_MICROSECOND;
 				BaseTopology::sum_delay_ms +=DELTA_COMMIT_MICROSECOND;
 				TimeStampTracker tsmp = TimeStampTracker(current_simulation_time, commit_time, packet->srcNodeId -20);
 				ns3::BaseTopology::concurrency_tracker[key] = tsmp;

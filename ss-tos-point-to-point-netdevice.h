@@ -16,7 +16,9 @@
 // we collect device transition statistics...
 #define DefaultDataCollectionBufferSize					20					// rotating buffer size to collect stats
 
-#define DELTA_COMMIT_MICROSECOND 10.0
+#define DELTA_COMMIT_MICROSECOND 0
+
+#define WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND  5
 
 
 //************************************************************************************************************************************
