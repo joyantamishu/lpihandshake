@@ -63,6 +63,11 @@ int main(int argc, char *argv[]) {
 	{
 		NS_LOG_UNCOND("error while deleting the file");
 	}
+	FILE *fp_rw;
+	fp_rw= fopen("read_write.csv","w");
+	fprintf(fp_rw,"time, chunk, read , write ,write_ratio,total_system_write,write_fraction\n");
+	fclose(fp_rw);
+
 
 	FILE *fp_packet;
 	fp_packet= fopen("all_packets_send.csv","w");
