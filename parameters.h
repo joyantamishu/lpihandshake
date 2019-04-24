@@ -129,5 +129,7 @@
 #define DEFAULT_STORAGE_READ_TIME				25.0
 
 #define DEFAULT_STORAGE_WRITE_TIME				100.0
+
+#define DEFAULT_COPY_STRATEGY					true
 /**********************************************/
 #endif /* _PARAMETERS_H_ */

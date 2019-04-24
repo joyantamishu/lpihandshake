@@ -283,7 +283,7 @@ public:
 		logical_node_id = -1;
 		version_number = 0;
 		number_of_copy = 0;
-		copy_vs_move=0; //Added by Madhurima on Apr 17
+		copy_vs_move=1; //Added by Madhurima on Apr 17
 	}
 
 	chunk_info(uint32_t chunk_no, Ipv4Address address, uint32_t node_id, uint32_t logical_node_id, bool is_latest=false)
@@ -298,7 +298,10 @@ public:
 		/*if(this->chunk_no%2==0)
 		this->copy_vs_move=0; //Added by Madhurima on Apr 17
 		else*/
-		this->copy_vs_move=0;
+		if(DEFAULT_COPY_STRATEGY)
+			this->copy_vs_move=1;
+		else
+			this->copy_vs_move=0;
 	}
 };
 
