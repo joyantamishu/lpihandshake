@@ -298,7 +298,7 @@ public:
 		/*if(this->chunk_no%2==0)
 		this->copy_vs_move=0; //Added by Madhurima on Apr 17
 		else*/
-		if(DEFAULT_COPY_STRATEGY)
+		if(simulationRunProperties::enableCopy)
 			this->copy_vs_move=1;
 		else
 			this->copy_vs_move=0;
@@ -424,9 +424,13 @@ public:
 
 	static int copy_moved;
 
-	static nodedata *nodeOldUtilization;;
+	static nodedata *nodeOldUtilization;
 
 	static nodedata *nodeU;
+
+	static nodedata *nodeOldUtilizationIn;
+
+	static nodedata *nodeUin;
 
 	static double popularity_change_simulation_interval;
 

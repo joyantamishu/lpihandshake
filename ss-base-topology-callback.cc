@@ -400,16 +400,16 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				BaseTopology::chnkCopy[packet->sub_flow_id].readCount++;
 				//BaseTopology::chnkCopy[packet->sub_flow_id].readUtilization+=simulationRunProperties::packetSize;
 			}
-			if (packet->sub_flow_id==1)
-			{
-			 int deno=(BaseTopology::chnkCopy[packet->sub_flow_id].readCount+BaseTopology::chnkCopy[packet->sub_flow_id].writeCount);
-		     float write_ratio=float(BaseTopology::chnkCopy[packet->sub_flow_id].writeCount)/deno;
-		    FILE *fp_rw;
-			fp_rw= fopen("read_write.csv","a");
-			fprintf(fp_rw,"%f,%d,%d,%d,%f,%d,%f\n",current_simulation_time, packet->sub_flow_id, BaseTopology::chnkCopy[packet->sub_flow_id].readCount , BaseTopology::chnkCopy[packet->sub_flow_id].writeCount ,write_ratio,BaseTopology::totalWriteCount,float(BaseTopology::chnkCopy[packet->sub_flow_id].writeCount)/(BaseTopology::totalWriteCount));
-			fclose(fp_rw);
-
-			}
+//			if (packet->sub_flow_id==1)
+//			{
+//			 int deno=(BaseTopology::chnkCopy[packet->sub_flow_id].readCount+BaseTopology::chnkCopy[packet->sub_flow_id].writeCount);
+//		     float write_ratio=float(BaseTopology::chnkCopy[packet->sub_flow_id].writeCount)/deno;
+//		    FILE *fp_rw;
+//			fp_rw= fopen("read_write.csv","a");
+//			//fprintf(fp_rw,"%f,%d,%d,%d,%f,%d,%f\n",current_simulation_time, packet->sub_flow_id, BaseTopology::chnkCopy[packet->sub_flow_id].readCount , BaseTopology::chnkCopy[packet->sub_flow_id].writeCount ,write_ratio,BaseTopology::totalWriteCount,float(BaseTopology::chnkCopy[packet->sub_flow_id].writeCount)/(BaseTopology::totalWriteCount));
+//			fclose(fp_rw);
+//
+//			}
 //			/ManageOppurtunisticTransaction(packet);
 			ManageOppurtunisticTransactionv2(packet);
 

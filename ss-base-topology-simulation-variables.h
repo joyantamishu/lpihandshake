@@ -149,6 +149,8 @@ public:
 
 	static double RWratio;
 
+	static bool enableCopy;
+
 	/**********************************************/
 
 private:

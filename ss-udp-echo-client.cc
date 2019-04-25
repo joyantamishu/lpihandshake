@@ -504,7 +504,7 @@ void ssUdpEchoClient::StartApplication() {
     NS_LOG_FUNCTION(this);
 
     //NS_LOG_UNCOND("Here I am ");
-    uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+   // uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
     float alpha=.75;
 
     uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
@@ -797,21 +797,21 @@ void ssUdpEchoClient::StartApplication() {
     //fprintf(fp_sleep_tracking,"%d,\n",BaseTopology::sleeping_nodes);
     fclose(fp_sleep_tracking);
 
-	FILE *fp_host_utilization;
+//	FILE *fp_host_utilization;
 
-	double time_now=Simulator::Now().ToDouble(Time::MS);
-	fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
-	fprintf(fp_host_utilization,"%f,",time_now);
-	for (uint32_t t=0;t<total_hosts_in_system;t++)
-	{
-		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
-		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
-		fprintf(fp_host_utilization,"%f,",BaseTopology::host_utilization_outgoing[t]);
-
-
-	}
-	fprintf(fp_host_utilization,"\n");
-	fclose(fp_host_utilization);
+	//double time_now=Simulator::Now().ToDouble(Time::MS);
+	//fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
+	//fprintf(fp_host_utilization,"%f,",time_now);
+//	for (uint32_t t=0;t<total_hosts_in_system;t++)
+//	{
+//		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
+//		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
+//		fprintf(fp_host_utilization,"%f,",BaseTopology::host_utilization_outgoing[t]);
+//
+//
+//	}
+//	fprintf(fp_host_utilization,"\n");
+	//fclose(fp_host_utilization);
 
     /********Uncomment it when function ReturnSomething is ready */
 if( simulationRunProperties::enableOptimizer)
@@ -859,7 +859,7 @@ if( simulationRunProperties::enableOptimizer)
 				uint32_t min_node;
 				for (uint32_t t=start;t<(start+SSD_PER_RACK);t++)
 				{
-					if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t] && BaseTopology::host_copy[t]==0) //make sure no duplicate assignment while assigning
+					if(BaseTopology::host_utilization_outgoing[t]<minimim_utilization && !BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][t] )//&& BaseTopology::host_copy[t]==0) //make sure no duplicate assignment while assigning
 						{
 							//minimim_utilization=Ipv4GlobalRouting::host_utilization[t];
 							minimim_utilization=BaseTopology::host_utilization_outgoing[t];
@@ -869,7 +869,7 @@ if( simulationRunProperties::enableOptimizer)
 				}
 				BaseTopology::host_copy[min_node]=1;
 				NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
-				BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node;
+				BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node; //crit
 				fprintf(fp_copy,"%c,%f,%d,%d,%d,%d,%d\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send,min_node);
 
 				uint32_t destination = min_node;
@@ -919,10 +919,10 @@ if( simulationRunProperties::enableOptimizer)
 			if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==0) //Added by Madhurima on Apr 17
 			{
 				uint32_t chunk_location = FindChunkAssignedHost(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src);
-				BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
 				BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][chunk_location] = false;
 			}//Added by Madhurima on Apr 17
 
+			//BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = (SSD_PER_RACK + 1) * BaseTopology::res[i].dest + 1;
             BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id] = true;
 
             //BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id = getHostInfoMadeBypolicy(BaseTopology::res[i].dest);
@@ -1111,9 +1111,10 @@ void ssUdpEchoClient::StopApplication(void) {
 				if(BaseTopology::p[pod].nodes[node].data[chunk_index].chunk_number == chunk_value)
 				{
 					if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum>bandwidth_distribution)
-						{BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
-						if (BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum<1)
-							BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum=0.0;
+						{
+							BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
+							if (BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum<1)
+								BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum=0.0;
 						}
 					else
 						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum=0.0;
@@ -1126,7 +1127,7 @@ void ssUdpEchoClient::StopApplication(void) {
 					{
 						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum = ceil(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum );
 					}
-					break;
+						break;
 				}
 			}
 
@@ -1141,21 +1142,21 @@ void ssUdpEchoClient::StopApplication(void) {
 				BaseTopology::p[i].Pod_utilization=BaseTopology::p[i].Pod_utilization+BaseTopology::p[i].nodes[j].utilization;
 			}
 		}
-		uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
+		//uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
 
-		FILE *fp_host_utilization;
-		double time_now=Simulator::Now().ToDouble(Time::MS);
-		fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
-		fprintf(fp_host_utilization,"%f,",time_now);
-		for (uint32_t t=0;t<total_hosts_in_system;t++)
-		{
-			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
-			fprintf(fp_host_utilization,"%f,",BaseTopology::host_utilization_outgoing[t]);
-			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
-
-		}
-		fprintf(fp_host_utilization,"\n");
-		fclose(fp_host_utilization);
+	//	FILE *fp_host_utilization;
+	//	double time_now=Simulator::Now().ToDouble(Time::MS);
+	//	fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
+	//	fprintf(fp_host_utilization,"%f,",time_now);
+//		for (uint32_t t=0;t<total_hosts_in_system;t++)
+//		{
+//			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
+//			fprintf(fp_host_utilization,"%f,",BaseTopology::host_utilization_outgoing[t]);
+//			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
+//
+//		}
+//		fprintf(fp_host_utilization,"\n");
+//		fclose(fp_host_utilization);
 
 if(simulationRunProperties::enableOptimizer)
 {
