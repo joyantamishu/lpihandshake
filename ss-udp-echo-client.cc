@@ -1113,20 +1113,20 @@ void ssUdpEchoClient::StopApplication(void) {
 					if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum>bandwidth_distribution)
 						{
 							BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum -= bandwidth_distribution;
-							if (BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum<1)
+							if (BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum<double(1))
 								BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum=0.0;
 						}
 					else
 						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum=0.0;
 
-					BaseTopology::p[pod].nodes[node].data[chunk_index].processed=0;
+						BaseTopology::p[pod].nodes[node].data[chunk_index].processed=0;
 
 
 
-					if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum < 0.0)
-					{
-						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum = ceil(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum );
-					}
+//					if(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum < 0.0)
+//					{
+//						BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum = ceil(BaseTopology::p[pod].nodes[node].data[chunk_index].intensity_sum );
+//					}
 						break;
 				}
 			}
