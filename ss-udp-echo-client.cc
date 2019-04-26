@@ -816,7 +816,7 @@ void ssUdpEchoClient::StartApplication() {
     /********Uncomment it when function ReturnSomething is ready */
 if( simulationRunProperties::enableOptimizer)
 {
-	BaseTopology::Incrcounter_++;
+	//BaseTopology::Incrcounter_++;
     if(BaseTopology::Incrcounter_%5==0)
     {
         //BaseTopology::Incrcounter_=0;

@@ -563,6 +563,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 					r++;
 				}
 		}
+		r=0;
 //this is for the incoming link to a node
 		for (int i=0;i<Ipv4GlobalRouting::FatTree_k;i++)
 			{

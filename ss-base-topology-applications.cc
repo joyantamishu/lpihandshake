@@ -335,8 +335,9 @@ void BaseTopology::InjectANewRandomFlow(bool dummy_application) {
 	fclose(fp_flow_duration);
 	///////////Chunk Specific Change/////////////
 	NS_LOG_UNCOND("=======The t_reqBW prev====== "<<t_reqBW);
-if(simulationRunProperties::uniformBursts)
-	t_reqBW = t_reqBW * BaseTopology::intensity_change_scale; //uncomment this part
+
+	if(simulationRunProperties::uniformBursts)
+		t_reqBW = t_reqBW * BaseTopology::intensity_change_scale; //uncomment this part
 
 
 
