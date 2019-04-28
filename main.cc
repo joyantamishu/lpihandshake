@@ -375,6 +375,8 @@ int main(int argc, char *argv[]) {
 
 	NS_LOG_UNCOND("Number of copy deleted "<<BaseTopology::copy_deleted);
 
+	NS_LOG_UNCOND("Number of copy moved "<<BaseTopology::copy_moved);
+
 	NS_LOG_UNCOND("Number of packets generated during phase1= "<<BaseTopology::pkt_sent_during_phase1<<" phase2 = "<<BaseTopology::pkt_sent_during_phase2<<" phase3 ="<<BaseTopology::pkt_sent_during_phase3);
 	NS_LOG_UNCOND("Number of packets generated during phase1= "<<BaseTopology::pkt_rcv_during_phase1<<" phase2 = "<<BaseTopology::pkt_rcv_during_phase2<<" phase3 ="<<BaseTopology::pkt_rcv_during_phase3);
 
