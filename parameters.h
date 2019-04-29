@@ -128,7 +128,7 @@
 
 #define DEFAULT_STORAGE_READ_TIME				25.0
 
-#define DEFAULT_STORAGE_WRITE_TIME				100.0
+#define DEFAULT_STORAGE_WRITE_TIME				75.0 //(since we are already adding 25us to all transaction whether R/W)
 
 #define DEFAULT_COPY_STRATEGY					true
 /**********************************************/

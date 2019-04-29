@@ -146,7 +146,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 	double commit_time;
 	//double base_commit_time;
 	//double sync_packet_transmission_time;
-	if(!packet->is_write && !packet->copy_creation_packet)
+	if(!packet->is_write && !packet->copy_creation_packet) //these are all read packets
 	{
 		uint32_t dest =  (uint32_t)(packet->srcNodeId -20);
 
@@ -180,16 +180,19 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 					NS_LOG_UNCOND("  ns3::BaseTopology::concurrency_tracker[key].commit_time "<< ns3::BaseTopology::concurrency_tracker[key].commit_time);
 					NS_LOG_UNCOND("  number_of_copies * (current_simulation_time + WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND) "<< (double)number_of_copies * (current_simulation_time + WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND));
 					NS_LOG_UNCOND("%%%%%%%%%%%%%%%%%%%%%%There is No Way to Escapee%%%%%%%%%%%%%%%%%%%%%%%%%%");
-					double total_delay_added = ((double)number_of_copies * (current_simulation_time + (double)WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND)) - ns3::BaseTopology::concurrency_tracker[key].commit_time;
+					double total_delay_added = ((double)number_of_copies * (current_simulation_time+(double)DEFAULT_STORAGE_WRITE_TIME+ (double)WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND)) - ns3::BaseTopology::concurrency_tracker[key].commit_time; //April 28
 					BaseTopology::sum_delay_ms += total_delay_added;
 					NS_LOG_UNCOND(total_delay_added);
 					NS_LOG_UNCOND("The version number is "<<packet->version);
 					ns3::BaseTopology::concurrency_tracker.erase(key);
 
+
+					BaseTopology::tail_latency+=((double)DEFAULT_STORAGE_WRITE_TIME+(double)WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND);//April 28
+
 				}
 				else
 				{
-					ns3::BaseTopology::concurrency_tracker[key].commit_time += current_simulation_time;
+					ns3::BaseTopology::concurrency_tracker[key].commit_time += (current_simulation_time+(double)DEFAULT_STORAGE_WRITE_TIME); //April 28
 				}
 
 //				current_simulation_time = Simulator::Now().ToDouble(Time::US);
@@ -223,7 +226,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 			else
 			{
 				current_simulation_time = Simulator::Now().ToDouble(Time::US);
-				commit_time = current_simulation_time + (double)DELTA_COMMIT_MICROSECOND;
+				commit_time = current_simulation_time + (double)DELTA_COMMIT_MICROSECOND+(double)DEFAULT_STORAGE_WRITE_TIME; //April 28
 				BaseTopology::sum_delay_ms +=DELTA_COMMIT_MICROSECOND;
 				TimeStampTracker tsmp = TimeStampTracker(current_simulation_time, commit_time, packet->srcNodeId -20);
 				ns3::BaseTopology::concurrency_tracker[key] = tsmp;
@@ -231,6 +234,11 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 
 			}
 		}
+		else // add the flat time if the transaction is write and the chunk does not have anymore copy - we have not added this before
+			{//April 28
+				BaseTopology::sum_delay_ms +=(double)DEFAULT_STORAGE_WRITE_TIME;
+				BaseTopology::tail_latency+=(double)DEFAULT_STORAGE_WRITE_TIME;
+			}
 
 
 
@@ -340,10 +348,11 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 				BaseTopology::sum_delay_ms += (current_simulation_time - packet->creation_time);
 
 
-				if(packet->is_write)
-					BaseTopology::sum_storage_delay+=DEFAULT_STORAGE_WRITE_TIME+100; //3 total access ; 1 random 2 sequential and then 100 microsec transfer time
-				else
-					BaseTopology::sum_storage_delay+=DEFAULT_STORAGE_READ_TIME+100; //3 total access ; 1 random 2 sequential and then 100 microsec transfer time
+			/*	if(packet->is_write)
+					BaseTopology::sum_delay_ms += DEFAULT_STORAGE_WRITE_TIME;*/
+					//BaseTopology::sum_storage_delay+=DEFAULT_STORAGE_WRITE_TIME+100; //3 total access ; 1 random 2 sequential and then 100 microsec transfer time
+				//else
+					//BaseTopology::sum_storage_delay+=DEFAULT_STORAGE_READ_TIME+100; //3 total access ; 1 random 2 sequential and then 100 microsec transfer time
 
 				BaseTopology::total_events_learnt++;
 
@@ -376,9 +385,12 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			if ((current_simulation_time - packet->creation_time)>BaseTopology::tail_latency)
 				{
 				    BaseTopology::write_flow_tail=false;
-					BaseTopology::tail_latency=(current_simulation_time - packet->creation_time);
-					if(packet->is_write)  BaseTopology::write_flow_tail =true;
-					else BaseTopology::write_flow_tail =false;
+				    BaseTopology::tail_latency=(current_simulation_time - packet->creation_time);
+					if(packet->is_write)
+						BaseTopology::write_flow_tail =true;
+					else
+						BaseTopology::write_flow_tail =false;
+
 				}
 
 
@@ -387,7 +399,6 @@ bool ssTOSPointToPointNetDevice::NetDeviceReceiveCallBack(
 			{
 				BaseTopology::totalWriteCount++;
 				BaseTopology::chnkCopy[packet->sub_flow_id].writeCount++;
-
 				if(BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id] < BaseTopology::chunk_version_tracker[packet->sub_flow_id])
 				{
 					BaseTopology::chunk_reference_version_tracker[packet->sub_flow_id] ++;
