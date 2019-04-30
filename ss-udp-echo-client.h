@@ -65,6 +65,19 @@ public:
 };
 
 
+class LocalCopyTracker{
+public:
+	uint32_t chunk_id;
+	uint32_t chunk_location;
+	double bandwidth_distribution;
+	LocalCopyTracker()
+	{
+		chunk_id = simulationRunProperties::total_chunk + 1;
+		chunk_location = -1;
+		bandwidth_distribution = 0.0;
+	}
+};
+
 // copied from UdpEchoClientHelper
 class ssUdpEchoClientHelper {
 public:
@@ -125,6 +138,8 @@ public:
 	bool no_packet_flow;
 
 	uint32_t read_flow_application_index;
+
+	LocalCopyTracker *local_copy_tracker;
 
 	/*********************************************/
 
