@@ -885,10 +885,28 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 					target_utilization=target_utilization+estimated_utlization;
 					BaseTopology::q[target_pod].nodes[target_node].utilization_out=BaseTopology::q[target_pod].nodes[target_node].utilization_out+estimated_utlization; //crtitical //unmark
 					BaseTopology::q[target_pod].Pod_utilization_out=BaseTopology::q[target_pod].Pod_utilization_out+estimated_utlization;//crtitical //unmark
-					uint32_t location=BaseTopology::chnkCopy[max_chunk_no].count;
+					//uint32_t location=BaseTopology::chnkCopy[max_chunk_no].count;
 					//if (BaseTopology::chunkTracker.at(BaseTopology::res[res_index].chunk_number).copy_vs_move==1)
 					 //if it is copy then we have to increase the number of copies, for the move we always update the current copy
-					BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
+					uint32_t location;
+					if (simulationRunProperties::enableCopy==1 || simulationRunProperties::enableCopy==2)
+					 //if it is copy then we have to increase the number of copies, for the move we always update the current copy
+					{
+						location=BaseTopology::chnkCopy[max_chunk_no].count;
+						BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
+
+					}
+					else
+					{
+						for(uint32_t s=0;s<BaseTopology::chnkCopy[max_chunk_no].count;s++)
+						{
+							if(BaseTopology::chnkCopy[max_chunk_no].exists[s]==BaseTopology::res[res_index].src)
+								{
+									location=s;
+									break;
+								}
+						}
+					}
 					BaseTopology::chnkCopy[max_chunk_no].exists[location]=((target_pod*Ipv4GlobalRouting::FatTree_k)+target_node);
 					//BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
 					BaseTopology::chnkCopy[max_chunk_no].last_created_timestamp_for_chunk=time_now; //this is actually last created or moved timestamp
@@ -1133,18 +1151,26 @@ for(int i =number_of_hosts-1 ; i>=0; i--)
 
 					//look for the src node in the chnkCopy and find the location and overwrite
 					uint32_t location;
-					for(uint32_t s=0;s<BaseTopology::chnkCopy[max_chunk_no].count;s++)
-					{
-						if(BaseTopology::chnkCopy[max_chunk_no].exists[s]==BaseTopology::res[res_index].src)
-							{
-								location=s;
-								break;
-							}
-					}
 
-					//if (BaseTopology::chunkTracker.at(BaseTopology::res[res_index].chunk_number).copy_vs_move==1)
+
+					if (simulationRunProperties::enableCopy==1)
 					 //if it is copy then we have to increase the number of copies, for the move we always update the current copy
-						//BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
+						{
+							location=BaseTopology::chnkCopy[max_chunk_no].count;
+							BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
+
+						}
+					else //if (simulationRunProperties::enableCopy==0 or 2)
+					{
+						for(uint32_t s=0;s<BaseTopology::chnkCopy[max_chunk_no].count;s++)
+						{
+							if(BaseTopology::chnkCopy[max_chunk_no].exists[s]==BaseTopology::res[res_index].src)
+								{
+									location=s;
+									break;
+								}
+						}
+					}
 
 					BaseTopology::chnkCopy[max_chunk_no].exists[location]=((target_pod*Ipv4GlobalRouting::FatTree_k)+target_node);
 					//BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
@@ -1816,7 +1842,6 @@ for(int i =number_of_hosts-1 ; i>=0; i--)
             			NS_LOG_UNCOND("source pod to move to "<<target_pod<<" source node to move to"<<target_pod);
             			BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
             			BaseTopology::res[res_index].src=(last_created_at_pod*Ipv4GlobalRouting::FatTree_k)+last_created_at_node;
-
             			BaseTopology::res[res_index].chunk_number=min_chunk_no;
             			res_index++;
             			processed_unit++;
