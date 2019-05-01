@@ -113,6 +113,8 @@ double simulationRunProperties::fraction_chunk_changes_popularity = DEFAULT_FRAC
 
 uint32_t simulationRunProperties::phrase_change_number = DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE;
 
+uint32_t simulationRunProperties::rw_phrase_change_number = DEFAULT_NUMBER_OF_RW_PHRASE_CHANGE;
+
 double simulationRunProperties::intensity_change_start_ms = DEFAULT_INTENSITY_CHANGE_START_TIME_MS;
 
 //int Ipv4GlobalRouting::totalchunk=simulationRunProperties::total_chunk;
@@ -121,6 +123,8 @@ bool simulationRunProperties::enableOptimizer = OPTIMIZER;
 bool simulationRunProperties::uniformBursts = UNIFORM_BURSTS;
 
 double simulationRunProperties::RWratio=READ_WRITE_RATIO;
+
+double simulationRunProperties::initial_RWratio = READ_WRITE_RATIO;
 
 int simulationRunProperties::enableCopy =DEFAULT_COPY_STRATEGY;
 /***********************************************/
@@ -370,6 +374,8 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 //	NS_LOG_UNCOND("The expected number of packet is "<<(int)expected_number_of_packet);
 
 	Ipv4GlobalRouting::highest_capacity_of_packets = (int) expected_number_of_packet;
+
+	simulationRunProperties::initial_RWratio = simulationRunProperties::RWratio;
 
 	#endif
 }

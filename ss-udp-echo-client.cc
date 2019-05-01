@@ -664,7 +664,7 @@ void ssUdpEchoClient::StartApplication() {
 
 	ChangeIntensity();
 
-	//ChangeRWRate();
+	ChangeRWRate();
 
 	destination_chunks = new uint32_t[ns3::BaseTopology::chunk_assignment_to_applications[application_index][0]];
 
@@ -930,24 +930,24 @@ void ssUdpEchoClient::StartApplication() {
 					//  NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
 					if(CHUNKSIZE==true)
 					{
-//						if(num_of_packets_to_send>ceil(float(simulationRunProperties::chunkSize)/simulationRunProperties::packetSize))
-//						{
-//							num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
-//							NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
-//
-//
-//						}
+						//						if(num_of_packets_to_send>ceil(float(simulationRunProperties::chunkSize)/simulationRunProperties::packetSize))
+						//						{
+						//							num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
+						//							NS_LOG_UNCOND("num_of_packets_to_send"<<num_of_packets_to_send);
+						//
+						//
+						//						}
 						uint64_t alpha_page_sharing =3;
 						double summation=0.0;
 						double z,q;
 						uint64_t page_count=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
 						uint64_t n_write=num_of_packets_to_send;
 						for(uint64_t i=1;i<=page_count;i++)
-							{
-								z=zipff(alpha_page_sharing,page_count,int(i));
-								q=(1-pow((1-z),n_write));
-								summation=summation+q;
-							}
+						{
+							z=zipff(alpha_page_sharing,page_count,int(i));
+							q=(1-pow((1-z),n_write));
+							summation=summation+q;
+						}
 
 					}
 					else
@@ -1106,12 +1106,12 @@ double ssUdpEchoClient::hs_sum(uint64_t n, uint64_t alpha){
 double ssUdpEchoClient::zipff(uint64_t alpha,uint64_t n,uint64_t x)
 {
 	uint64_t offset=0;
- 	double numerator=1.0;
- 	double denominator1 = hs_sum(n,alpha);
+	double numerator=1.0;
+	double denominator1 = hs_sum(n,alpha);
 	uint64_t y=int(x+offset);
- 	double denominator2=pow(y,alpha);
- 	double denominator=denominator1*denominator2;
- 	double expected_val=numerator/denominator;
+	double denominator2=pow(y,alpha);
+	double denominator=denominator1*denominator2;
+	double expected_val=numerator/denominator;
 	return expected_val;
 }
 
@@ -2082,8 +2082,27 @@ void ssUdpEchoClient::ChangeIntensity()
 }
 
 void ssUdpEchoClient::ChangeRWRate(){
-	if(Simulator::Now().ToDouble(Time::MS) > 3000)
-		simulationRunProperties::RWratio=(double)0.3;
+	//	if(Simulator::Now().ToDouble(Time::MS) > 3000)
+	//		simulationRunProperties::RWratio=(double)0.3;
+
+	if(BaseTopology::rw_total_phrase_changed >= simulationRunProperties::rw_phrase_change_number)
+	{
+		simulationRunProperties::RWratio = simulationRunProperties::initial_RWratio;
+		return;
+	}
+	if(Simulator::Now().ToDouble(Time::MS) > ns3::BaseTopology::rw_intensity_change_simulation_interval)
+	{
+		for(int i=0;i<=20;i++)
+		{
+			NS_LOG_UNCOND("^^^^^^^^^^^^^^^^^^^^");
+		}
+
+		simulationRunProperties::RWratio = BaseTopology::rw_phrase_change_intensity_value[BaseTopology::rw_total_phrase_changed];
+		ns3::BaseTopology::rw_intensity_change_simulation_interval += BaseTopology::rw_phrase_change_interval[BaseTopology::rw_total_phrase_changed];
+		BaseTopology::rw_total_phrase_changed++;
+
+
+	}
 }
 
 

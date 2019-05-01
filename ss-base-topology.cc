@@ -77,6 +77,28 @@ uint32_t BaseTopology::total_phrase_changed = 0;
 
 double BaseTopology::intensity_change_scale = 1.0;
 
+
+
+
+uint32_t BaseTopology::rw_phrase_change_counter = 0;
+
+uint32_t *BaseTopology::rw_phrase_change_interval;
+
+double *BaseTopology::rw_phrase_change_intensity_value;
+
+double BaseTopology::rw_intensity_change_simulation_interval = simulationRunProperties::intensity_change_start_ms;
+
+uint32_t BaseTopology::rw_total_phrase_changed = 0;
+
+double BaseTopology::rw_intensity_change_scale = 1.0;
+
+
+
+
+
+
+
+
 Pod* BaseTopology::p;
 
 Pod* BaseTopology::q;

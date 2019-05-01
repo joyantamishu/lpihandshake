@@ -450,6 +450,23 @@ public:
 
 	static double intensity_change_scale;
 
+
+	///////Change for read write ratio///////////
+
+	static uint32_t rw_phrase_change_counter;
+
+	static uint32_t *rw_phrase_change_interval;	  // what would be the next phrase change interval
+
+	static double *rw_phrase_change_intensity_value; // what would be the intensity at some specific point of time
+
+	static double rw_intensity_change_simulation_interval;
+
+	static uint32_t rw_total_phrase_changed;
+
+	static double rw_intensity_change_scale;
+
+
+
 	/**********************************************/
 
 	static int total_appication;

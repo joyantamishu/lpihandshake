@@ -676,6 +676,27 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 	//exit(0);
 
 
+	BaseTopology::rw_phrase_change_intensity_value = new double[simulationRunProperties::rw_phrase_change_number];
+	BaseTopology::rw_phrase_change_interval = new uint32_t[simulationRunProperties::rw_phrase_change_number];
+
+	BaseTopology::rw_phrase_change_intensity_value[0] = simulationRunProperties::RWratio;
+
+	BaseTopology::rw_phrase_change_intensity_value[1] = simulationRunProperties::RWratio;
+
+	BaseTopology::rw_phrase_change_intensity_value[2] = simulationRunProperties::RWratio;
+
+	BaseTopology::rw_phrase_change_intensity_value[3] = simulationRunProperties::RWratio;
+
+
+
+
+	BaseTopology::rw_phrase_change_interval[0] = 1000; //in ms
+
+	BaseTopology::rw_phrase_change_interval[1] = 1000;
+
+	BaseTopology::rw_phrase_change_interval[2] = 2000;
+
+	BaseTopology::rw_phrase_change_interval[3] = 100;
 
 
 	//BaseTopology::phrase_change_intersity_value[0] =

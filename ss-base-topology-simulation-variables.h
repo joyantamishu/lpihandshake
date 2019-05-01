@@ -141,6 +141,8 @@ public:
 
 	static uint32_t phrase_change_number;
 
+	static uint32_t rw_phrase_change_number;
+
 	static double intensity_change_start_ms;
 
 	static bool enableOptimizer;
@@ -148,6 +150,8 @@ public:
 	static bool uniformBursts;
 
 	static double RWratio;
+
+	static double initial_RWratio;
 
 	static int enableCopy;
 
