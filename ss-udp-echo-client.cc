@@ -227,7 +227,11 @@ ssUdpEchoClient::ssUdpEchoClient() {
 
 			for(uint32_t index=0;index<total_hosts ; index++)
 			{
-				if(BaseTopology::chunk_copy_node_tracker[it->chunk_no][index]) count++;
+				if(BaseTopology::chunk_copy_node_tracker[it->chunk_no][index])
+				{
+					count++;
+
+				}
 
 				if(count == rand_val)
 				{
@@ -261,6 +265,8 @@ ssUdpEchoClient::ssUdpEchoClient() {
 	read_flow = true;
 
 	no_packet_flow = false;
+
+	local_copy_tracker = new LocalCopyTracker[total_hosts/((SSD_PER_RACK + 1))];
 
 }
 
@@ -658,7 +664,10 @@ void ssUdpEchoClient::StartApplication() {
 
 	ChangeIntensity();
 
+	//ChangeRWRate();
+
 	destination_chunks = new uint32_t[ns3::BaseTopology::chunk_assignment_to_applications[application_index][0]];
+
 
 	for(uint32_t chunk_no=1;chunk_no<=ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];chunk_no++)
 	{
@@ -666,6 +675,8 @@ void ssUdpEchoClient::StartApplication() {
 		destination_chunks[chunk_no-1] = ns3::BaseTopology::virtual_to_absolute_mapper[virtual_chunk_number];
 	}
 	// NS_LOG_UNCOND("here I am 2");
+
+	uint32_t Chunk_Copy_Track_Counter = 0;
 
 	for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
 	{
@@ -678,6 +689,49 @@ void ssUdpEchoClient::StartApplication() {
 		double bandwidth_distribution = ns3::BaseTopology::chunk_assignment_probability_to_applications[application_index][i] * (double)m_flowRequiredBW;
 
 		Ipv4GlobalRouting::host_utilization[chunk_location] += bandwidth_distribution; //incase of write flow we have to add this
+
+		for(uint32_t index=0;index<total_hosts;index++)
+		{
+			if(BaseTopology::chunk_copy_node_tracker[chunk_value][index])
+			{
+				if (index != chunk_location)
+				{
+					local_copy_tracker[Chunk_Copy_Track_Counter].chunk_id = chunk_value;
+					local_copy_tracker[Chunk_Copy_Track_Counter].chunk_location = index;
+					local_copy_tracker[Chunk_Copy_Track_Counter].bandwidth_distribution = bandwidth_distribution;
+
+					Ipv4GlobalRouting::host_utilization[index] += bandwidth_distribution;
+
+
+
+
+					uint32_t copy_pod = (uint32_t) floor((double) index/ (double) total_hosts_in_pod);
+
+					uint32_t copy_node = ((index - 1)/(SSD_PER_RACK + 1)) % Ipv4GlobalRouting::FatTree_k;
+
+					// uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
+					// uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
+
+					BaseTopology::p[copy_pod].nodes[copy_node].utilization += bandwidth_distribution;
+
+
+
+					for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[copy_pod].nodes[copy_node].total_chunks;chunk_index++)
+					{
+
+						if(BaseTopology::p[copy_pod].nodes[copy_node].data[chunk_index].chunk_number == chunk_value)
+						{
+							BaseTopology::p[copy_pod].nodes[copy_node].data[chunk_index].intensity_sum += bandwidth_distribution;
+							BaseTopology::p[copy_pod].nodes[copy_node].data[chunk_index].processed=0;
+							break;
+						}
+					}
+
+
+					Chunk_Copy_Track_Counter++;
+				}
+			}
+		}
 
 		//NS_LOG_UNCOND("bandwidth_distribution ---from within the start application-------------------------------"<<bandwidth_distribution);
 
@@ -785,33 +839,7 @@ void ssUdpEchoClient::StartApplication() {
 
 	fp_sleep_tracking = fopen ("server_level_sleep.csv","a");
 
-	//    for (uint32_t t=0;t<total_hosts_in_system;t++)
-	//    {
-	//    	if(t%(SSD_PER_RACK+1)!=0)
-	//    	{
-	//    	if(Ipv4GlobalRouting::host_utilization[t]==0)
-	//    		BaseTopology::sleeping_nodes++;
-	//    	}
-	//    }
-	// NS_LOG_UNCOND("sleep count"<<BaseTopology::sleeping_nodes);
-	//fprintf(fp_sleep_tracking,"%d,\n",BaseTopology::sleeping_nodes);
 	fclose(fp_sleep_tracking);
-
-	//	FILE *fp_host_utilization;
-
-	//double time_now=Simulator::Now().ToDouble(Time::MS);
-	//fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
-	//fprintf(fp_host_utilization,"%f,",time_now);
-	//	for (uint32_t t=0;t<total_hosts_in_system;t++)
-	//	{
-	//		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
-	//		//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
-	//		fprintf(fp_host_utilization,"%f,",BaseTopology::host_utilization_outgoing[t]);
-	//
-	//
-	//	}
-	//	fprintf(fp_host_utilization,"\n");
-	//fclose(fp_host_utilization);
 
 	/********Uncomment it when function ReturnSomething is ready */
 	if( simulationRunProperties::enableOptimizer)
@@ -843,7 +871,8 @@ void ssUdpEchoClient::StartApplication() {
 				double minimim_utilization=99999;
 				uint32_t min_node;
 				//if we need to create a copy of the chunk then only increase the chunk number and else not
-				if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==1) //which means copy //Added by Madhurima on Apr 17
+				//if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==1) //which means copy //Added by Madhurima on Apr 17
+				if (BaseTopology::res[i].copy_vs_move==true)
 				{
 					BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy++;
 					BaseTopology::copy_created++;
@@ -936,7 +965,7 @@ void ssUdpEchoClient::StartApplication() {
 					// NS_LOG_UNCOND("BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number"<<BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number]);
 
 				}
-				if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==0) //Added by Madhurima on Apr 17
+				if (BaseTopology::res[i].copy_vs_move==false) //Added by Madhurima on Apr 17
 				{
 					uint32_t chunk_location = FindChunkAssignedHost(BaseTopology::res[i].chunk_number, BaseTopology::res[i].src);
 					BaseTopology::chunk_copy_node_tracker[BaseTopology::res[i].chunk_number][chunk_location] = false;
@@ -989,7 +1018,7 @@ void ssUdpEchoClient::StartApplication() {
 				}
 				//now if this is a move then we have to remove the copy from the last location
 
-				if (BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).copy_vs_move==0 && BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
+				if (BaseTopology::res[i].copy_vs_move==0 && BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
 				{
 
 					uint32_t node_name=BaseTopology::res[i].src%Ipv4GlobalRouting::FatTree_k;
@@ -1115,6 +1144,46 @@ void ssUdpEchoClient::StopApplication(void) {
 	if (!m_lastPacket && !consistency_flow && !read_flow) {
 		NS_LOG_UNCOND("Application index "<<application_index);
 
+
+
+
+		///reduce bandwidth when application has write access to chunk copies
+
+		for (uint32_t copy_index = 0; copy_index < (total_hosts/(SSD_PER_RACK + 1)); copy_index++)
+		{
+			if(local_copy_tracker[copy_index].chunk_id >= simulationRunProperties::total_chunk + 1) break;
+
+			else
+			{
+				uint32_t index = local_copy_tracker[copy_index].chunk_location;
+
+				Ipv4GlobalRouting::host_utilization[index] -= local_copy_tracker[copy_index].bandwidth_distribution;
+
+				uint32_t copy_pod = (uint32_t) floor((double) index/ (double) total_hosts_in_pod);
+
+				uint32_t copy_node = ((index - 1)/(SSD_PER_RACK + 1)) % Ipv4GlobalRouting::FatTree_k;
+
+				// uint32_t number_of_hosts = (uint32_t)(Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k * Ipv4GlobalRouting::FatTree_k)/ 4;
+				// uint32_t nodes_in_pod = number_of_hosts / Ipv4GlobalRouting::FatTree_k;
+
+				BaseTopology::p[copy_pod].nodes[copy_node].utilization -= local_copy_tracker[copy_index].bandwidth_distribution;
+
+
+
+				for(uint32_t chunk_index = 0 ;chunk_index < BaseTopology::p[copy_pod].nodes[copy_node].total_chunks;chunk_index++)
+				{
+
+					if(BaseTopology::p[copy_pod].nodes[copy_node].data[chunk_index].chunk_number == local_copy_tracker[copy_index].chunk_id)
+					{
+						BaseTopology::p[copy_pod].nodes[copy_node].data[chunk_index].intensity_sum -= local_copy_tracker[copy_index].bandwidth_distribution;
+						BaseTopology::p[copy_pod].nodes[copy_node].data[chunk_index].processed=0;
+						break;
+					}
+				}
+
+			}
+		}
+
 		for(uint32_t i=1 ; i<= ns3::BaseTopology::chunk_assignment_to_applications[application_index][0];i++)
 		{
 			//NS_LOG_UNCOND("Here We go");
@@ -1181,21 +1250,6 @@ void ssUdpEchoClient::StopApplication(void) {
 				BaseTopology::p[i].Pod_utilization=BaseTopology::p[i].Pod_utilization+BaseTopology::p[i].nodes[j].utilization;
 			}
 		}
-		//uint32_t total_hosts_in_system = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2) * simulationRunProperties::k;
-
-		//	FILE *fp_host_utilization;
-		//	double time_now=Simulator::Now().ToDouble(Time::MS);
-		//	fp_host_utilization = fopen ("host_utilization_madhurima.csv","a");
-		//	fprintf(fp_host_utilization,"%f,",time_now);
-		//		for (uint32_t t=0;t<total_hosts_in_system;t++)
-		//		{
-		//			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization[t]);
-		//			fprintf(fp_host_utilization,"%f,",BaseTopology::host_utilization_outgoing[t]);
-		//			//fprintf(fp_host_utilization,"%f,,",Ipv4GlobalRouting::host_utilization_smoothed[t]);
-		//
-		//		}
-		//		fprintf(fp_host_utilization,"\n");
-		//		fclose(fp_host_utilization);
 
 		if(simulationRunProperties::enableOptimizer)
 		{
@@ -1330,6 +1384,8 @@ void ssUdpEchoClient::StopApplication(void) {
 	}
 
 	local_chunkTracker.clear();
+
+	delete[] local_copy_tracker;
 
 	if(!this->consistency_flow && !read_flow)
 	{
@@ -2023,6 +2079,11 @@ void ssUdpEchoClient::ChangeIntensity()
 
 
 	}
+}
+
+void ssUdpEchoClient::ChangeRWRate(){
+	if(Simulator::Now().ToDouble(Time::MS) > 3000)
+		simulationRunProperties::RWratio=(double)0.3;
 }
 
 

@@ -261,6 +261,7 @@ typedef struct result{
 	uint32_t src;
 	uint32_t dest;
 	uint32_t chunk_number;
+	bool copy_vs_move;
 }Result;
 
 //Madhurima added on July 20th
@@ -295,12 +296,9 @@ public:
 		this->logical_node_id = logical_node_id;
 		this->version_number = 0;
 		this->number_of_copy = 0;
-		/*if(this->chunk_no%2==0)
-		this->copy_vs_move=0; //Added by Madhurima on Apr 17
-		else*/
-		if(simulationRunProperties::enableCopy)
+		if(simulationRunProperties::enableCopy==1)
 			this->copy_vs_move=1;
-		else
+		else if(simulationRunProperties::enableCopy==0)
 			this->copy_vs_move=0;
 	}
 };

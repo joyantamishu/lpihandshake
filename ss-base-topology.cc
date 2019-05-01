@@ -740,7 +740,7 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum_out>int(Count)*theta)
 							 //&& float(BaseTopology::chnkCopy[l].writeCount)/(BaseTopology::totalWriteCount)<0.008)
 							 //&& write_ratio<0.1)
-							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>10
+							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>7)
 							 //&&  BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number<20) //unmark
 	    		   	    	//&& BaseTopology::chnkCopy[l].writeCount/BaseTopology::chnkCopy[l].readCount<.3)
 		      	 		 {
@@ -877,18 +877,20 @@ double BaseTopology::getMinUtilizedServerInRack(uint32_t rack_id)
 			  		BaseTopology::res[res_index].src=(max_pod*Ipv4GlobalRouting::FatTree_k)+max_node_no;
 			  		BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
 			  		BaseTopology::res[res_index].chunk_number=max_chunk_no;
-
+					if(simulationRunProperties::enableCopy==0) //if we have to copy
+						BaseTopology::res[res_index].copy_vs_move=false;//if the flag is 0(move) then move
+					else
+						BaseTopology::res[res_index].copy_vs_move=true;//if the flag is 1(copy) or 2(dynamic) then copy
 
 					target_utilization=target_utilization+estimated_utlization;
 					BaseTopology::q[target_pod].nodes[target_node].utilization_out=BaseTopology::q[target_pod].nodes[target_node].utilization_out+estimated_utlization; //crtitical //unmark
 					BaseTopology::q[target_pod].Pod_utilization_out=BaseTopology::q[target_pod].Pod_utilization_out+estimated_utlization;//crtitical //unmark
 					uint32_t location=BaseTopology::chnkCopy[max_chunk_no].count;
-					if (BaseTopology::chunkTracker.at(BaseTopology::res[res_index].chunk_number).copy_vs_move==1)
+					//if (BaseTopology::chunkTracker.at(BaseTopology::res[res_index].chunk_number).copy_vs_move==1)
 					 //if it is copy then we have to increase the number of copies, for the move we always update the current copy
-						BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
-
+					BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
 					BaseTopology::chnkCopy[max_chunk_no].exists[location]=((target_pod*Ipv4GlobalRouting::FatTree_k)+target_node);
-					BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
+					//BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
 					BaseTopology::chnkCopy[max_chunk_no].last_created_timestamp_for_chunk=time_now; //this is actually last created or moved timestamp
 					BaseTopology::chnkCopy[max_chunk_no].highCopyCount=BaseTopology::chnkCopy[max_chunk_no].highCopyCount+1;
 
@@ -979,6 +981,7 @@ for(int i =number_of_hosts-1 ; i>=0; i--)
 							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].processed!=1
 							 && max_chunk_u<BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum //unmark
 							 && BaseTopology::q[max_pod].nodes[max_node_no].data[i].intensity_sum>int(Count)*theta)
+							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>6)
 							 //&& float(BaseTopology::chnkCopy[l].writeCount)/(BaseTopology::totalWriteCount)<0.008)
 							 //&& write_ratio<0.1)
 							 //&& BaseTopology::q[max_pod].nodes[max_node_no].data[i].chunk_number>10
@@ -1118,20 +1121,35 @@ for(int i =number_of_hosts-1 ; i>=0; i--)
 					BaseTopology::res[res_index].src=(max_pod*Ipv4GlobalRouting::FatTree_k)+max_node_no;
 					BaseTopology::res[res_index].dest=(target_pod*Ipv4GlobalRouting::FatTree_k)+target_node;
 					BaseTopology::res[res_index].chunk_number=max_chunk_no;
-
+					if(simulationRunProperties::enableCopy==1) //if we have to copy
+						BaseTopology::res[res_index].copy_vs_move=true; //if the flag is 1(copy) then copy
+					else
+						BaseTopology::res[res_index].copy_vs_move=false; //by default it will move i.e.if the flag is 0(move) or 2(dynamic) then move
 
 					target_utilization=target_utilization+estimated_utlization;
 					BaseTopology::q[target_pod].nodes[target_node].utilization=BaseTopology::q[target_pod].nodes[target_node].utilization+estimated_utlization; //crtitical //unmark
 					BaseTopology::q[target_pod].Pod_utilization=BaseTopology::q[target_pod].Pod_utilization+estimated_utlization;//crtitical //unmark
-					uint32_t location=BaseTopology::chnkCopy[max_chunk_no].count;
-					if (BaseTopology::chunkTracker.at(BaseTopology::res[res_index].chunk_number).copy_vs_move==1)
+					//uint32_t location=BaseTopology::chnkCopy[max_chunk_no].count;
+
+					//look for the src node in the chnkCopy and find the location and overwrite
+					uint32_t location;
+					for(uint32_t s=0;s<BaseTopology::chnkCopy[max_chunk_no].count;s++)
+					{
+						if(BaseTopology::chnkCopy[max_chunk_no].exists[s]==BaseTopology::res[res_index].src)
+							{
+								location=s;
+								break;
+							}
+					}
+
+					//if (BaseTopology::chunkTracker.at(BaseTopology::res[res_index].chunk_number).copy_vs_move==1)
 					 //if it is copy then we have to increase the number of copies, for the move we always update the current copy
-						BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
+						//BaseTopology::chnkCopy[max_chunk_no].count=BaseTopology::chnkCopy[max_chunk_no].count+1;
 
 					BaseTopology::chnkCopy[max_chunk_no].exists[location]=((target_pod*Ipv4GlobalRouting::FatTree_k)+target_node);
-					BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
+					//BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount=BaseTopology::q[max_pod].nodes[max_node_no].data[max_chunk_index].highCopyCount+1;
 					BaseTopology::chnkCopy[max_chunk_no].last_created_timestamp_for_chunk=time_now; //this is actually last created or moved timestamp
-					BaseTopology::chnkCopy[max_chunk_no].highCopyCount=BaseTopology::chnkCopy[max_chunk_no].highCopyCount+1;
+					//BaseTopology::chnkCopy[max_chunk_no].highCopyCount=BaseTopology::chnkCopy[max_chunk_no].highCopyCount+1;
 
 					//nodeN is the node for which we did increase
 					nodeOldUtilizationIn[nodeN].U=max_node_u; //repeated

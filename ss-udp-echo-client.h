@@ -65,6 +65,19 @@ public:
 };
 
 
+class LocalCopyTracker{
+public:
+	uint32_t chunk_id;
+	uint32_t chunk_location;
+	double bandwidth_distribution;
+	LocalCopyTracker()
+	{
+		chunk_id = simulationRunProperties::total_chunk + 1;
+		chunk_location = -1;
+		bandwidth_distribution = 0.0;
+	}
+};
+
 // copied from UdpEchoClientHelper
 class ssUdpEchoClientHelper {
 public:
@@ -113,6 +126,7 @@ public:
 	uint32_t distinct_items;
 	virtual void ChangePopularity();
 	virtual void ChangeIntensity();
+	virtual void ChangeRWRate();
 	virtual uint32_t FindChunkAssignedHost(uint32_t chunk_id, uint32_t rack_id);
 	//virtual void deleteCopyinformation(uint32_t chunk_id, uint32_t chunk_location_to, uint32_t chunk_location_from, uint32_t version);
 
@@ -125,6 +139,8 @@ public:
 	bool no_packet_flow;
 
 	uint32_t read_flow_application_index;
+
+	LocalCopyTracker *local_copy_tracker;
 
 	/*********************************************/
 

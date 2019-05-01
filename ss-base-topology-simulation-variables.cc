@@ -122,7 +122,7 @@ bool simulationRunProperties::uniformBursts = UNIFORM_BURSTS;
 
 double simulationRunProperties::RWratio=READ_WRITE_RATIO;
 
-bool simulationRunProperties::enableCopy =DEFAULT_COPY_STRATEGY;
+int simulationRunProperties::enableCopy =DEFAULT_COPY_STRATEGY;
 /***********************************************/
 
 
@@ -269,7 +269,7 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 				"Read write ratio (float)",
 				simulationRunProperties::RWratio);
 
-	cmd.AddValue("enableCopy", "chosse from either copy or move - true for copy and false for move",
+	cmd.AddValue("enableCopy", "choose from either copy(1) or move(0) or dynamic(2)",
 				simulationRunProperties::enableCopy);
 
 	cmd.Parse(argc, argv);

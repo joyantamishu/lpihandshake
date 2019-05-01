@@ -149,7 +149,7 @@ public:
 
 	static double RWratio;
 
-	static bool enableCopy;
+	static int enableCopy;
 
 	/**********************************************/
 

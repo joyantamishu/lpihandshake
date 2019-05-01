@@ -130,6 +130,6 @@
 
 #define DEFAULT_STORAGE_WRITE_TIME				75.0 //(since we are already adding 25us to all transaction whether R/W)
 
-#define DEFAULT_COPY_STRATEGY					true
+#define DEFAULT_COPY_STRATEGY					1   //(it can take three values 2-dynamic or self learned 0- move and 1 -copy)
 /**********************************************/
 #endif /* _PARAMETERS_H_ */
