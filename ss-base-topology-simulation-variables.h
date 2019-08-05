@@ -29,7 +29,7 @@
 
 #define LOCAL_COPY								false
 
-#define CHUNKSIZE								false
+#define CHUNKSIZE								true
 
 
 

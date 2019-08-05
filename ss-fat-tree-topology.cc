@@ -665,16 +665,23 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	//BaseTopology::phrase_change_intensity_value[5] = 1.0;
 
-
-
-
 	BaseTopology::phrase_change_interval[0] = 1000;//500; //in ms
 
 	BaseTopology::phrase_change_interval[1] = 1000;//500;
 
-	BaseTopology::phrase_change_interval[2] = 4000;//3000;
+	BaseTopology::phrase_change_interval[2] = 2000;//4000;//2000;//3000;
 
 	BaseTopology::phrase_change_interval[3] = 100;//3000;
+
+
+
+//	BaseTopology::phrase_change_interval[0] = 1000;//500; //in ms
+//
+//	BaseTopology::phrase_change_interval[1] = 1000;//500;
+//
+//	BaseTopology::phrase_change_interval[2] = 4000;//2000;//3000;
+//
+//	BaseTopology::phrase_change_interval[3] = 100;//3000;
 
 //	BaseTopology::phrase_change_interval[4] = 3000;
 
@@ -755,21 +762,20 @@ void FatTreeTopology::SetUpInitialOpmizationVariables()
 	}
 	for(uint32_t i = 0; i<number_of_hosts; i++)
 	{
-		uint32_t pod = (uint32_t) floor((double) i/ (double) Ipv4GlobalRouting::FatTree_k);
+		uint32_t pod = (uint32_t) floor(i/ nodes_in_pod);//(double) Ipv4GlobalRouting::FatTree_k);
+	//	NS_LOG_UNCOND("nodes_in_pod  "<<nodes_in_pod<<"  node "<<i<<" pod "<<pod);
 		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
 		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
 		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization_out=0.0;
 		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
 		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
 		BaseTopology::p[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
-
 		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].node_number = i;
 		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization=0.0;
 		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].utilization_out=0.0;
 		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].data = new Dchunk[simulationRunProperties::total_chunk];
 		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].total_chunks = 0;
 		BaseTopology::q[pod].nodes[i%Ipv4GlobalRouting::FatTree_k].max_capacity_left = 0.0;
-
 
 	}
 	for(uint32_t i = 0; i<simulationRunProperties::total_chunk; i++)
@@ -1022,6 +1028,7 @@ void FatTreeTopology::BuildInitialTopology(void) {
 			}
 		}
 	}
+
 #if COMPILE_CUSTOM_ROUTING_CODE
 	///////Added By Joyanta on 17th March to fix the k value of fat tree Ipv4GlobalRouting::FatTree_k
 #endif

@@ -234,7 +234,6 @@ typedef struct chunk{
   double runningAvg;
   double max_instant_utilization;
   uint32_t freq;
-  uint32_t primary_location;
   chunk() // @suppress("Class members should be properly initialized")
 	{
 		count = 0;
@@ -253,7 +252,6 @@ typedef struct chunk{
 		runningAvg=0.0;
 		freq=0;
 		max_instant_utilization=0.0;
-		primary_location=0;
 	}
 }chunkCopy;
 
@@ -553,8 +551,9 @@ public:
 
 	static uint32_t **distance_node;
 
+	//change for higher k
 
-
+	static uint32_t host_starting_index;
 
 protected:
 	virtual void DoDispose(void);

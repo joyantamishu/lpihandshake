@@ -377,5 +377,7 @@ void setStaticVariablesFromCommandLine(int argc, char *argv[]) {
 
 	simulationRunProperties::initial_RWratio = simulationRunProperties::RWratio;
 
+
+
 	#endif
 }

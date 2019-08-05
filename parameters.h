@@ -13,9 +13,9 @@
  * e.g: --run my-e-topology --k=8 --packetCount=50 ....etc....etc...(see main.cc for parameter names).
  */
 // k-fat-tree and applications
-#define Default_K							4
+#define Default_K							6
 #define DefaultPacketSize					1400
-#define DefaultChunkSize 					16384//65536//131072//8192////4096//32768//65536//131072
+#define DefaultChunkSize 					524288//131072//131072//8192////4096//32768//65536//16384
 #define DefaultProduct					    3650//2000
 #define DefaultParetoAlpha					3.5			// cannot be less than 2.0
 
@@ -95,12 +95,12 @@
 #define POLICY_NUMBER									3
 
 /******Chunk Specific Change *******************/
-#define DEFAULT_CHUNK_NUMBER						1500
+#define DEFAULT_CHUNK_NUMBER						6000
 #define DEFAULT_CHUNK_GENERATOR_CONSTANT				1
 #define READ_WRITE_RATIO						    .99
 #define DUMMY_READ_WRITE_RATIO						1.0
 
-#define DEFAULT_NUMBER_OF_APPLICATIONS				47
+#define DEFAULT_NUMBER_OF_APPLICATIONS				251
 
 #define DEFAULT_NUMBER_OF_DUMMY_APPLICATIONS		71
 
@@ -119,7 +119,7 @@
 
 #define DEFAULT_LOCAL_ACCESS_LATENCY				0 //100 microsecond
 
-#define SSD_PER_RACK								8
+#define SSD_PER_RACK								2
 
 #define CONSISTENCY_FLOW_DUARTION_CONSTANT			50
 

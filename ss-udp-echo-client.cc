@@ -100,6 +100,10 @@ Ptr<Application> ssUdpEchoClientHelper::InstallPriv(Ptr<Node> node, bool single_
 
 	NS_LOG_UNCOND("The source node is "<<source_node);
 
+//	NS_LOG_UNCOND("BaseTopology::host_starting_index "<<BaseTopology::host_starting_index);
+//
+//	NS_LOG_UNCOND("simulationRunProperties::k "<<simulationRunProperties::k);
+
 	app->node_index = source_node;
 
 	if(single_destination_flow || read_flow)
@@ -387,8 +391,8 @@ void ssUdpEchoClient::CreateandRemoveIndependentReadFlows(uint32_t distinct_host
 	int socket_index;
 
 	uint32_t total_hosts_in_pod = (SSD_PER_RACK + 1) * (simulationRunProperties::k/2) * (simulationRunProperties::k/2);
-
-	uint32_t destination  = GetNode()->GetId() - 20;
+	std::cout<<"total_hosts_in_pod "<<total_hosts_in_pod<<std::endl;
+	uint32_t destination  = GetNode()->GetId() - BaseTopology::host_starting_index;
 
 	for(uint32_t i=0;i<distinct_items;i++)
 	{
@@ -557,7 +561,7 @@ void ssUdpEchoClient::StartApplication() {
 			/*****Set Up independent read flow chunk access probability ***********/
 
 
-			uint32_t ssd_host = GetNode()->GetId() - 20;
+			uint32_t ssd_host = GetNode()->GetId() - BaseTopology::host_starting_index;
 
 			uint32_t count_host_chunk = 0;
 
@@ -924,7 +928,6 @@ void ssUdpEchoClient::StartApplication() {
 
 				uint32_t source = min_node;
 				uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][destination];
-				
 				fprintf(fp_copy,"%c,%f,%d,%d,%d,%d,%d\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send,destination);
 				
 				if(num_of_packets_to_send > 0)
@@ -951,6 +954,7 @@ void ssUdpEchoClient::StartApplication() {
 							q=(1-pow((1-z),n_write));
 							summation=summation+q;
 						}
+						num_of_packets_to_send=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
 
 					}
 					else
@@ -1566,6 +1570,8 @@ void ssUdpEchoClient::setFlowVariables(void) {
 
 void ssUdpEchoClient::Send(void) {
 
+
+
 	//NS_LOG_UNCOND("BaseTopology::chunkTracker.at(0).number_of_copy "<<BaseTopology::chunkTracker.at(0).number_of_copy);
 	NS_LOG_FUNCTION(this);
 
@@ -1948,7 +1954,7 @@ Ptr<Packet> ssUdpEchoClient::createPacket(const uint32_t &flowId,
 
 	if(t_p->sync_packet)
 	{
-		BaseTopology::transaction_rollback_write_tracker[t_p->sub_flow_dest][t_p->srcNodeId -20]++;
+		BaseTopology::transaction_rollback_write_tracker[t_p->sub_flow_dest][t_p->srcNodeId -BaseTopology::host_starting_index]++;
 	}
 
 	if(BaseTopology::total_phrase_changed == 3)

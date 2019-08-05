@@ -34,7 +34,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 
 	if(!packet->is_write && !packet->copy_creation_packet)
 	{
-		uint32_t dest =  (uint32_t)(packet->srcNodeId -20);
+		uint32_t dest =  (uint32_t)(packet->srcNodeId -BaseTopology::host_starting_index);
 
 		uint32_t src = packet->sub_flow_dest;
 
@@ -45,7 +45,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransaction(Ptr<const Packet
 	}
 	else if(packet->is_write)
 	{
-		uint32_t src = (uint32_t)(packet->srcNodeId -20);
+		uint32_t src = (uint32_t)(packet->srcNodeId -BaseTopology::host_starting_index);
 
 		uint32_t dest = packet->sub_flow_dest;
 
@@ -109,7 +109,7 @@ double ssTOSPointToPointNetDevice::GetSyncPacketTransmissionTime(uint32_t src_no
 
 
 
-	source_node1 = packet->srcNodeId - 20;
+	source_node1 = packet->srcNodeId - BaseTopology::host_starting_index;
 
 	source_node2 = first_received_node;
 
@@ -148,7 +148,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 	//double sync_packet_transmission_time;
 	if(!packet->is_write && !packet->copy_creation_packet) //these are all read packets
 	{
-		uint32_t dest =  (uint32_t)(packet->srcNodeId -20);
+		uint32_t dest =  (uint32_t)(packet->srcNodeId -BaseTopology::host_starting_index);
 
 		uint32_t src = packet->sub_flow_dest;
 
@@ -163,7 +163,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 
 		if(number_of_copies >= 1)
 		{
-			sprintf (concurrency_hash_entry, "%u %u %u", (uint32_t)(packet->srcNodeId -20),packet->sub_flow_id, packet->version);
+			sprintf (concurrency_hash_entry, "%u %u %u", (uint32_t)(packet->srcNodeId -BaseTopology::host_starting_index),packet->sub_flow_id, packet->version);
 
 			printf("^^^^^%s\n",concurrency_hash_entry);
 
@@ -225,7 +225,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 				current_simulation_time = Simulator::Now().ToDouble(Time::US);
 				commit_time = current_simulation_time + (double)DELTA_COMMIT_MICROSECOND+(double)DEFAULT_STORAGE_WRITE_TIME; //April 28
 				BaseTopology::sum_delay_ms +=DELTA_COMMIT_MICROSECOND;
-				TimeStampTracker tsmp = TimeStampTracker(current_simulation_time, commit_time, packet->srcNodeId -20);
+				TimeStampTracker tsmp = TimeStampTracker(current_simulation_time, commit_time, packet->srcNodeId -BaseTopology::host_starting_index);
 				ns3::BaseTopology::concurrency_tracker[key] = tsmp;
 				Ipv4GlobalRouting::flow_map.at(flow_id).delaysum += DELTA_COMMIT_MICROSECOND;
 
