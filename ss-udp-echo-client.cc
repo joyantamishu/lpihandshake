@@ -865,7 +865,7 @@ void ssUdpEchoClient::StartApplication() {
 			{
 				printf("++++++++++++++++++++++++++++\n");
 				NS_LOG_UNCOND(BaseTopology::res[i].chunk_number);
-				uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
+				//uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][BaseTopology::res[i].dest];
 				char p;
 				uint32_t start = (BaseTopology::res[i].dest * ( SSD_PER_RACK + 1)) + 1;
 				double minimim_utilization=99999;
@@ -908,7 +908,7 @@ void ssUdpEchoClient::StartApplication() {
 				BaseTopology::host_copy[min_node]=1;
 				NS_LOG_UNCOND("minimum node with least utilization inside the rack is :"<<min_node);
 				BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).logical_node_id =min_node; //crit
-				fprintf(fp_copy,"%c,%f,%d,%d,%d,%d,%d\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send,min_node);
+				//fprintf(fp_copy,"%c,%f,%d,%d,%d,%d,%d\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send,min_node);
 
 				uint32_t destination = min_node;
 				min_node=9999999;
@@ -923,7 +923,10 @@ void ssUdpEchoClient::StartApplication() {
 				}
 
 				uint32_t source = min_node;
-
+				uint32_t num_of_packets_to_send = BaseTopology::chunk_version_tracker[BaseTopology::res[i].chunk_number] - BaseTopology::chunk_version_node_tracker[BaseTopology::res[i].chunk_number][destination];
+				
+				fprintf(fp_copy,"%c,%f,%d,%d,%d,%d,%d\n",p,Simulator::Now().ToDouble(Time::MS),BaseTopology::res[i].chunk_number,BaseTopology::res[i].src,BaseTopology::res[i].dest,num_of_packets_to_send,destination);
+				
 				if(num_of_packets_to_send > 0)
 				{
 
@@ -937,7 +940,7 @@ void ssUdpEchoClient::StartApplication() {
 						//
 						//
 						//						}
-						uint64_t alpha_page_sharing =3;
+						uint64_t alpha_page_sharing=3;
 						double summation=0.0;
 						double z,q;
 						uint64_t page_count=ceil(simulationRunProperties::chunkSize/simulationRunProperties::packetSize);
@@ -1018,7 +1021,7 @@ void ssUdpEchoClient::StartApplication() {
 				}
 				//now if this is a move then we have to remove the copy from the last location
 
-				if (BaseTopology::res[i].copy_vs_move==0 && BaseTopology::chunkTracker.at(BaseTopology::res[i].chunk_number).number_of_copy > 0)
+				if (BaseTopology::res[i].copy_vs_move==0)
 				{
 
 					uint32_t node_name=BaseTopology::res[i].src%Ipv4GlobalRouting::FatTree_k;
@@ -2100,8 +2103,6 @@ void ssUdpEchoClient::ChangeRWRate(){
 		simulationRunProperties::RWratio = BaseTopology::rw_phrase_change_intensity_value[BaseTopology::rw_total_phrase_changed];
 		ns3::BaseTopology::rw_intensity_change_simulation_interval += BaseTopology::rw_phrase_change_interval[BaseTopology::rw_total_phrase_changed];
 		BaseTopology::rw_total_phrase_changed++;
-
-
 	}
 }
 

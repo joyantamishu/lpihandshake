@@ -15,7 +15,7 @@
 // k-fat-tree and applications
 #define Default_K							4
 #define DefaultPacketSize					1400
-#define DefaultChunkSize 					65536//131072//8192//16384//4096//32768//65536//131072
+#define DefaultChunkSize 					16384//65536//131072//8192////4096//32768//65536//131072
 #define DefaultProduct					    3650//2000
 #define DefaultParetoAlpha					3.5			// cannot be less than 2.0
 
@@ -112,7 +112,7 @@
 
 #define DEFAULT_INTENSITY_CHANGE_START_TIME_MS		80.0
 
-#define DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE	4
+#define DEFAULT_NUMBER_OF_INTENSITY_PHRASE_CHANGE	4//6
 
 
 #define DEFAULT_NUMBER_OF_RW_PHRASE_CHANGE			4

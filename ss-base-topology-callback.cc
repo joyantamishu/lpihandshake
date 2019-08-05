@@ -185,10 +185,7 @@ void ssTOSPointToPointNetDevice::ManageOppurtunisticTransactionv2(Ptr<const Pack
 					NS_LOG_UNCOND(total_delay_added);
 					NS_LOG_UNCOND("The version number is "<<packet->version);
 					ns3::BaseTopology::concurrency_tracker.erase(key);
-
-
-					BaseTopology::tail_latency+=((double)DEFAULT_STORAGE_WRITE_TIME+(double)WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND);//April 28
-
+					//BaseTopology::tail_latency+=((double)DEFAULT_STORAGE_WRITE_TIME+(double)WORST_CASE_SYNC_PACKET_TRAVEL_TIME_MICROSECOND);//April 28
 				}
 				else
 				{

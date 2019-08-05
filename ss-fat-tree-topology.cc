@@ -661,16 +661,24 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::phrase_change_intensity_value[3] = 1.0;
 
+	//BaseTopology::phrase_change_intensity_value[4] = 1.5;
+
+	//BaseTopology::phrase_change_intensity_value[5] = 1.0;
 
 
 
-	BaseTopology::phrase_change_interval[0] = 1000; //in ms
 
-	BaseTopology::phrase_change_interval[1] = 1000;
+	BaseTopology::phrase_change_interval[0] = 1000;//500; //in ms
 
-	BaseTopology::phrase_change_interval[2] = 2000;
+	BaseTopology::phrase_change_interval[1] = 1000;//500;
 
-	BaseTopology::phrase_change_interval[3] = 100;
+	BaseTopology::phrase_change_interval[2] = 4000;//3000;
+
+	BaseTopology::phrase_change_interval[3] = 100;//3000;
+
+//	BaseTopology::phrase_change_interval[4] = 3000;
+
+//	BaseTopology::phrase_change_interval[5] = 100;
 
 
 	//exit(0);
@@ -681,18 +689,18 @@ void FatTreeTopology::SetUpIntensityPhraseChangeVariables()
 
 	BaseTopology::rw_phrase_change_intensity_value[0] = simulationRunProperties::RWratio;
 
-	BaseTopology::rw_phrase_change_intensity_value[1] = simulationRunProperties::RWratio;
+	BaseTopology::rw_phrase_change_intensity_value[1] = simulationRunProperties::RWratio;//.2
 
-	BaseTopology::rw_phrase_change_intensity_value[2] = simulationRunProperties::RWratio;
+	BaseTopology::rw_phrase_change_intensity_value[2] = simulationRunProperties::RWratio;//.2
 
-	BaseTopology::rw_phrase_change_intensity_value[3] = simulationRunProperties::RWratio;
-
-
+	BaseTopology::rw_phrase_change_intensity_value[3] = simulationRunProperties::RWratio;//.2
 
 
-	BaseTopology::rw_phrase_change_interval[0] = 1000; //in ms
 
-	BaseTopology::rw_phrase_change_interval[1] = 1000;
+
+	BaseTopology::rw_phrase_change_interval[0] = 5500; //in ms
+
+	BaseTopology::rw_phrase_change_interval[1] = 4500;
 
 	BaseTopology::rw_phrase_change_interval[2] = 2000;
 
